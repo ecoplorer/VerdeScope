@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resources — VerdeScope</title>
+  <meta name="description" content="VerdeScope Academy, Regulation Centre, GHG Glossary, Whitepapers, and Carbon Market tools for Nigeria upstream operators. Everything you need to understand NUPRC UPDT, GHG Protocol, and Nigeria's carbon market." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link  rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#0D1A12', forest: '#1A3D24', pine: '#235930',
+            verde:    '#2E7D45', sage:   '#4CAF6F', mist: '#A8D5B5',
+            fog:      '#E8F5ED', parchment: '#F4F1EB', ivory: '#FDFCF9',
+            gold:     '#B8962E', goldlight: '#D4AE50', goldpale: '#F5E9C4',
+            slate:    '#2A3040', steel: '#4A5568', ash: '#8A9BB0', cloud: '#D4DCE8',
+          },
+          fontFamily: {
+            display: ['Cormorant Garamond','Georgia','serif'],
+            sans:    ['Outfit','sans-serif'],
+            mono:    ['DM Mono','monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    *{box-sizing:border-box;}
+    body{font-family:'Outfit',sans-serif;background-color:#0D1A12;color:#FDFCF9;overflow-x:hidden;}
+    .grid-texture{background-image:linear-gradient(rgba(46,125,69,.04)1px,transparent 1px),linear-gradient(90deg,rgba(46,125,69,.04)1px,transparent 1px);background-size:48px 48px;}
+    .glow-green{background:radial-gradient(ellipse at center,rgba(46,125,69,.18)0%,transparent 65%);}
+    .glow-gold{background:radial-gradient(ellipse at center,rgba(184,150,46,.14)0%,transparent 65%);}
+    .grain::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.4;}
+
+    /* Nav */
+    .nav-dropdown{display:none;} .nav-item:hover .nav-dropdown{display:block;}
+    #mobile-menu{display:none;} #mobile-menu.open{display:block;}
+
+    /* Buttons */
+    .btn-primary{background:#2E7D45;color:#FDFCF9;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:13px 28px;transition:all .25s;border:1px solid transparent;display:inline-flex;align-items:center;gap:8px;}
+    .btn-primary:hover{background:#235930;transform:translateY(-1px);box-shadow:0 8px 28px rgba(46,125,69,.35);}
+    .btn-outline{background:transparent;color:#4CAF6F;border:1px solid #2E7D45;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:12px 28px;transition:all .25s;display:inline-flex;align-items:center;gap:8px;}
+    .btn-outline:hover{background:rgba(46,125,69,.12);border-color:#4CAF6F;}
+    .btn-gold{background:#B8962E;color:#0D1A12;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:13px 28px;transition:all .25s;display:inline-flex;align-items:center;gap:8px;}
+    .btn-gold:hover{background:#D4AE50;transform:translateY(-1px);box-shadow:0 8px 28px rgba(184,150,46,.35);}
+
+    /* Tags */
+    .tag-green{background:rgba(46,125,69,.15);color:#4CAF6F;border:1px solid rgba(46,125,69,.3);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:3px 12px;}
+    .tag-gold{background:rgba(184,150,46,.12);color:#D4AE50;border:1px solid rgba(184,150,46,.25);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:3px 12px;}
+    .tag-neutral{background:rgba(255,255,255,.04);color:#8A9BB0;border:1px solid rgba(255,255,255,.08);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:3px 12px;}
+    .tag-red{background:rgba(231,76,60,.12);color:#E74C3C;border:1px solid rgba(231,76,60,.25);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:3px 12px;}
+    .tag-blue{background:rgba(52,152,219,.12);color:#5DADE2;border:1px solid rgba(52,152,219,.25);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:3px 12px;}
+
+    /* Resource hub tabs */
+    .hub-tab{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:12px 20px;color:#8A9BB0;border-bottom:2px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;}
+    .hub-tab:hover{color:#4CAF6F;}
+    .hub-tab.active{color:#4CAF6F;border-bottom-color:#4CAF6F;}
+    .hub-panel{display:none;} .hub-panel.active{display:block;}
+
+    /* Article card */
+    .article-card{background:rgba(255,255,255,.02);border:1px solid rgba(46,125,69,.12);transition:all .3s;overflow:hidden;}
+    .article-card:hover{background:rgba(46,125,69,.06);border-color:rgba(46,125,69,.4);transform:translateY(-3px);box-shadow:0 20px 50px rgba(0,0,0,.3);}
+    .article-card-img{width:100%;height:140px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+
+    /* Regulation card */
+    .reg-card{background:rgba(255,255,255,.02);border:1px solid rgba(46,125,69,.12);padding:24px;transition:all .3s;}
+    .reg-card:hover{background:rgba(46,125,69,.05);border-color:rgba(46,125,69,.4);transform:translateY(-2px);}
+    .reg-card.urgent{border-color:rgba(212,174,80,.3);}
+    .reg-card.urgent:hover{border-color:rgba(212,174,80,.6);}
+
+    /* Glossary */
+    .glossary-letter{font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;color:rgba(46,125,69,.2);line-height:1;flex-shrink:0;width:48px;}
+    .glossary-item{border-bottom:1px solid rgba(255,255,255,.05);padding:16px 0;}
+    .glossary-item:last-child{border-bottom:none;}
+    .glossary-term{font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;color:#FDFCF9;cursor:pointer;transition:color .2s;}
+    .glossary-term:hover{color:#4CAF6F;}
+    .glossary-def{font-family:'Outfit',sans-serif;font-size:13px;font-weight:300;color:#8A9BB0;line-height:1.65;max-height:0;overflow:hidden;transition:max-height .4s ease,opacity .3s;}
+    .glossary-def.open{max-height:200px;opacity:1;}
+    .glossary-def.closed{opacity:0;}
+
+    /* Whitepaper card */
+    .wp-card{background:rgba(255,255,255,.02);border:1px solid rgba(46,125,69,.12);padding:28px;transition:all .3s;}
+    .wp-card:hover{border-color:rgba(46,125,69,.4);transform:translateY(-3px);}
+
+    /* Course card */
+    .course-card{background:rgba(255,255,255,.02);border:1px solid rgba(46,125,69,.12);overflow:hidden;transition:all .3s;}
+    .course-card:hover{border-color:rgba(46,125,69,.4);transform:translateY(-3px);box-shadow:0 20px 50px rgba(0,0,0,.3);}
+
+    /* Search box */
+    .search-input{background:rgba(26,61,36,.5);border:1px solid rgba(46,125,69,.25);color:#FDFCF9;font-family:'Outfit',sans-serif;font-size:14px;padding:14px 20px 14px 48px;width:100%;transition:border-color .2s;}
+    .search-input:focus{outline:none;border-color:#4CAF6F;}
+    .search-input::placeholder{color:#4A5568;}
+
+    /* Carbon calc */
+    .calc-input{background:rgba(26,61,36,.5);border:1px solid rgba(46,125,69,.2);color:#FDFCF9;font-family:'DM Mono',monospace;font-size:14px;padding:10px 14px;width:100%;transition:border-color .2s;}
+    .calc-input:focus{outline:none;border-color:#4CAF6F;}
+    .calc-result{font-family:'DM Mono',monospace;font-size:36px;font-weight:300;color:#4CAF6F;line-height:1;}
+
+    /* Scrollbar */
+    ::-webkit-scrollbar{width:6px;} ::-webkit-scrollbar-track{background:#0D1A12;} ::-webkit-scrollbar-thumb{background:#235930;border-radius:3px;}
+  </style>
+</head>
+
+<body class="grain">
+
+<!-- ════════════════════════════ NAV ══ -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50">
+  <div class="border-b border-verde border-opacity-20 bg-obsidian bg-opacity-95 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-3 flex-shrink-0">
+        <svg width="34" height="34" viewBox="0 0 56 56" fill="none">
+          <circle cx="28" cy="28" r="26" stroke="#2E7D45" stroke-width=".75" fill="none" opacity=".3"/>
+          <circle cx="28" cy="28" r="18" stroke="#4CAF6F" stroke-width="1.5" fill="none"/>
+          <line x1="28" y1="10" x2="28" y2="46" stroke="#2E7D45" stroke-width=".75" opacity=".4"/>
+          <line x1="10" y1="28" x2="46" y2="28" stroke="#2E7D45" stroke-width=".75" opacity=".4"/>
+          <circle cx="28" cy="28" r="3" fill="#4CAF6F"/>
+          <path d="M28 10 C34 14,44 20,44 28 C44 28,36 22,28 10Z" fill="#2E7D45" opacity=".8"/>
+          <line x1="38" y1="8" x2="42" y2="14" stroke="#B8962E" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="28" y1="2" x2="28" y2="7"  stroke="#4CAF6F" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="54" y1="28" x2="49" y2="28" stroke="#4CAF6F" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="font-display text-2xl"><span class="text-ivory">Verde</span><span class="text-goldlight">Scope</span></span>
+      </a>
+      <div class="hidden lg:flex items-center gap-1">
+        <div class="nav-item relative">
+          <button class="flex items-center gap-1.5 px-4 py-2 text-ash hover:text-ivory font-sans text-sm font-medium tracking-wide transition-colors">Platform <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>
+          <div class="nav-dropdown absolute top-full left-0 pt-2 w-64 z-50">
+            <div class="bg-forest border border-verde border-opacity-25 shadow-2xl p-2">
+              <a href="platform.html"         class="flex items-start gap-3 p-3 hover:bg-verde hover:bg-opacity-10 transition-colors group"><div class="mt-0.5 text-sage"><i data-lucide="gauge" class="w-4 h-4"></i></div><div><div class="text-sm font-semibold text-ivory group-hover:text-sage">Platform Overview</div><div class="text-xs text-ash mt-0.5">Full feature walkthrough</div></div></a>
+              <a href="app/emissions.html"    class="flex items-start gap-3 p-3 hover:bg-verde hover:bg-opacity-10 transition-colors group"><div class="mt-0.5 text-sage"><i data-lucide="calculator" class="w-4 h-4"></i></div><div><div class="text-sm font-semibold text-ivory group-hover:text-sage">Emissions Calculator</div><div class="text-xs text-ash mt-0.5">IPCC Tier 1/2/3 engine</div></div></a>
+              <a href="app/ldar.html"         class="flex items-start gap-3 p-3 hover:bg-verde hover:bg-opacity-10 transition-colors group"><div class="mt-0.5 text-sage"><i data-lucide="search" class="w-4 h-4"></i></div><div><div class="text-sm font-semibold text-ivory group-hover:text-sage">LDAR Manager</div><div class="text-xs text-ash mt-0.5">Leak detection & repair</div></div></a>
+              <a href="app/carbon-market.html"class="flex items-start gap-3 p-3 hover:bg-verde hover:bg-opacity-10 transition-colors group"><div class="mt-0.5 text-goldlight"><i data-lucide="trending-up" class="w-4 h-4"></i></div><div><div class="text-sm font-semibold text-ivory group-hover:text-goldlight">Carbon Market</div><div class="text-xs text-ash mt-0.5">VCM & Article 6</div></div></a>
+            </div>
+          </div>
+        </div>
+        <div class="nav-item relative">
+          <button class="flex items-center gap-1.5 px-4 py-2 text-ash hover:text-ivory font-sans text-sm font-medium tracking-wide transition-colors">Services <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>
+          <div class="nav-dropdown absolute top-full left-0 pt-2 w-56 z-50">
+            <div class="bg-forest border border-verde border-opacity-25 shadow-2xl p-2">
+              <a href="services.html#essentials" class="block p-3 hover:bg-verde hover:bg-opacity-10 text-sm text-ivory transition-colors">Essentials</a>
+              <a href="services.html#pro"        class="block p-3 hover:bg-verde hover:bg-opacity-10 text-sm text-ivory transition-colors">Pro</a>
+              <a href="services.html#enterprise" class="block p-3 hover:bg-verde hover:bg-opacity-10 text-sm text-ivory transition-colors">Enterprise</a>
+            </div>
+          </div>
+        </div>
+        <a href="about.html"     class="px-4 py-2 text-ash hover:text-ivory font-sans text-sm font-medium tracking-wide transition-colors">About Us</a>
+        <a href="resources.html" class="px-4 py-2 text-ivory font-sans text-sm font-semibold tracking-wide border-b-2 border-sage">Resources</a>
+      </div>
+      <div class="hidden lg:flex items-center gap-3">
+        <a href="login.html" class="px-4 py-2 text-ash hover:text-ivory font-sans text-sm font-medium transition-colors">Log In</a>
+        <a href="demo.html"  class="btn-primary">Request Demo <i data-lucide="arrow-right" class="w-4 h-4"></i></a>
+      </div>
+      <button id="mob-btn" class="lg:hidden text-ash hover:text-ivory p-2" onclick="toggleMob()">
+        <i data-lucide="menu" class="w-6 h-6" id="mob-icon"></i>
+      </button>
+    </div>
+  </div>
+  <div id="mobile-menu" class="lg:hidden bg-forest border-b border-verde border-opacity-20">
+    <div class="px-6 py-4 space-y-1">
+      <a href="platform.html" class="block px-3 py-2.5 text-ash hover:text-ivory text-sm">Platform</a>
+      <a href="services.html" class="block px-3 py-2.5 text-ash hover:text-ivory text-sm">Services</a>
+      <a href="about.html"    class="block px-3 py-2.5 text-ash hover:text-ivory text-sm">About Us</a>
+      <a href="resources.html"class="block px-3 py-2.5 text-sage font-semibold text-sm">Resources</a>
+      <div class="border-t border-verde border-opacity-20 pt-3 mt-3 flex flex-col gap-2">
+        <a href="login.html" class="btn-outline justify-center">Log In</a>
+        <a href="demo.html"  class="btn-primary  justify-center">Request Demo</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+<!-- ════════════════════════════ HERO ══ -->
+<section class="relative pt-28 pb-16 px-6 overflow-hidden grid-texture">
+  <div class="absolute top-0 right-0 w-[600px] h-[600px] glow-green pointer-events-none opacity-40"></div>
+  <div class="max-w-7xl mx-auto relative z-10">
+    <div class="flex items-center gap-3 mb-5" data-aos="fade-up">
+      <a href="index.html" class="font-mono text-xs text-steel tracking-widest uppercase hover:text-ash transition-colors">Home</a>
+      <span class="text-steel">/</span>
+      <span class="font-mono text-xs text-sage tracking-widest uppercase">Resources</span>
+    </div>
+    <div class="max-w-3xl">
+      <div class="flex items-center gap-3 mb-5" data-aos="fade-up" data-aos-delay="60">
+        <div class="w-8 h-px bg-sage"></div>
+        <span class="font-mono text-xs tracking-widest text-sage uppercase">Knowledge Hub</span>
+      </div>
+      <h1 class="font-display font-light text-5xl lg:text-7xl text-ivory leading-tight mb-5" data-aos="fade-up" data-aos-delay="110">
+        Everything you need<br/>to understand<br/><em class="text-goldlight">Nigeria's GHG landscape.</em>
+      </h1>
+      <p class="font-sans text-lg text-ash font-light leading-relaxed mb-8" data-aos="fade-up" data-aos-delay="170">
+        Academy articles, regulation explainers, GHG glossary, technical whitepapers, online courses, and live carbon calculators — all built specifically for Nigeria's upstream oil and gas sector. No generic ESG content. Every resource maps to a real NUPRC compliance obligation.
+      </p>
+      <!-- Search bar -->
+      <div class="relative max-w-xl" data-aos="fade-up" data-aos-delay="220">
+        <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-steel pointer-events-none"></i>
+        <input id="global-search" type="text" placeholder="Search UPDT, methane, LDAR, carbon credits, ISO 14064…"
+          class="search-input" oninput="filterSearch(this.value)" />
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════ HUB QUICK-LINKS ══ -->
+<section class="px-6 pb-12">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <a href="#academy" onclick="activateHub('academy',this)" class="border border-verde border-opacity-20 p-5 text-center hover:border-opacity-50 hover:bg-verde hover:bg-opacity-5 transition-all group" data-aos="fade-up" data-aos-delay="0">
+        <i data-lucide="book-open" class="w-6 h-6 text-sage mx-auto mb-3 group-hover:scale-110 transition-transform"></i>
+        <div class="font-sans text-xs font-semibold text-ivory mb-1">Academy</div>
+        <div class="font-mono text-xs text-steel">Articles & Guides</div>
+      </a>
+      <a href="#regulations" onclick="activateHub('regulations',this)" class="border border-verde border-opacity-20 p-5 text-center hover:border-opacity-50 hover:bg-verde hover:bg-opacity-5 transition-all group" data-aos="fade-up" data-aos-delay="60">
+        <i data-lucide="file-check" class="w-6 h-6 text-sage mx-auto mb-3 group-hover:scale-110 transition-transform"></i>
+        <div class="font-sans text-xs font-semibold text-ivory mb-1">Regulation Centre</div>
+        <div class="font-mono text-xs text-steel">NUPRC, PIA, NDC</div>
+      </a>
+      <a href="#glossary" onclick="activateHub('glossary',this)" class="border border-verde border-opacity-20 p-5 text-center hover:border-opacity-50 hover:bg-verde hover:bg-opacity-5 transition-all group" data-aos="fade-up" data-aos-delay="120">
+        <i data-lucide="hash" class="w-6 h-6 text-sage mx-auto mb-3 group-hover:scale-110 transition-transform"></i>
+        <div class="font-sans text-xs font-semibold text-ivory mb-1">Glossary</div>
+        <div class="font-mono text-xs text-steel">GHG & Carbon Terms</div>
+      </a>
+      <a href="#whitepapers" onclick="activateHub('whitepapers',this)" class="border border-verde border-opacity-20 p-5 text-center hover:border-opacity-50 hover:bg-verde hover:bg-opacity-5 transition-all group" data-aos="fade-up" data-aos-delay="180">
+        <i data-lucide="file-text" class="w-6 h-6 text-sage mx-auto mb-3 group-hover:scale-110 transition-transform"></i>
+        <div class="font-sans text-xs font-semibold text-ivory mb-1">Whitepapers</div>
+        <div class="font-mono text-xs text-steel">Technical Reports</div>
+      </a>
+      <a href="#courses" onclick="activateHub('courses',this)" class="border border-verde border-opacity-20 p-5 text-center hover:border-opacity-50 hover:bg-verde hover:bg-opacity-5 transition-all group" data-aos="fade-up" data-aos-delay="240">
+        <i data-lucide="graduation-cap" class="w-6 h-6 text-goldlight mx-auto mb-3 group-hover:scale-110 transition-transform"></i>
+        <div class="font-sans text-xs font-semibold text-ivory mb-1">Courses</div>
+        <div class="font-mono text-xs text-steel">VerdeScope Academy</div>
+      </a>
+      <a href="#calculator" onclick="activateHub('calculator',this)" class="border border-goldlight border-opacity-20 p-5 text-center hover:border-opacity-50 hover:bg-gold hover:bg-opacity-5 transition-all group" data-aos="fade-up" data-aos-delay="300">
+        <i data-lucide="calculator" class="w-6 h-6 text-goldlight mx-auto mb-3 group-hover:scale-110 transition-transform"></i>
+        <div class="font-sans text-xs font-semibold text-ivory mb-1">Carbon Calculator</div>
+        <div class="font-mono text-xs text-steel">Quick Emissions Tool</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════ STICKY TABS ══ -->
+<div class="sticky top-[73px] z-40 bg-obsidian bg-opacity-95 backdrop-blur-md border-b border-verde border-opacity-20">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex overflow-x-auto" id="hub-tabs">
+      <button class="hub-tab active" onclick="showHub('academy',this)">Academy</button>
+      <button class="hub-tab"        onclick="showHub('regulations',this)">Regulation Centre</button>
+      <button class="hub-tab"        onclick="showHub('glossary',this)">Glossary</button>
+      <button class="hub-tab"        onclick="showHub('whitepapers',this)">Whitepapers</button>
+      <button class="hub-tab"        onclick="showHub('courses',this)">Courses</button>
+      <button class="hub-tab"        onclick="showHub('calculator',this)">Carbon Calculator</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════ HUB PANELS ══ -->
+<div class="max-w-7xl mx-auto px-6 py-16" id="hub-container">
+
+
+  <!-- ══ ACADEMY ══ -->
+  <div class="hub-panel active" id="panel-academy">
+
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+      <div>
+        <div class="flex items-center gap-3 mb-3" data-aos="fade-up">
+          <div class="w-8 h-px bg-sage"></div>
+          <span class="font-mono text-xs tracking-widest text-sage uppercase">Academy</span>
+        </div>
+        <h2 class="font-display font-light text-4xl lg:text-5xl text-ivory leading-tight" data-aos="fade-up" data-aos-delay="60">
+          Learn the science.<br/><em class="text-goldlight">Master the compliance.</em>
+        </h2>
+      </div>
+      <!-- Filter pills -->
+      <div class="flex flex-wrap gap-2" data-aos="fade-up" data-aos-delay="100">
+        <button class="filter-btn active tag-green cursor-pointer" onclick="filterArticles('all',this)">All Topics</button>
+        <button class="filter-btn tag-neutral cursor-pointer" onclick="filterArticles('updt',this)">UPDT</button>
+        <button class="filter-btn tag-neutral cursor-pointer" onclick="filterArticles('ldar',this)">LDAR</button>
+        <button class="filter-btn tag-neutral cursor-pointer" onclick="filterArticles('ghg',this)">GHG Protocol</button>
+        <button class="filter-btn tag-neutral cursor-pointer" onclick="filterArticles('carbon',this)">Carbon Market</button>
+        <button class="filter-btn tag-neutral cursor-pointer" onclick="filterArticles('ipcc',this)">IPCC Methods</button>
+      </div>
+    </div>
+
+    <!-- Featured article -->
+    <div class="border border-verde border-opacity-25 bg-forest bg-opacity-30 p-8 mb-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center" data-aos="fade-up" data-category="updt featured">
+      <div>
+        <div class="flex flex-wrap gap-2 mb-4">
+          <span class="tag-green">Featured</span>
+          <span class="tag-green">UPDT</span>
+          <span class="tag-neutral">10 min read</span>
+        </div>
+        <h3 class="font-display font-light text-3xl lg:text-4xl text-ivory leading-tight mb-4">The Complete NUPRC UPDT Compliance Guide for Nigerian Upstream Operators</h3>
+        <p class="font-sans text-sm text-ash font-light leading-relaxed mb-5">A definitive, technically precise walkthrough of all five UPDT obligations — what each requires, how VerdeScope automates the compliance workflow, and what happens to your licence if you ignore it. Written specifically for Nigerian HSE managers, petroleum engineers, and CFOs.</p>
+        <div class="flex items-center gap-4">
+          <button class="btn-primary text-xs py-2 px-5 gap-2">Read Article <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></button>
+          <span class="font-mono text-xs text-steel">Published April 2026</span>
+        </div>
+      </div>
+      <div class="article-card-img bg-forest rounded-sm" style="height:200px;background:linear-gradient(135deg,#1A3D24,#235930);">
+        <svg width="120" height="120" viewBox="0 0 56 56" fill="none" opacity=".3">
+          <circle cx="28" cy="28" r="26" stroke="#4CAF6F" stroke-width="0.5" fill="none"/>
+          <circle cx="28" cy="28" r="18" stroke="#4CAF6F" stroke-width="0.75" fill="none"/>
+          <circle cx="28" cy="28" r="3" fill="#4CAF6F"/>
+          <path d="M28 10 C34 14,44 20,44 28 C44 28,36 22,28 10Z" fill="#4CAF6F"/>
+          <line x1="38" y1="8" x2="42" y2="14" stroke="#B8962E" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="28" y1="2" x2="28" y2="7" stroke="#4CAF6F" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Article grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="article-grid">
+
+      <div class="article-card" data-category="ldar" data-aos="fade-up" data-aos-delay="0">
+        <div class="article-card-img" style="background:linear-gradient(135deg,#0D1A12,#1A3D24);">
+          <i data-lucide="search" class="w-12 h-12 text-sage opacity-30"></i>
+        </div>
+        <div class="p-6">
+          <div class="flex flex-wrap gap-2 mb-3"><span class="tag-green">LDAR</span><span class="tag-neutral">7 min read</span></div>
+          <h3 class="font-sans text-base font-semibold text-ivory mb-2 leading-snug">Understanding NUPRC LDAR Inspection Frequencies: Year 1, 2, 3+ Requirements Explained</h3>
+          <p class="font-sans text-xs text-ash font-light leading-relaxed mb-4">NUPRC Guide 0024-2022 mandates escalating inspection schedules. Here's the exact frequency table, what counts as a compliant survey, and how VerdeScope auto-generates your LDAR calendar.</p>
+          <button class="font-mono text-xs text-sage hover:text-mist transition-colors flex items-center gap-1">Read more <i data-lucide="arrow-right" class="w-3 h-3"></i></button>
+        </div>
+      </div>
+
+      <div class="article-card" data-category="ghg ipcc" data-aos="fade-up" data-aos-delay="60">
+        <div class="article-card-img" style="background:linear-gradient(135deg,#1A3D24,#0D1A12);">
+          <i data-lucide="calculator" class="w-12 h-12 text-sage opacity-30"></i>
+        </div>
+        <div class="p-6">
+          <div class="flex flex-wrap gap-2 mb-3"><span class="tag-green">GHG Protocol</span><span class="tag-green">IPCC</span><span class="tag-neutral">12 min read</span></div>
+          <h3 class="font-sans text-base font-semibold text-ivory mb-2 leading-snug">IPCC Tier 1 vs Tier 2 vs Tier 3: Which Emission Methodology Should Your OML Use?</h3>
+          <p class="font-sans text-xs text-ash font-light leading-relaxed mb-4">Tier 1 uses default emission factors. Tier 2 uses facility-specific data. Tier 3 uses direct measurement. NUPRC requires you to progress from Tier 1 to Tier 2/3 within one year. Here's how to choose.</p>
+          <button class="font-mono text-xs text-sage hover:text-mist transition-colors flex items-center gap-1">Read more <i data-lucide="arrow-right" class="w-3 h-3"></i></button>
+        </div>
+      </div>
+
+      <div class="article-card" data-category="carbon" data-aos="fade-up" data-aos-delay="120">
+        <div class="article-card-img" style="background:linear-gradient(135deg,#1A3D24,#784212 80%);">
+          <i data-lucide="coins" class="w-12 h-12 text-goldlight opacity-30"></i>
+        </div>
+        <div class="p-6">
+          <div class="flex flex-wrap gap-2 mb-3"><span class="tag-gold">Carbon Market</span><span class="tag-neutral">9 min read</span></div>
+          <h3 class="font-sans text-base font-semibold text-ivory mb-2 leading-snug">Nigeria's Carbon Market Framework Explained: VCM, Article 6.4, and What It Means for Upstream Operators</h3>
+          <p class="font-sans text-xs text-ash font-light leading-relaxed mb-4">The October 2025 framework targets a USD 2.5B market by 2030. We break down the VCM pathway, the Article 6.4 PACM mechanism, and how your UPDT compliance data becomes your first carbon credit project.</p>
+          <button class="font-mono text-xs text-goldlight hover:text-goldpale transition-colors flex items-center gap-1">Read more <i data-lucide="arrow-right" class="w-3 h-3"></i></button>
+        </div>
+      </div>
+
+      <div class="article-card" data-category="updt" data-aos="fade-up" data-aos-delay="0">
+        <div class="article-card-img" style="background:linear-gradient(135deg,#0D1A12,#235930);">
+          <i data-lucide="shield-check" class="w-12 h-12 text-sage opacity-30"></i>
+        </div>
+        <div class="p-6">
+          <div class="flex flex-wrap gap-2 mb-3"><span class="tag-green">UPDT</span><span class="tag-neutral">6 min read</span></div>
+          <h3 class="font-sans text-base font-semibold text-ivory mb-2 leading-snug">What Happens to Your Licence If You Ignore the UPDT? PIA 2021 Enforcement Explained</h3>
+          <p class="font-sans text-xs text-ash font-light leading-relaxed mb-4">PIA 2021 Sections 96–97 are unambiguous: environmental non-compliance is grounds for licence suspension or revocation. We explain how NUPRC enforcement works in practice and what timeline operators should fear.</p>
+          <button class="font-mono text-xs text-sage hover:text-mist transition-colors flex items-center gap-1">Read more <i data-lucide="arrow-right" class="w-3 h-3"></i></button>
+        </div>
+      </div>
+
+      <div class="article-card" data-category="ghg ipcc" data-aos="fade-up" data-aos-delay="60">
+        <div class="article-card-img" style="background:linear-gradient(135deg,#0D1A12,#1A3D24);">
+          <i data-lucide="zap" class="w-12 h-12 text-sage opacity-30"></i>
+        </div>
+        <div class="p-6">
+          <div class="flex flex-wrap gap-2 mb-3"><span class="tag-green">GHG Protocol</span><span class="tag-neutral">8 min read</span></div>
+          <h3 class="font-sans text-base font-semibold text-ivory mb-2 leading-snug">Scope 1, 2, and 3 Emissions in Upstream Oil & Gas: The Nigerian Operator's Definitive Guide</h3>
+          <p class="font-sans text-xs text-ash font-light leading-relaxed mb-4">Which of your emissions are Scope 1 (flaring, venting, fugitives, combustion), which are Scope 2 (grid electricity), and which fall under Scope 3 (supply chain)? With real Nigerian upstream examples.</p>
+          <button class="font-mono text-xs text-sage hover:text-mist transition-colors flex items-center gap-1">Read more <i data-lucide="arrow-right" class="w-3 h-3"></i></button>
+        </div>
+      </div>
+
+      <div class="article-card" data-category="ldar" data-aos="fade-up" data-aos-delay="120">
+        <div class="article-card-img" style="background:linear-gradient(135deg,#1A3D24,#0D1A12);">
+          <i data-lucide="eye" class="w-12 h-12 text-sage opacity-30"></i>
+        </div>
+        <div class="p-6">
+          <div class="flex flex-wrap gap-2 mb-3"><span class="tag-green">LDAR</span><span class="tag-neutral">11 min read</span></div>
+          <h3 class="font-sans text-base font-semibold text-ivory mb-2 leading-snug">OGI Camera vs Acoustic Detection vs EPA Method 21: Choosing Your LDAR Technology Under NUPRC Rules</h3>
+          <p class="font-sans text-xs text-ash font-light leading-relaxed mb-4">NUPRC allows OGI (optical gas imaging), laser beam, and other NUPRC-approved technologies. We compare OGI camera brands (FLIR, Opgal), cost per survey, and which technology to deploy for different facility types.</p>
+          <button class="font-mono text-xs text-sage hover:text-mist transition-colors flex items-center gap-1">Read more <i data-lucide="arrow-right" class="w-3 h-3"></i></button>
+        </div>
+      </div>
+
+      <div class="article-card" data-category="carbon ipcc" data-aos="fade-up" data-aos-delay="0">
+        <div class="article-card-img" style="background:linear-gradient(135deg,#1A3D24,#784212 80%);">
+          <i data-lucide="bar-chart-3" class="w-12 h-12 text-goldlight opacity-30"></i>
+        </div>
+        <div class="p-6">
+          <div class="flex flex-wrap gap-2 mb-3"><span class="tag-gold">Carbon Market</span><span class="tag-green">IPCC</span><span class="tag-neutral">8 min read</span></div>
+          <h3 class="font-sans text-base font-semibold text-ivory mb-2 leading-snug">Global Warming Potential (GWP) Values for 2026: Why CH₄ = 27.9 Matters for Your Emissions Inventory</h3>
+          <p class="font-sans text-xs text-ash font-light leading-relaxed mb-4">IPCC AR6 updated the 100-year GWP of methane to 27.9 (from 28 in AR5) and mandates 82.5 for the 20-year GWP in energy intensity calculations per NUPRC. We explain the numbers and their financial implications.</p>
+          <button class="font-mono text-xs text-goldlight hover:text-goldpale transition-colors flex items-center gap-1">Read more <i data-lucide="arrow-right" class="w-3 h-3"></i></button>
+        </div>
+      </div>
+
+      <div class="article-card" data-category="updt ghg" data-aos="fade-up" data-aos-delay="60">
+        <div class="article-card-img" style="background:linear-gradient(135deg,#0D1A12,#1A5276 80%);">
+          <i data-lucide="building-2" class="w-12 h-12 text-blue-400 opacity-30"></i>
+        </div>
+        <div class="p-6">
+          <div class="flex flex-wrap gap-2 mb-3"><span class="tag-blue">ISO 14064</span><span class="tag-neutral">10 min read</span></div>
+          <h3 class="font-sans text-base font-semibold text-ivory mb-2 leading-snug">ISO 14064-1:2018 for Nigerian Upstream Operators: How to Build a Verification-Ready GHG Inventory</h3>
+          <p class="font-sans text-xs text-ash font-light leading-relaxed mb-4">ISO 14064-1 is the gold standard for organisational GHG inventories. Mandatory for carbon credit issuance under Nigeria's Carbon Market Framework. Here's the 7-step process to build an ISO-compliant inventory using VerdeScope.</p>
+          <button class="font-mono text-xs text-sage hover:text-mist transition-colors flex items-center gap-1">Read more <i data-lucide="arrow-right" class="w-3 h-3"></i></button>
+        </div>
+      </div>
+
+      <div class="article-card" data-category="ldar updt" data-aos="fade-up" data-aos-delay="120">
+        <div class="article-card-img" style="background:linear-gradient(135deg,#1A3D24,#0D1A12);">
+          <i data-lucide="settings" class="w-12 h-12 text-ash opacity-30"></i>
+        </div>
+        <div class="p-6">
+          <div class="flex flex-wrap gap-2 mb-3"><span class="tag-green">Equipment</span><span class="tag-neutral">9 min read</span></div>
+          <h3 class="font-sans text-base font-semibold text-ivory mb-2 leading-snug">Pneumatic Controller Phase-In: Your 5-Year Compliance Roadmap Under NUPRC Methane Guidelines</h3>
+          <p class="font-sans text-xs text-ash font-light leading-relaxed mb-4">25% → 65% → 75% → 85% → 100% zero-bleed by Year 5. NUPRC requires annual monitoring at the 0.17 scm/hr threshold. We break down exactly what you need to do each year to avoid the 14-day repair clock.</p>
+          <button class="font-mono text-xs text-sage hover:text-mist transition-colors flex items-center gap-1">Read more <i data-lucide="arrow-right" class="w-3 h-3"></i></button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="mt-10 text-center" data-aos="fade-up">
+      <button class="btn-outline gap-2">Load More Articles <i data-lucide="chevron-down" class="w-4 h-4"></i></button>
+    </div>
+  </div>
+
+
+  <!-- ══ REGULATION CENTRE ══ -->
+  <div class="hub-panel" id="panel-regulations">
+    <div class="mb-12">
+      <div class="flex items-center gap-3 mb-4" data-aos="fade-up">
+        <div class="w-8 h-px bg-sage"></div>
+        <span class="font-mono text-xs tracking-widest text-sage uppercase">Regulation Centre</span>
+      </div>
+      <h2 class="font-display font-light text-4xl lg:text-5xl text-ivory leading-tight mb-3" data-aos="fade-up" data-aos-delay="60">
+        Every regulation that<br/><em class="text-goldlight">governs your operations.</em>
+      </h2>
+      <p class="font-sans text-base text-ash font-light max-w-2xl" data-aos="fade-up" data-aos-delay="100">All five binding Nigerian regulatory instruments for upstream decarbonisation, plus the international standards framework. Each mapped to the VerdeScope module that operationalises it.</p>
+    </div>
+
+    <!-- Urgent banner -->
+    <div class="border-2 border-goldlight border-opacity-50 bg-gold bg-opacity-8 p-6 mb-8 flex items-start gap-4" data-aos="fade-up">
+      <i data-lucide="alert-triangle" class="w-6 h-6 text-goldlight flex-shrink-0 mt-0.5"></i>
+      <div>
+        <div class="font-sans font-semibold text-goldlight mb-1">UPDT — Mandatory from January 2025</div>
+        <div class="font-sans text-sm text-ash font-light">Every upstream licence, permit, and Field Development Plan submission must include a UPDT-compliant decarbonisation strategy. Penalty: licence suspension or revocation under PIA 2021 Sections 96–97. If you have not yet begun your UPDT compliance journey, you are already in breach.</div>
+        <a href="demo.html" class="inline-flex items-center gap-1.5 mt-3 font-mono text-xs text-goldlight hover:text-goldpale transition-colors">Check your UPDT readiness now → <i data-lucide="arrow-right" class="w-3 h-3"></i></a>
+      </div>
+    </div>
+
+    <!-- Nigerian regulations -->
+    <h3 class="font-mono text-xs text-sage uppercase tracking-widest mb-5" data-aos="fade-up">Nigerian Regulatory Instruments</h3>
+    <div class="space-y-3 mb-12">
+
+      <div class="reg-card urgent" data-aos="fade-up" data-aos-delay="0">
+        <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+          <div class="flex items-start gap-4 flex-1">
+            <div class="w-10 h-10 bg-gold bg-opacity-15 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="shield-check" class="w-5 h-5 text-goldlight"></i>
+            </div>
+            <div>
+              <div class="flex flex-wrap gap-2 mb-1">
+                <span class="tag-gold">MANDATORY — Jan 2025</span>
+                <span class="tag-red">Licence Risk</span>
+              </div>
+              <h3 class="font-sans text-base font-semibold text-ivory mb-1">NUPRC Upstream Petroleum Decarbonisation Template (UPDT)</h3>
+              <p class="font-sans text-sm text-ash font-light leading-relaxed">Five obligations mandatory for every licence, permit, and FDP: (1) Decarbonisation strategy in FDP; (2) Time-bound GHG targets; (3) Gas flaring/venting compliance; (4) Methane management programme; (5) CCS/NBS/offsets plan. Non-compliance = revocation under PIA 2021 §96–97.</p>
+              <div class="mt-3 flex flex-wrap gap-3">
+                <span class="font-mono text-xs text-steel">Authority: NUPRC</span>
+                <span class="font-mono text-xs text-steel">Effective: January 2025</span>
+                <span class="font-mono text-xs text-steel">Legal basis: PIA 2021 §6</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex-shrink-0">
+            <a href="app/updt.html" class="btn-gold text-xs py-2 px-4 gap-1.5">UPDT Workflow <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="reg-card" data-aos="fade-up" data-aos-delay="60">
+        <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+          <div class="flex items-start gap-4 flex-1">
+            <div class="w-10 h-10 bg-verde bg-opacity-15 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="file-check" class="w-5 h-5 text-sage"></i>
+            </div>
+            <div>
+              <div class="flex flex-wrap gap-2 mb-1">
+                <span class="tag-green">In Force — Nov 2022</span>
+              </div>
+              <h3 class="font-sans text-base font-semibold text-ivory mb-1">NUPRC Methane & GHG Emissions Management Guidelines (Guide 0024-2022)</h3>
+              <p class="font-sans text-sm text-ash font-light leading-relaxed">Quarterly GHG reporting (CO₂, CH₄, N₂O) from all production facilities, export terminals, gas processing plants. LDAR quarterly inspection schedules. Equipment-specific controls: pneumatics (5-yr phase-in), compressors, tanks, dehydrators. Tier 1/2/3 methodology. 90-day startup inspection window.</p>
+              <div class="mt-3 flex flex-wrap gap-3">
+                <span class="font-mono text-xs text-steel">Authority: NUPRC</span>
+                <span class="font-mono text-xs text-steel">Effective: Nov 2022</span>
+                <span class="font-mono text-xs text-steel">71 pages · Guide 0024-2022</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex-shrink-0">
+            <a href="app/ldar.html" class="btn-outline text-xs py-2 px-4 gap-1.5">LDAR Module <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="reg-card" data-aos="fade-up" data-aos-delay="80">
+        <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+          <div class="flex items-start gap-4 flex-1">
+            <div class="w-10 h-10 bg-verde bg-opacity-15 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="flame" class="w-5 h-5 text-sage"></i>
+            </div>
+            <div>
+              <div class="flex flex-wrap gap-2 mb-1">
+                <span class="tag-green">In Force — 2023</span>
+                <span class="tag-red">2030 Deadline</span>
+              </div>
+              <h3 class="font-sans text-base font-semibold text-ivory mb-1">Gas Flaring, Venting and Methane Emissions (Prevention of Waste and Pollution) Regulations 2023</h3>
+              <p class="font-sans text-sm text-ash font-light leading-relaxed">Zero routine flaring by 2030. Cold venting prohibited (waiver regime applies). 98% Destruction Removal Efficiency (DRE) required on all flares. Quarterly volume reporting. Gas capture and utilisation mandate for all associated gas streams.</p>
+              <div class="mt-3 flex flex-wrap gap-3">
+                <span class="font-mono text-xs text-steel">Authority: NUPRC</span>
+                <span class="font-mono text-xs text-steel">Zero flaring deadline: 2030</span>
+                <span class="font-mono text-xs text-steel">DRE requirement: 98%</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex-shrink-0">
+            <a href="app/emissions.html" class="btn-outline text-xs py-2 px-4 gap-1.5">Flare Register <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="reg-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+          <div class="flex items-start gap-4 flex-1">
+            <div class="w-10 h-10 bg-verde bg-opacity-15 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="globe" class="w-5 h-5 text-sage"></i>
+            </div>
+            <div>
+              <div class="flex flex-wrap gap-2 mb-1">
+                <span class="tag-green">Sep 2025</span>
+                <span class="tag-green">Oct 2025</span>
+              </div>
+              <h3 class="font-sans text-base font-semibold text-ivory mb-1">Nigeria NDC 3.0 (Sep 2025) + Carbon Market Framework (Oct 2025)</h3>
+              <p class="font-sans text-sm text-ash font-light leading-relaxed">NDC 3.0 commits Nigeria to 32.2% absolute GHG reduction by 2035; zero flaring by 2030; 60% methane reduction by 2035. The Carbon Market Framework activates the VCM and Article 6.4 mechanism, targeting USD 736M–2.5B market by 2030. Operators who comply with UPDT are automatically positioned for carbon credit origination.</p>
+              <div class="mt-3 flex flex-wrap gap-3">
+                <span class="font-mono text-xs text-steel">Authority: NCCC / FMEnv</span>
+                <span class="font-mono text-xs text-steel">Paris Agreement Article 6</span>
+                <span class="font-mono text-xs text-steel">USD 2.5B market target</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex-shrink-0">
+            <a href="app/carbon-market.html" class="btn-gold text-xs py-2 px-4 gap-1.5">Carbon Module <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="reg-card" data-aos="fade-up" data-aos-delay="120">
+        <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+          <div class="flex items-start gap-4 flex-1">
+            <div class="w-10 h-10 bg-verde bg-opacity-15 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="landmark" class="w-5 h-5 text-sage"></i>
+            </div>
+            <div>
+              <div class="flex flex-wrap gap-2 mb-1">
+                <span class="tag-green">In Force — 2021</span>
+              </div>
+              <h3 class="font-sans text-base font-semibold text-ivory mb-1">Petroleum Industry Act 2021 (PIA 2021) — GHG & Environmental Obligations</h3>
+              <p class="font-sans text-sm text-ash font-light leading-relaxed">Sections 96–97: licence suspension/revocation for environmental non-compliance. Section 102: mandatory GHG management plans in operating licences. Sections 104, 107: gas flaring exemption regime. Section 6: NUPRC mandate to enforce UPDT and emissions standards across the upstream sector.</p>
+              <div class="mt-3 flex flex-wrap gap-3">
+                <span class="font-mono text-xs text-steel">Authority: Federal Government of Nigeria</span>
+                <span class="font-mono text-xs text-steel">Enacted: 2021</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex-shrink-0">
+            <a href="app/updt.html" class="btn-outline text-xs py-2 px-4 gap-1.5">UPDT Score <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- International standards -->
+    <h3 class="font-mono text-xs text-sage uppercase tracking-widest mb-5" data-aos="fade-up">International Standards — VerdeScope Compliance</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="border border-verde border-opacity-15 p-5 hover:border-opacity-40 transition-all" data-aos="fade-up" data-aos-delay="0">
+        <div class="font-mono text-xs text-sage font-medium mb-1">GHG Protocol</div>
+        <div class="font-sans text-xs font-semibold text-ivory mb-2">Corporate Standard + Oil & Gas Sector Guidance</div>
+        <div class="font-sans text-xs text-ash font-light leading-relaxed">Primary calculation framework for Scope 1/2/3 boundaries, emission source categories, and calculation methodology. WRI/WBCSD standard. VerdeScope's calculation engine defaults.</div>
+      </div>
+      <div class="border border-verde border-opacity-15 p-5 hover:border-opacity-40 transition-all" data-aos="fade-up" data-aos-delay="40">
+        <div class="font-mono text-xs text-sage font-medium mb-1">ISO 14064-1:2018</div>
+        <div class="font-sans text-xs font-semibold text-ivory mb-2">Organisational GHG Inventory</div>
+        <div class="font-sans text-xs text-ash font-light leading-relaxed">Principles and requirements for organisational GHG inventory design, quantification, reporting, and verification. Mandatory for carbon credit issuance under Nigeria's CMF. VerdeScope generates ISO 14064-1 compliant inventory statements.</div>
+      </div>
+      <div class="border border-verde border-opacity-15 p-5 hover:border-opacity-40 transition-all" data-aos="fade-up" data-aos-delay="80">
+        <div class="font-mono text-xs text-sage font-medium mb-1">ISO 14064-2/3:2019</div>
+        <div class="font-sans text-xs font-semibold text-ivory mb-2">Project-Level & Verification Standards</div>
+        <div class="font-sans text-xs text-ash font-light leading-relaxed">ISO 14064-2: project-level carbon accounting for credit origination (baseline, monitoring plan). ISO 14064-3: verification workflow for VVBs. VerdeScope's audit portal satisfies ISO 14064-3 reasonable/limited assurance requirements.</div>
+      </div>
+      <div class="border border-verde border-opacity-15 p-5 hover:border-opacity-40 transition-all" data-aos="fade-up" data-aos-delay="0">
+        <div class="font-mono text-xs text-sage font-medium mb-1">IPCC 2006 Guidelines + 2019 Refinement</div>
+        <div class="font-sans text-xs font-semibold text-ivory mb-2">Emission Factor Methodology</div>
+        <div class="font-sans text-xs text-ash font-light leading-relaxed">Mandated by NUPRC Guide 0024-2022. Volume 2 Chapter 4 (Fugitive Emissions) is the core methodology. 2019 Refinement updates default emission factors used in VerdeScope's Tier 1/2 engine. AR6 GWP values: CH₄=27.9 (100yr), CH₄=82.5 (20yr).</div>
+      </div>
+      <div class="border border-verde border-opacity-15 p-5 hover:border-opacity-40 transition-all" data-aos="fade-up" data-aos-delay="40">
+        <div class="font-mono text-xs text-sage font-medium mb-1">API Compendium 3rd Ed.</div>
+        <div class="font-sans text-xs font-semibold text-ivory mb-2">Upstream Equipment Emission Factors</div>
+        <div class="font-sans text-xs text-ash font-light leading-relaxed">American Petroleum Institute / ANGA compendium of equipment-count emission factors for pneumatic devices, compressors, storage tanks, and dehydrators. Referenced in NUPRC Guide 0024-2022 as approved Tier 2 methodology.</div>
+      </div>
+      <div class="border border-goldlight border-opacity-15 p-5 hover:border-opacity-40 transition-all" data-aos="fade-up" data-aos-delay="80">
+        <div class="font-mono text-xs text-goldlight font-medium mb-1">IFRS S2:2023</div>
+        <div class="font-sans text-xs font-semibold text-ivory mb-2">Climate-Related Financial Disclosures</div>
+        <div class="font-sans text-xs text-ash font-light leading-relaxed">Required by Nigeria Carbon Market Framework for ETS/carbon tax covered entities. IOC parent companies with EU CSRD obligations. VerdeScope Enterprise includes an IFRS S2 disclosure module aligned to ISSB cross-industry metric requirements.</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══ GLOSSARY ══ -->
+  <div class="hub-panel" id="panel-glossary">
+    <div class="mb-10">
+      <div class="flex items-center gap-3 mb-4" data-aos="fade-up">
+        <div class="w-8 h-px bg-sage"></div>
+        <span class="font-mono text-xs tracking-widest text-sage uppercase">GHG & Carbon Glossary</span>
+      </div>
+      <h2 class="font-display font-light text-4xl lg:text-5xl text-ivory leading-tight mb-3" data-aos="fade-up" data-aos-delay="60">
+        The language of<br/><em class="text-goldlight">upstream decarbonisation.</em>
+      </h2>
+      <p class="font-sans text-base text-ash font-light max-w-2xl mb-6" data-aos="fade-up" data-aos-delay="100">Every term used in NUPRC compliance documentation, IPCC methodology, GHG Protocol, and Nigeria's Carbon Market Framework — defined in plain language for Nigerian upstream operators.</p>
+      <!-- Glossary search -->
+      <div class="relative max-w-md" data-aos="fade-up" data-aos-delay="130">
+        <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-steel pointer-events-none"></i>
+        <input type="text" placeholder="Search terms e.g. fugitive, ITMO, DRE…"
+          class="search-input" oninput="filterGlossary(this.value)" />
+      </div>
+    </div>
+
+    <!-- Alphabet navigation -->
+    <div class="flex flex-wrap gap-2 mb-8" data-aos="fade-up">
+      <button onclick="jumpLetter('A')" class="font-mono text-xs text-sage hover:text-ivory transition-colors px-2 py-1 border border-verde border-opacity-20 hover:border-opacity-50">A</button>
+      <button onclick="jumpLetter('B')" class="font-mono text-xs text-sage hover:text-ivory transition-colors px-2 py-1 border border-verde border-opacity-20 hover:border-opacity-50">B</button>
+      <button onclick="jumpLetter('C')" class="font-mono text-xs text-sage hover:text-ivory transition-colors px-2 py-1 border border-verde border-opacity-20 hover:border-opacity-50">C</button>
+      <button onclick="jumpLetter('D')" class="font-mono text-xs text-sage hover:text-ivory transition-colors px-2 py-1 border border-verde border-opacity-20 hover:border-opacity-50">D</button>
+      <button onclick="jumpLetter('E')" class="font-mono text-xs text-sage hover:text-ivory transition-colors px-2 py-1 border border-verde border-opacity-20 hover:border-opacity-50">E</button>
+      <button onclick="jumpLetter('F')" class="font-mono text-xs text-sage hover:text-ivory transition-colors px-2 py-1 border border-verde border-opacity-20 hover:border-opacity-50">F</button>
+      <button onclick="jumpLetter('G')" class="font-mono text-xs text-sage hover:text-ivory transition-colors px-2 py-1 border border-verde border-opacity-20 hover:border-opacity-50">G</button>
+      <button onclick="jumpLetter('I')" class="font-mono text-xs text-sage hover:text-ivory transition-colors px-2 py-1 border border-verde border-opacity-20 hover:border-opacity-50">I</button>
+      <button onclick="jumpLetter('L')" class="font-mono text-xs text-sage hover:text-ivory transition-colors px-2 py-1 border border-verde border-opacity-20 hover:border-opacity-50">L</button>
+      <button onclick="jumpLetter('M')" class="font-mono text-xs text-sage hover:text-ivory transition-colors px-2 py-1 border border-verde border-opacity-20 hover:border-opacity-50">M</button>
+      <button onclick="jumpLetter('N')" class="font-mono text-xs text-sage hover:text-ivory transition-colors px-2 py-1 border border-verde border-opacity-20 hover:border-opacity-50">N</button>
+      <button onclick="jumpLetter('S')" class="font-mono text-xs text-sage hover:text-ivory transition-colors px-2 py-1 border border-verde border-opacity-20 hover:border-opacity-50">S</button>
+      <button onclick="jumpLetter('T')" class="font-mono text-xs text-sage hover:text-ivory transition-colors px-2 py-1 border border-verde border-opacity-20 hover:border-opacity-50">T</button>
+      <button onclick="jumpLetter('U')" class="font-mono text-xs text-sage hover:text-ivory transition-colors px-2 py-1 border border-verde border-opacity-20 hover:border-opacity-50">U</button>
+      <button onclick="jumpLetter('V')" class="font-mono text-xs text-sage hover:text-ivory transition-colors px-2 py-1 border border-verde border-opacity-20 hover:border-opacity-50">V</button>
+    </div>
+
+    <div id="glossary-list">
+      <!-- Terms rendered by JS -->
+    </div>
+  </div>
+
+
+  <!-- ══ WHITEPAPERS ══ -->
+  <div class="hub-panel" id="panel-whitepapers">
+    <div class="mb-12">
+      <div class="flex items-center gap-3 mb-4" data-aos="fade-up">
+        <div class="w-8 h-px bg-sage"></div>
+        <span class="font-mono text-xs tracking-widest text-sage uppercase">Technical Whitepapers</span>
+      </div>
+      <h2 class="font-display font-light text-4xl lg:text-5xl text-ivory leading-tight" data-aos="fade-up" data-aos-delay="60">
+        Deep-dive intelligence<br/><em class="text-goldlight">for serious operators.</em>
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+      <div class="wp-card" data-aos="fade-up" data-aos-delay="0">
+        <div class="flex items-start justify-between mb-5">
+          <div class="w-12 h-12 bg-verde bg-opacity-15 flex items-center justify-center">
+            <i data-lucide="file-text" class="w-6 h-6 text-sage"></i>
+          </div>
+          <span class="tag-green">New — April 2026</span>
+        </div>
+        <h3 class="font-sans text-lg font-semibold text-ivory mb-2">Nigeria Upstream GHG Emissions Baseline Study 2026</h3>
+        <p class="font-sans text-sm text-ash font-light leading-relaxed mb-5">Comprehensive assessment of Scope 1, 2, and fugitive methane emissions across the NUPRC-licensed operator universe. UPDT compliance gap analysis and carbon market opportunity mapping. Based on NUPRC Concession Situation Report data and NEITI upstream emissions survey.</p>
+        <div class="flex items-center justify-between">
+          <div class="flex gap-2"><span class="tag-neutral">52 pages</span><span class="tag-green">NUPRC Data</span></div>
+          <button class="btn-primary text-xs py-2 px-4 gap-1.5">Download PDF <i data-lucide="download" class="w-3.5 h-3.5"></i></button>
+        </div>
+      </div>
+
+      <div class="wp-card" data-aos="fade-up" data-aos-delay="80">
+        <div class="flex items-start justify-between mb-5">
+          <div class="w-12 h-12 bg-gold bg-opacity-15 flex items-center justify-center">
+            <i data-lucide="trending-up" class="w-6 h-6 text-goldlight"></i>
+          </div>
+          <span class="tag-gold">Carbon Market</span>
+        </div>
+        <h3 class="font-sans text-lg font-semibold text-ivory mb-2">The USD 2.5 Billion Opportunity: Nigeria Upstream Carbon Credits to 2030</h3>
+        <p class="font-sans text-sm text-ash font-light leading-relaxed mb-5">Market sizing analysis for upstream methane abatement and flare gas elimination credits under Nigeria's Carbon Market Framework. Includes VCS VM0039 methodology breakdown, NCCC authorisation process, and credit pricing scenarios from ACMI data.</p>
+        <div class="flex items-center justify-between">
+          <div class="flex gap-2"><span class="tag-neutral">38 pages</span><span class="tag-gold">VCS / Article 6</span></div>
+          <button class="btn-gold text-xs py-2 px-4 gap-1.5">Download PDF <i data-lucide="download" class="w-3.5 h-3.5"></i></button>
+        </div>
+      </div>
+
+      <div class="wp-card" data-aos="fade-up" data-aos-delay="0">
+        <div class="flex items-start justify-between mb-5">
+          <div class="w-12 h-12 bg-verde bg-opacity-15 flex items-center justify-center">
+            <i data-lucide="shield" class="w-6 h-6 text-sage"></i>
+          </div>
+          <span class="tag-green">Regulatory</span>
+        </div>
+        <h3 class="font-sans text-lg font-semibold text-ivory mb-2">UPDT Compliance Readiness Report: Where Nigeria's Operators Stand in 2026</h3>
+        <p class="font-sans text-sm text-ash font-light leading-relaxed mb-5">First-of-its-kind assessment of UPDT compliance readiness across Nigeria's 280+ licensed operators. Based on NEITI 2023 data, NUPRC engagement records, and VerdeScope platform intelligence. Identifies the 5 highest-risk operator categories and the fastest paths to compliance.</p>
+        <div class="flex items-center justify-between">
+          <div class="flex gap-2"><span class="tag-neutral">44 pages</span><span class="tag-green">UPDT</span></div>
+          <button class="btn-primary text-xs py-2 px-4 gap-1.5">Download PDF <i data-lucide="download" class="w-3.5 h-3.5"></i></button>
+        </div>
+      </div>
+
+      <div class="wp-card" data-aos="fade-up" data-aos-delay="80">
+        <div class="flex items-start justify-between mb-5">
+          <div class="w-12 h-12 bg-verde bg-opacity-15 flex items-center justify-center">
+            <i data-lucide="activity" class="w-6 h-6 text-sage"></i>
+          </div>
+          <span class="tag-neutral">Technical</span>
+        </div>
+        <h3 class="font-sans text-lg font-semibold text-ivory mb-2">Fugitive Methane Quantification in Nigerian Upstream: IPCC Tier 1 to Tier 3 — A Technical Guide</h3>
+        <p class="font-sans text-sm text-ash font-light leading-relaxed mb-5">Step-by-step methodology for quantifying fugitive methane from pneumatic devices, compressors, tanks, and equipment leaks using IPCC 2006/2019 Tier 1, 2, and 3 approaches. Includes API Compendium emission factor tables and worked examples using Nigerian field data.</p>
+        <div class="flex items-center justify-between">
+          <div class="flex gap-2"><span class="tag-neutral">61 pages</span><span class="tag-green">IPCC Methods</span></div>
+          <button class="btn-primary text-xs py-2 px-4 gap-1.5">Download PDF <i data-lucide="download" class="w-3.5 h-3.5"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══ COURSES ══ -->
+  <div class="hub-panel" id="panel-courses">
+    <div class="mb-12">
+      <div class="flex items-center gap-3 mb-4" data-aos="fade-up">
+        <div class="w-8 h-px bg-sage"></div>
+        <span class="font-mono text-xs tracking-widest text-sage uppercase">VerdeScope Academy — Online Courses</span>
+      </div>
+      <h2 class="font-display font-light text-4xl lg:text-5xl text-ivory leading-tight mb-3" data-aos="fade-up" data-aos-delay="60">
+        Build the skills your<br/><em class="text-goldlight">team actually needs.</em>
+      </h2>
+      <p class="font-sans text-base text-ash font-light max-w-2xl" data-aos="fade-up" data-aos-delay="100">All courses written specifically for Nigeria's upstream sector by petroleum engineers and GHG specialists. CPD certificates issued on completion. Available individually or as corporate packages from USD 2,400 per participant.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+      <div class="course-card" data-aos="fade-up" data-aos-delay="0">
+        <div class="h-2 bg-gradient-to-r from-sage to-verde"></div>
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-4">
+            <span class="tag-green">Foundational</span>
+            <span class="font-mono text-xs text-steel">8 hours</span>
+          </div>
+          <h3 class="font-sans text-base font-semibold text-ivory mb-2">NUPRC GHG Reporting Fundamentals</h3>
+          <p class="font-sans text-xs text-ash font-light leading-relaxed mb-4">The complete beginner's course on Nigerian upstream GHG compliance. NUPRC Guide 0024-2022, the UPDT five obligations, IPCC Tier 1 emission factors, quarterly reporting format, and how to avoid the most common NUPRC submission errors.</p>
+          <div class="space-y-1.5 mb-5">
+            <div class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-sage"></i><span class="font-sans text-xs text-cloud">Covers: NUPRC 0024-2022, UPDT, PIA 2021</span></div>
+            <div class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-sage"></i><span class="font-sans text-xs text-cloud">Suitable for: HSE Managers, Environmental Officers</span></div>
+            <div class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-sage"></i><span class="font-sans text-xs text-cloud">CPD Certificate on completion</span></div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="font-mono text-sm text-ivory">From <span class="text-sage">$1,250</span></div>
+            <button class="btn-outline text-xs py-2 px-4 gap-1">Enrol <i data-lucide="arrow-right" class="w-3 h-3"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="course-card" data-aos="fade-up" data-aos-delay="80">
+        <div class="h-2 bg-gradient-to-r from-sage to-verde"></div>
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-4">
+            <span class="tag-green">Intermediate</span>
+            <span class="font-mono text-xs text-steel">4 hrs + Field</span>
+          </div>
+          <h3 class="font-sans text-base font-semibold text-ivory mb-2">LDAR Programme Operations & OGI Survey Techniques</h3>
+          <p class="font-sans text-xs text-ash font-light leading-relaxed mb-4">Full LDAR operations training: NUPRC inspection frequency rules, OGI camera operation, leak classification (5,000 and 50,000 ppmv thresholds), repair deadline management, flare notation protocols, and NUPRC annual report compilation.</p>
+          <div class="space-y-1.5 mb-5">
+            <div class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-sage"></i><span class="font-sans text-xs text-cloud">Covers: NUPRC §3.2, OGI methods, EPA Method 21</span></div>
+            <div class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-sage"></i><span class="font-sans text-xs text-cloud">Suitable for: Field Engineers, LDAR Technicians</span></div>
+            <div class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-sage"></i><span class="font-sans text-xs text-cloud">Field practical included (Lagos area)</span></div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="font-mono text-sm text-ivory">From <span class="text-sage">$1,500</span></div>
+            <button class="btn-outline text-xs py-2 px-4 gap-1">Enrol <i data-lucide="arrow-right" class="w-3 h-3"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="course-card" data-aos="fade-up" data-aos-delay="160">
+        <div class="h-2 bg-gradient-to-r from-goldlight to-gold"></div>
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-4">
+            <span class="tag-gold">Executive</span>
+            <span class="font-mono text-xs text-steel">2 hours</span>
+          </div>
+          <h3 class="font-sans text-base font-semibold text-ivory mb-2">Carbon Markets for Nigerian Upstream Executives</h3>
+          <p class="font-sans text-xs text-ash font-light leading-relaxed mb-4">The 2-hour executive briefing on Nigeria's carbon market opportunity: VCM mechanics, Article 6.4 PACM, NCCC authorisation process, credit pricing, and how your UPDT compliance data becomes a carbon revenue pipeline. Tailored for CFOs and CEOs.</p>
+          <div class="space-y-1.5 mb-5">
+            <div class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-goldlight"></i><span class="font-sans text-xs text-cloud">Covers: Nigeria CMF, VCS, Article 6.4, pricing</span></div>
+            <div class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-goldlight"></i><span class="font-sans text-xs text-cloud">Suitable for: C-Suite, Finance Directors, Board</span></div>
+            <div class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-goldlight"></i><span class="font-sans text-xs text-cloud">Live Q&A with VerdeScope carbon specialists</span></div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="font-mono text-sm text-ivory">From <span class="text-goldlight">$2,400</span></div>
+            <button class="btn-gold text-xs py-2 px-4 gap-1">Enrol <i data-lucide="arrow-right" class="w-3 h-3"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="course-card" data-aos="fade-up" data-aos-delay="0">
+        <div class="h-2 bg-gradient-to-r from-sage to-verde"></div>
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-4">
+            <span class="tag-green">Advanced</span>
+            <span class="font-mono text-xs text-steel">12 hours</span>
+          </div>
+          <h3 class="font-sans text-base font-semibold text-ivory mb-2">ISO 14064 GHG Inventory Management — Certified Practitioner</h3>
+          <p class="font-sans text-xs text-ash font-light leading-relaxed mb-4">Full practitioner course on ISO 14064-1:2018 organisational inventory design and ISO 14064-3:2019 verification requirements. Covers boundary-setting, uncertainty assessment, data quality management, and preparing for VVB verification engagement.</p>
+          <div class="space-y-1.5 mb-5">
+            <div class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-sage"></i><span class="font-sans text-xs text-cloud">Covers: ISO 14064-1/2/3, GHG Protocol, VVBs</span></div>
+            <div class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-sage"></i><span class="font-sans text-xs text-cloud">Suitable for: GHG Accountants, Sustainability Managers</span></div>
+            <div class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-sage"></i><span class="font-sans text-xs text-cloud">Certified Practitioner badge + CPD Certificate</span></div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="font-mono text-sm text-ivory">From <span class="text-sage">$2,100</span></div>
+            <button class="btn-outline text-xs py-2 px-4 gap-1">Enrol <i data-lucide="arrow-right" class="w-3 h-3"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="course-card col-span-1 md:col-span-2 lg:col-span-2" data-aos="fade-up" data-aos-delay="80">
+        <div class="h-2 bg-gradient-to-r from-goldlight to-verde"></div>
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex gap-2"><span class="tag-gold">Corporate Package</span><span class="tag-green">Most Popular</span></div>
+            <span class="font-mono text-xs text-steel">All 4 courses</span>
+          </div>
+          <h3 class="font-sans text-lg font-semibold text-ivory mb-2">VerdeScope Team Certification — Full Corporate Package</h3>
+          <p class="font-sans text-sm text-ash font-light leading-relaxed mb-5">All four VerdeScope Academy courses bundled for your entire team: GHG Reporting Fundamentals (HSE staff), LDAR Operations (field engineers), Carbon Markets Executive Briefing (C-suite), and ISO 14064 Certified Practitioner (sustainability managers). Unlimited enrolments for one operator company. Live onboarding session with VerdeScope CSM included.</p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
+            <div class="border border-verde border-opacity-15 p-3 text-center">
+              <div class="font-mono text-xl text-sage mb-1">4</div>
+              <div class="font-mono text-xs text-steel">Courses</div>
+            </div>
+            <div class="border border-verde border-opacity-15 p-3 text-center">
+              <div class="font-mono text-xl text-sage mb-1">∞</div>
+              <div class="font-mono text-xs text-steel">Enrolments</div>
+            </div>
+            <div class="border border-goldlight border-opacity-15 p-3 text-center">
+              <div class="font-mono text-xl text-goldlight mb-1">CPD</div>
+              <div class="font-mono text-xs text-steel">All certs</div>
+            </div>
+            <div class="border border-verde border-opacity-15 p-3 text-center">
+              <div class="font-mono text-xl text-sage mb-1">Live</div>
+              <div class="font-mono text-xs text-steel">CSM onboarding</div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="font-mono text-sm text-ivory">From <span class="text-goldlight">$18,000</span> <span class="text-steel text-xs">/ company / year</span></div>
+            <button class="btn-gold gap-1.5">Enquire <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ══ CARBON CALCULATOR ══ -->
+  <div class="hub-panel" id="panel-calculator">
+    <div class="mb-12">
+      <div class="flex items-center gap-3 mb-4" data-aos="fade-up">
+        <div class="w-8 h-px bg-sage"></div>
+        <span class="font-mono text-xs tracking-widest text-sage uppercase">Quick Emissions Calculator</span>
+      </div>
+      <h2 class="font-display font-light text-4xl lg:text-5xl text-ivory leading-tight mb-3" data-aos="fade-up" data-aos-delay="60">
+        Estimate your facility's<br/><em class="text-goldlight">emissions in 2 minutes.</em>
+      </h2>
+      <p class="font-sans text-base text-ash font-light max-w-2xl" data-aos="fade-up" data-aos-delay="100">Using IPCC 2006/2019 Tier 1 default emission factors and NUPRC-mandated GWP values (IPCC AR6). This is an indicative estimate — VerdeScope's full platform delivers Tier 2/3 precision calculations with complete audit trail.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+
+      <!-- Input panel -->
+      <div>
+        <div class="border border-verde border-opacity-20 bg-forest bg-opacity-30 p-8" data-aos="fade-right">
+          <div class="font-mono text-xs text-sage uppercase tracking-wider mb-6">Facility Inputs — Tier 1 Defaults</div>
+
+          <div class="space-y-5">
+            <div>
+              <label class="font-mono text-xs text-ash uppercase tracking-wider block mb-2">Facility Type</label>
+              <select id="calc-facility" class="calc-input" onchange="runCalc()">
+                <option value="wpp">Well Production Facility (Onshore)</option>
+                <option value="gcs">Gas Compressor Station</option>
+                <option value="gpp">Gas Processing Plant</option>
+                <option value="terminal">Export Terminal</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="font-mono text-xs text-ash uppercase tracking-wider block mb-2">Gas Flared (Mcf/day) <span class="text-steel normal-case">IPCC: 2.693 kg CO₂/m³</span></label>
+              <input type="number" id="calc-flare" value="850" class="calc-input" oninput="runCalc()" />
+            </div>
+
+            <div>
+              <label class="font-mono text-xs text-ash uppercase tracking-wider block mb-2">Gas Production (MMscf/day) <span class="text-steel normal-case">Fugitive CH₄</span></label>
+              <input type="number" id="calc-prod" value="12.5" step="0.1" class="calc-input" oninput="runCalc()" />
+            </div>
+
+            <div>
+              <label class="font-mono text-xs text-ash uppercase tracking-wider block mb-2">Diesel Consumed (tonnes/month) <span class="text-steel normal-case">Combustion CO₂</span></label>
+              <input type="number" id="calc-diesel" value="45" class="calc-input" oninput="runCalc()" />
+            </div>
+
+            <div>
+              <label class="font-mono text-xs text-ash uppercase tracking-wider block mb-2">Electricity from Grid (MWh/month) <span class="text-steel normal-case">Scope 2: Nigeria 0.431 kg CO₂/kWh</span></label>
+              <input type="number" id="calc-elec" value="180" class="calc-input" oninput="runCalc()" />
+            </div>
+
+            <div>
+              <label class="font-mono text-xs text-ash uppercase tracking-wider block mb-2">No. of High-Bleed Pneumatic Controllers</label>
+              <input type="number" id="calc-pneum" value="24" class="calc-input" oninput="runCalc()" />
+            </div>
+          </div>
+
+          <div class="mt-6 border-t border-verde border-opacity-20 pt-5">
+            <div class="font-mono text-xs text-steel">GWP Basis: IPCC AR6 · CH₄=27.9 (100yr) · N₂O=273 · Scope 2: Nigeria Grid EF 0.431 kg CO₂/kWh</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results panel -->
+      <div data-aos="fade-left">
+        <div class="border border-verde border-opacity-20 bg-obsidian p-8 mb-5">
+          <div class="font-mono text-xs text-sage uppercase tracking-wider mb-6">Estimated Annual Emissions</div>
+
+          <div class="space-y-5 mb-6">
+            <div>
+              <div class="flex justify-between items-end mb-1">
+                <span class="font-sans text-sm text-cloud">Gas Flaring (CO₂e)</span>
+                <span class="font-mono text-base text-sage" id="res-flare">—</span>
+              </div>
+              <div class="h-2 bg-forest rounded-sm overflow-hidden"><div id="bar-flare" class="h-full bg-sage transition-all duration-700" style="width:0%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between items-end mb-1">
+                <span class="font-sans text-sm text-cloud">Fugitive Methane (CO₂e)</span>
+                <span class="font-mono text-base text-sage" id="res-fugitive">—</span>
+              </div>
+              <div class="h-2 bg-forest rounded-sm overflow-hidden"><div id="bar-fugitive" class="h-full bg-sage transition-all duration-700" style="width:0%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between items-end mb-1">
+                <span class="font-sans text-sm text-cloud">Stationary Combustion (Diesel CO₂)</span>
+                <span class="font-mono text-base text-sage" id="res-combustion">—</span>
+              </div>
+              <div class="h-2 bg-forest rounded-sm overflow-hidden"><div id="bar-combustion" class="h-full bg-sage transition-all duration-700" style="width:0%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between items-end mb-1">
+                <span class="font-sans text-sm text-cloud">Scope 2 — Electricity (CO₂)</span>
+                <span class="font-mono text-base text-ash" id="res-scope2">—</span>
+              </div>
+              <div class="h-2 bg-forest rounded-sm overflow-hidden"><div id="bar-scope2" class="h-full bg-steel transition-all duration-700" style="width:0%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between items-end mb-1">
+                <span class="font-sans text-sm text-cloud">Pneumatic Controllers (CH₄ → CO₂e)</span>
+                <span class="font-mono text-base text-sage" id="res-pneum">—</span>
+              </div>
+              <div class="h-2 bg-forest rounded-sm overflow-hidden"><div id="bar-pneum" class="h-full bg-sage transition-all duration-700" style="width:0%"></div></div>
+            </div>
+          </div>
+
+          <div class="border-t border-verde border-opacity-20 pt-5">
+            <div class="flex justify-between items-end mb-1">
+              <div>
+                <div class="font-mono text-xs text-sage uppercase tracking-wider">Total Annual Emissions</div>
+                <div class="font-mono text-xs text-steel mt-0.5">Scope 1 + 2 · Tier 1 estimate</div>
+              </div>
+              <div class="calc-result" id="res-total">—</div>
+            </div>
+            <div class="font-mono text-xs text-steel mt-1">tCO₂e / year</div>
+          </div>
+        </div>
+
+        <!-- Carbon credit potential -->
+        <div class="border border-goldlight border-opacity-25 bg-gold bg-opacity-5 p-6 mb-5">
+          <div class="font-mono text-xs text-goldlight uppercase tracking-wider mb-3">Carbon Credit Revenue Potential</div>
+          <div class="flex justify-between items-end mb-2">
+            <span class="font-sans text-sm text-ash font-light">Estimated abatable emissions (40% of Scope 1)</span>
+            <span class="font-mono text-sm text-goldlight" id="res-abate">—</span>
+          </div>
+          <div class="flex justify-between items-end mb-2">
+            <span class="font-sans text-sm text-ash font-light">VCM price assumption (USD 14/tCO₂e)</span>
+            <span class="font-mono text-sm text-goldlight">$14.00</span>
+          </div>
+          <div class="flex justify-between items-end mb-2">
+            <span class="font-sans text-sm text-ash font-light">VerdeScope origination fee (6%)</span>
+            <span class="font-mono text-sm text-goldlight">6.0%</span>
+          </div>
+          <div class="border-t border-goldlight border-opacity-20 pt-3 flex justify-between items-end">
+            <span class="font-sans text-sm font-semibold text-ivory">Estimated Annual Carbon Revenue</span>
+            <span class="font-mono text-xl text-goldlight font-medium" id="res-carbon-rev">—</span>
+          </div>
+        </div>
+
+        <div class="text-center">
+          <a href="demo.html" class="btn-primary w-full justify-center gap-2">
+            Get Precise Tier 2/3 Calculation
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </a>
+          <p class="font-mono text-xs text-steel mt-3">This calculator uses IPCC 2006/2019 Tier 1 defaults. VerdeScope's full platform delivers Tier 2/3 precision with complete audit trail and NUPRC-submission-ready reports.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+</div><!-- /hub-container -->
+
+
+<!-- ════════════════════════════ NEWSLETTER ══ -->
+<section class="py-20 px-6 bg-forest border-t border-verde border-opacity-20 relative overflow-hidden">
+  <div class="absolute inset-0 grid-texture opacity-40"></div>
+  <div class="relative z-10 max-w-4xl mx-auto text-center">
+    <div class="flex items-center justify-center gap-3 mb-5" data-aos="fade-up">
+      <div class="w-8 h-px bg-sage"></div>
+      <span class="font-mono text-xs tracking-widest text-sage uppercase">Stay Ahead of the Regulations</span>
+      <div class="w-8 h-px bg-sage"></div>
+    </div>
+    <h2 class="font-display font-light text-4xl text-ivory leading-tight mb-4" data-aos="fade-up" data-aos-delay="60">
+      The VerdeScope Compliance Brief
+    </h2>
+    <p class="font-sans text-base text-ash font-light mb-8 max-w-xl mx-auto" data-aos="fade-up" data-aos-delay="100">Monthly briefing covering NUPRC regulatory updates, IPCC methodology changes, Nigeria carbon market developments, and new VerdeScope features. Read by 400+ Nigerian upstream professionals.</p>
+    <div class="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto" data-aos="fade-up" data-aos-delay="140">
+      <input type="email" placeholder="your.email@company.com.ng"
+        id="nl-email"
+        class="flex-1 bg-obsidian border border-verde border-opacity-25 px-5 py-3 font-sans text-sm text-ivory placeholder-steel focus:border-sage focus:outline-none transition-colors" />
+      <button onclick="subscribeNL()" class="btn-primary gap-2 flex-shrink-0">
+        Subscribe
+        <i data-lucide="mail" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <p id="nl-confirm" class="font-mono text-xs text-sage mt-3 hidden">✓ Subscribed — thank you! First issue arrives next Monday.</p>
+    <p class="font-mono text-xs text-steel mt-2">Monthly · No spam · Unsubscribe any time</p>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════ FOOTER ══ -->
+<footer class="bg-obsidian border-t border-verde border-opacity-15 pt-12 pb-8 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-10">
+      <div class="col-span-2">
+        <a href="index.html" class="flex items-center gap-3 mb-4">
+          <svg width="30" height="30" viewBox="0 0 56 56" fill="none">
+            <circle cx="28" cy="28" r="18" stroke="#4CAF6F" stroke-width="1.5" fill="none"/>
+            <circle cx="28" cy="28" r="3" fill="#4CAF6F"/>
+            <path d="M28 10 C34 14,44 20,44 28 C44 28,36 22,28 10Z" fill="#2E7D45" opacity=".8"/>
+            <line x1="38" y1="8" x2="42" y2="14" stroke="#B8962E" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <span class="font-display text-xl"><span class="text-ivory">Verde</span><span class="text-goldlight">Scope</span></span>
+        </a>
+        <p class="font-sans text-sm text-ash font-light leading-relaxed">Nigeria's first dedicated upstream GHG compliance and carbon intelligence platform.</p>
+      </div>
+      <div>
+        <div class="font-mono text-xs text-steel tracking-widest uppercase mb-4">Resources</div>
+        <div class="space-y-2">
+          <a href="#" onclick="showHub('academy',document.querySelectorAll('.hub-tab')[0])" class="block font-sans text-sm text-ash hover:text-sage transition-colors">Academy</a>
+          <a href="#" onclick="showHub('regulations',document.querySelectorAll('.hub-tab')[1])" class="block font-sans text-sm text-ash hover:text-sage transition-colors">Regulation Centre</a>
+          <a href="#" onclick="showHub('glossary',document.querySelectorAll('.hub-tab')[2])" class="block font-sans text-sm text-ash hover:text-sage transition-colors">Glossary</a>
+          <a href="#" onclick="showHub('whitepapers',document.querySelectorAll('.hub-tab')[3])" class="block font-sans text-sm text-ash hover:text-sage transition-colors">Whitepapers</a>
+          <a href="#" onclick="showHub('courses',document.querySelectorAll('.hub-tab')[4])" class="block font-sans text-sm text-ash hover:text-sage transition-colors">Courses</a>
+          <a href="#" onclick="showHub('calculator',document.querySelectorAll('.hub-tab')[5])" class="block font-sans text-sm text-ash hover:text-sage transition-colors">Carbon Calculator</a>
+        </div>
+      </div>
+      <div>
+        <div class="font-mono text-xs text-steel tracking-widest uppercase mb-4">Platform</div>
+        <div class="space-y-2">
+          <a href="platform.html"          class="block font-sans text-sm text-ash hover:text-sage transition-colors">Platform Overview</a>
+          <a href="app/emissions.html"     class="block font-sans text-sm text-ash hover:text-sage transition-colors">Emissions Engine</a>
+          <a href="app/ldar.html"          class="block font-sans text-sm text-ash hover:text-sage transition-colors">LDAR Manager</a>
+          <a href="app/carbon-market.html" class="block font-sans text-sm text-ash hover:text-sage transition-colors">Carbon Market</a>
+        </div>
+      </div>
+      <div>
+        <div class="font-mono text-xs text-steel tracking-widest uppercase mb-4">Company</div>
+        <div class="space-y-2">
+          <a href="about.html"    class="block font-sans text-sm text-ash hover:text-sage transition-colors">About Us</a>
+          <a href="services.html" class="block font-sans text-sm text-ash hover:text-sage transition-colors">Services</a>
+          <a href="demo.html"     class="block font-sans text-sm text-ash hover:text-sage transition-colors">Request Demo</a>
+          <a href="login.html"    class="block font-sans text-sm text-ash hover:text-sage transition-colors">Log In</a>
+        </div>
+      </div>
+    </div>
+    <div class="border-t border-verde border-opacity-15 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="font-mono text-xs text-steel">© 2026 VerdeScope Limited · Lagos, Nigeria & Paris, France</div>
+      <div class="font-mono text-xs text-steel">verdescope.ng</div>
+    </div>
+  </div>
+</footer>
+
+
+<!-- ════════════════════════════ SCRIPTS ══ -->
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script>
+AOS.init({ duration:650, once:true, offset:60, easing:'ease-out-cubic' });
+lucide.createIcons();
+
+// Nav scroll
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').querySelector('div')
+    .style.background = window.scrollY > 60 ? 'rgba(13,26,18,.98)' : 'rgba(13,26,18,.95)';
+});
+
+// Mobile menu
+function toggleMob() {
+  const m = document.getElementById('mobile-menu'), i = document.getElementById('mob-icon');
+  const o = m.classList.toggle('open');
+  i.setAttribute('data-lucide', o ? 'x' : 'menu');
+  lucide.createIcons();
+}
+
+// ── Hub tab switcher ──────────────────────────────────────────
+function showHub(name, tabEl) {
+  document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
+  const panel = document.getElementById('panel-' + name);
+  if (panel) panel.classList.add('active');
+  if (tabEl)  tabEl.classList.add('active');
+  AOS.refresh();
+  lucide.createIcons();
+  if (name === 'calculator') setTimeout(runCalc, 100);
+  if (name === 'glossary')   setTimeout(buildGlossary, 50);
+  document.getElementById('hub-container').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function activateHub(name, linkEl) {
+  const idx = { academy:0, regulations:1, glossary:2, whitepapers:3, courses:4, calculator:5 };
+  const tabs = document.querySelectorAll('.hub-tab');
+  if (idx[name] !== undefined) showHub(name, tabs[idx[name]]);
+}
+
+// ── Article category filter ───────────────────────────────────
+function filterArticles(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.className = 'filter-btn tag-neutral cursor-pointer';
+  });
+  btn.className = 'filter-btn tag-green cursor-pointer';
+  document.querySelectorAll('#article-grid .article-card').forEach(card => {
+    const cats = card.getAttribute('data-category') || '';
+    card.style.display = (cat === 'all' || cats.includes(cat)) ? 'block' : 'none';
+  });
+}
+
+// ── Global search ─────────────────────────────────────────────
+function filterSearch(q) {
+  if (!q.trim()) return;
+  q = q.toLowerCase();
+  // Switch to academy and filter
+  const tabs = document.querySelectorAll('.hub-tab');
+  showHub('academy', tabs[0]);
+  document.querySelectorAll('#article-grid .article-card').forEach(card => {
+    const txt = card.innerText.toLowerCase();
+    card.style.display = txt.includes(q) ? 'block' : 'none';
+  });
+}
+
+// ── Glossary ─────────────────────────────────────────────────
+const GLOSSARY_DATA = [
+  { term:'Activity Data', letter:'A', def:'The quantitative measure of an activity (e.g., volume of fuel burned, tonnes of material produced) that causes greenhouse gas emissions. Activity data × Emission Factor = Emissions. Mandated for all NUPRC IPCC Tier 1 calculations.' },
+  { term:'API Compendium', letter:'A', def:'The American Petroleum Institute Compendium of Greenhouse Gas Emissions Methodologies for the Oil and Gas Industry (3rd Edition). Referenced by NUPRC Guide 0024-2022 as an approved Tier 2 methodology for upstream equipment emission factors including pneumatic devices, compressors, and storage tanks.' },
+  { term:'Article 6.4 (PACM)', letter:'A', def:'The Paris Agreement Crediting Mechanism — a centralised UNFCCC crediting mechanism where the Article 6.4 Supervisory Body oversees the full cycle from methodology approval through validation, verification, and credit issuance. Nigeria activates this mechanism under its Carbon Market Framework (October 2025). VerdeScope\'s Carbon Market Module generates Article 6.4-compliant MRV data packages.' },
+  { term:'Baseline Emissions', letter:'B', def:'The hypothetical emissions that would occur in the absence of a carbon abatement project. Required for carbon credit quantification under ISO 14064-2 and VCS methodologies. VerdeScope calculates project baselines from operators\' historical emissions records.' },
+  { term:'Carbon Market Framework (CMF)', letter:'C', def:'Nigeria\'s Carbon Market Activation Policy launched October 2025. Establishes the governance, procedures, and eligibility criteria for Nigeria\'s participation in the Voluntary Carbon Market (VCM), Article 6.2/6.4 mechanisms, and future Emissions Trading System. Targets USD 736M–2.5B market value by 2030.' },
+  { term:'Carbon Credits / VCUs', letter:'C', def:'A tradable instrument representing one metric tonne of CO₂-equivalent emissions reduced or removed. In Nigeria\'s upstream sector, carbon credits are generated from flare gas elimination (VCS VM0039), methane abatement from LDAR programmes, and pneumatic controller replacement. Each credit requires VVB verification and registry issuance.' },
+  { term:'Cold Venting', letter:'C', def:'The intentional release of uncombusted natural gas (methane and other hydrocarbons) to the atmosphere. Prohibited in Nigeria under Gas Flaring, Venting and Methane Emissions Regulations 2023 and EGASPIN 2018. Operators must apply for a waiver from NUPRC to vent gas under operational exigencies.' },
+  { term:'CO₂e (CO₂-equivalent)', letter:'C', def:'A common unit for comparing greenhouse gas emissions based on global warming potential. CO₂e = mass of gas × GWP. NUPRC mandates IPCC AR6 100-year GWP values: CO₂=1, CH₄=27.9, N₂O=273. Energy intensity calculations use the 20-year GWP for methane: CH₄=82.5.' },
+  { term:'DRE — Destruction Removal Efficiency', letter:'D', def:'The percentage of hydrocarbons destroyed during flare combustion. NUPRC requires a minimum DRE of 98% for all flares, as per Gas Flaring Regulations 2023 and NUPRC Guide 0024-2022. VerdeScope tracks DRE compliance per flare and triggers alerts when flare status indicates degraded combustion.' },
+  { term:'Emission Factor (EF)', letter:'E', def:'A coefficient that relates the activity data to the quantity of greenhouse gas emitted. Source: IPCC 2006 Guidelines + 2019 Refinement (Tier 1 defaults), API Compendium (Tier 2 upstream equipment), or facility-specific measurements (Tier 3). All EFs in VerdeScope are version-controlled and traceable to their source standards.' },
+  { term:'Energy Intensity', letter:'E', def:'A measure of greenhouse gas emissions relative to production output. NUPRC mandates a 2.5% per year reduction in energy intensity from the 2020 base year. Formula: EI = (CO₂ metric tonnes + CH₄ metric tonnes × 82.5) / MBOE. The 82.5 is the IPCC AR6 20-year GWP for fossil methane, as specified in NUPRC Appendix D.' },
+  { term:'FDP — Field Development Plan', letter:'F', def:'The technical and commercial document submitted to NUPRC for approval before developing an upstream oil or gas field. The UPDT (January 2025) requires every FDP to include a decarbonisation strategy chapter covering GHG management, emissions targets, and methane control plans. VerdeScope generates the FDP decarbonisation chapter automatically.' },
+  { term:'Flare Efficiency Test', letter:'F', def:'The annual NUPRC requirement to test auto-igniter operability or verify that continuous pilot lights are independently lit on all facility flares. Results must be recorded and submitted with the NUPRC annual report. VerdeScope\'s Equipment Tracker maintains the flare efficiency test calendar.' },
+  { term:'Fugitive Emissions', letter:'F', def:'Unintentional releases of greenhouse gases from equipment leaks, connections, seals, and other unpressurised openings. Key sources in upstream O&G: compressor seals, valve stems, flanges, pneumatic device venting, tank hatches, and glycol dehydrator still vents. The primary target of LDAR programmes under NUPRC Guide 0024-2022 Section 3.2.' },
+  { term:'GHG Protocol', letter:'G', def:'The Greenhouse Gas Protocol — a framework developed by WRI (World Resources Institute) and WBCSD providing internationally recognised standards for quantifying and reporting GHG emissions. The GHG Protocol Corporate Standard is the primary reference for VerdeScope\'s calculation methodology, alongside IPCC guidelines mandated by NUPRC.' },
+  { term:'GWP — Global Warming Potential', letter:'G', def:'A factor that converts the climate impact of a non-CO₂ greenhouse gas into CO₂-equivalent units over a specified time horizon. IPCC AR6 values used by VerdeScope: CO₂=1 (100yr), CH₄=27.9 (100yr), N₂O=273 (100yr), CH₄=82.5 (20yr, for NUPRC energy intensity calculations).' },
+  { term:'ISO 14064', letter:'I', def:'A suite of ISO standards for GHG accounting and verification. ISO 14064-1:2018 covers organisational GHG inventories; ISO 14064-2:2019 covers project-level accounting; ISO 14064-3:2019 covers verification. Mandatory under Nigeria\'s Carbon Market Framework for carbon credit issuance. VerdeScope generates ISO 14064-1 compliant inventory statements for Enterprise clients.' },
+  { term:'IPCC Tier 1/2/3', letter:'I', def:'Three levels of methodological complexity for estimating greenhouse gas emissions. Tier 1 uses IPCC/API default emission factors — simplest, least precise. Tier 2 uses facility-specific or country-specific factors. Tier 3 uses direct measurement or facility-specific models. NUPRC Guide 0024-2022 mandates Tier 1 minimum (Year 1), progressing to Tier 2/3 thereafter.' },
+  { term:'ITMO — Internationally Transferred Mitigation Outcome', letter:'I', def:'A carbon credit unit transferred between countries under Article 6.2 of the Paris Agreement. Nigeria\'s Carbon Market Framework specifies that ITMOs must be authorised by the NCCC (National Council on Climate Change) and that corresponding adjustments are applied to prevent double-counting. VerdeScope\'s Carbon Market Module tracks ITMO authorisation status.' },
+  { term:'LDAR — Leak Detection and Repair', letter:'L', def:'A systematic programme for detecting and repairing fugitive emissions from upstream equipment. Mandated by NUPRC Guide 0024-2022 Section 3.2. Inspection frequencies: 1 survey/year (Year 1), 2 surveys/year (Year 2), 4 surveys/year (Year 3+). VerdeScope\'s LDAR Manager automates schedule generation, leak tracking, SLA clock management, and NUPRC annual report compilation.' },
+  { term:'MBOE — Million Barrels of Oil Equivalent', letter:'M', def:'A unit of energy used in the upstream oil and gas sector to normalise different hydrocarbon streams. Formula: MBOE = Oil (bbl × 0.000001) + Gas (Mcf × 0.000166). Used as the denominator in NUPRC\'s Energy Intensity calculation, with the required 2.5%/year reduction target.' },
+  { term:'MRV — Measurement, Reporting, Verification', letter:'M', def:'The three-part framework for ensuring the environmental integrity of carbon credits and GHG reporting. Measurement: quantifying emissions and reductions. Reporting: documenting and submitting data to NUPRC and/or carbon registries. Verification: independent third-party review by accredited VVBs. VerdeScope generates MRV data packages for Nigeria\'s VCM projects.' },
+  { term:'NCCC — National Council on Climate Change', letter:'N', def:'Nigeria\'s designated authority for carbon markets under the Climate Change Act 2021. The NCCC is the Designated National Authority (DNA) responsible for authorising ITMOs under Article 6.4, issuing No-Objection letters for VCM projects, and communicating with the UNFCCC Secretariat.' },
+  { term:'NOGICD Act', letter:'N', def:'The Nigerian Oil and Gas Industry Content Development Act 2010. Requires all upstream operators to give first consideration to Nigerian companies for procurement of goods and services. VerdeScope\'s Nigerian-majority ownership (55%+) qualifies it for NOGICD-preferential treatment — creating a structural barrier to foreign SaaS competitors.' },
+  { term:'NUPRC', letter:'N', def:'The Nigerian Upstream Petroleum Regulatory Commission — the lead agency responsible for regulating all upstream petroleum operations in Nigeria under PIA 2021. NUPRC issues the UPDT, Methane Guidelines (Guide 0024-2022), and all upstream GHG compliance instruments. VerdeScope is pursuing NUPRC Preferred Technology Partner designation.' },
+  { term:'Scope 1 Emissions', letter:'S', def:'Direct greenhouse gas emissions from sources owned or controlled by the reporting organisation. In upstream oil and gas: gas flaring (CO₂, CH₄, N₂O), cold venting (CH₄), fugitive equipment leaks (CH₄), stationary combustion (CO₂), and pneumatic device bleed (CH₄). Scope 1 is the primary focus of NUPRC reporting obligations.' },
+  { term:'Scope 2 Emissions', letter:'S', def:'Indirect greenhouse gas emissions from purchased electricity, heat, or steam consumed by the reporting organisation. Nigeria grid emission factor (location-based): 0.431 kg CO₂/kWh (2024 national average). VerdeScope supports both location-based and market-based Scope 2 calculations per GHG Protocol Scope 2 Guidance.' },
+  { term:'Scope 3 Emissions', letter:'S', def:'All other indirect greenhouse gas emissions that occur in the value chain of the reporting organisation, not included in Scope 2. For upstream operators: supply chain emissions (Category 1), business travel (Category 6), and the combustion of produced hydrocarbons by end customers (Category 11). Scope 3 is mandatory for VerdeScope Enterprise tier and for IOC parent CSRD compliance.' },
+  { term:'Tier — see IPCC Tier 1/2/3', letter:'T', def:'See IPCC Tier 1/2/3 above. NUPRC Guide 0024-2022 Section 4.1(c) mandates operators adopt at least Tier 1 within one year of the guideline\'s effective date, with a requirement to progress to Tier 2/3 thereafter.' },
+  { term:'UPDT — Upstream Petroleum Decarbonisation Template', letter:'U', def:'The mandatory NUPRC compliance framework effective January 2025. Five obligations: (1) Decarbonisation strategy embedded in FDPs; (2) Time-bound GHG reduction targets; (3) Gas flaring and venting compliance; (4) Methane management programme; (5) CCS/NBS/offset plan. Required for every licence, permit, and FDP application. Penalty: licence revocation under PIA 2021 §96–97.' },
+  { term:'VCM — Voluntary Carbon Market', letter:'V', def:'A market where private entities voluntarily buy and sell carbon credits outside of mandatory regulatory frameworks. Nigeria\'s Carbon Market Framework (October 2025) targets USD 736M–2.5B VCM value by 2030. Key standards for upstream credits: VCS (Verra) VM0039 for methane capture, Gold Standard, and the forthcoming Paris Agreement Crediting Mechanism (PACM).' },
+  { term:'VVB — Validation and Verification Body', letter:'V', def:'An independent third-party organisation accredited to ISO 14065:2020 that validates carbon project designs and verifies emissions reduction claims. VVBs issue verification statements that are required for carbon credit issuance under VCS, Gold Standard, and Nigeria\'s Carbon Market Framework. VerdeScope\'s VVB Audit Portal provides read-only access for accredited VVBs.' },
+];
+
+let glossaryBuilt = false;
+function buildGlossary() {
+  if (glossaryBuilt) return;
+  glossaryBuilt = true;
+  const container = document.getElementById('glossary-list');
+  if (!container) return;
+  let currentLetter = '';
+  GLOSSARY_DATA.forEach((item, idx) => {
+    if (item.letter !== currentLetter) {
+      currentLetter = item.letter;
+      const lRow = document.createElement('div');
+      lRow.className = 'flex items-start gap-4 mt-6 mb-2';
+      lRow.id = 'letter-' + item.letter;
+      lRow.innerHTML = `<div class="glossary-letter">${item.letter}</div><div class="flex-1 border-b border-verde border-opacity-20"></div>`;
+      container.appendChild(lRow);
+    }
+    const el = document.createElement('div');
+    el.className = 'glossary-item';
+    el.setAttribute('data-term', item.term.toLowerCase());
+    el.innerHTML = `
+      <div class="glossary-term flex items-center justify-between" onclick="toggleGlossary(this)">
+        <span>${item.term}</span>
+        <i data-lucide="chevron-down" class="w-4 h-4 text-steel flex-shrink-0 transition-transform"></i>
+      </div>
+      <div class="glossary-def closed mt-2">${item.def}</div>
+    `;
+    container.appendChild(el);
+  });
+  lucide.createIcons();
+}
+
+function toggleGlossary(termEl) {
+  const def = termEl.nextElementSibling;
+  const icon = termEl.querySelector('[data-lucide]');
+  const isOpen = def.classList.contains('open');
+  def.classList.toggle('open', !isOpen);
+  def.classList.toggle('closed', isOpen);
+  if (icon) icon.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+function filterGlossary(q) {
+  q = q.toLowerCase().trim();
+  document.querySelectorAll('.glossary-item').forEach(item => {
+    const term = item.getAttribute('data-term') || '';
+    const def  = item.querySelector('.glossary-def')?.textContent.toLowerCase() || '';
+    item.style.display = (!q || term.includes(q) || def.includes(q)) ? '' : 'none';
+  });
+}
+
+function jumpLetter(l) {
+  const el = document.getElementById('letter-' + l);
+  if (el) el.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// ── Carbon Calculator ─────────────────────────────────────────
+// IPCC 2006/2019 Tier 1 + NUPRC emission factors
+const EF = {
+  // Flaring: IPCC 2006 Vol2 Ch4. CO2 = 2.693 kg CO2/m3 flared gas. CH4 (uncombusted, DRE 98%) = ~0.0022 kg/m3
+  // 1 Mcf = 28.317 m3
+  flare_co2_per_mcf: 2.693 * 28.317 / 1000,  // tCO2/Mcf
+  flare_ch4_per_mcf: 0.0022 * 28.317 / 1000, // tCH4/Mcf (2% unburned, GWP 27.9)
+
+  // Fugitive CH4: IPCC 2006 Vol2 Ch4.2 default ~0.0023 kg CH4/m3 gas produced (Tier 1)
+  // 1 MMscf = 28317 m3; fugitive CH4 = 0.0023 kg/m3
+  fugitive_ch4_per_mmscf: 0.0023 * 28317 / 1000, // tCH4/MMscf/day/yr = × 365
+
+  // Diesel combustion: IPCC 2006 Vol2 Ch2 Table 2.2; EF = 74.1 kgCO2/GJ; NCV diesel = 43.0 GJ/t
+  diesel_co2_per_tonne: 74.1 * 43.0 / 1000, // tCO2/t diesel
+
+  // Nigeria grid EF: 0.431 kgCO2/kWh (2024 national average)
+  grid_co2_per_mwh: 0.431,  // tCO2/MWh
+
+  // Pneumatic high-bleed: API Compendium Tier 1 default ~17 scm/hr/controller
+  // CH4 fraction in gas ~0.85; 1 scm CH4 = 0.000717 t CH4; 8760 hrs/yr
+  pneum_ch4_per_controller_per_year: 17 * 0.85 * 0.000717 * 8760 / 1000, // tCH4/controller/yr
+
+  // GWP values (IPCC AR6 100-yr)
+  gwp_ch4: 27.9,
+  gwp_n2o: 273,
+};
+
+function runCalc() {
+  const flare  = parseFloat(document.getElementById('calc-flare')?.value)  || 0;  // Mcf/day
+  const prod   = parseFloat(document.getElementById('calc-prod')?.value)   || 0;  // MMscf/day
+  const diesel = parseFloat(document.getElementById('calc-diesel')?.value) || 0;  // t/month
+  const elec   = parseFloat(document.getElementById('calc-elec')?.value)   || 0;  // MWh/month
+  const pneum  = parseFloat(document.getElementById('calc-pneum')?.value)  || 0;  // count
+
+  // Annual figures
+  const flare_yr   = flare  * 365;
+  const diesel_yr  = diesel * 12;
+  const elec_yr    = elec   * 12;
+
+  // Calculate emissions
+  const e_flare_co2   = flare_yr * EF.flare_co2_per_mcf;
+  const e_flare_ch4   = flare_yr * EF.flare_ch4_per_mcf * EF.gwp_ch4;
+  const e_flare       = e_flare_co2 + e_flare_ch4;
+
+  const e_fugitive    = prod * 365 * EF.fugitive_ch4_per_mmscf * EF.gwp_ch4;
+
+  const e_combustion  = diesel_yr * EF.diesel_co2_per_tonne;
+
+  const e_scope2      = elec_yr * EF.grid_co2_per_mwh;
+
+  const e_pneum       = pneum * EF.pneum_ch4_per_controller_per_year * EF.gwp_ch4;
+
+  const total_scope1  = e_flare + e_fugitive + e_combustion + e_pneum;
+  const total_all     = total_scope1 + e_scope2;
+
+  // Carbon credit potential (40% of Scope 1 abatable; $14/t VCM; 6% VerdeScope fee)
+  const abatable      = total_scope1 * 0.40;
+  const carbon_rev    = abatable * 14 * 0.94; // operator gets 94%, VerdeScope gets 6%
+
+  // Update UI
+  const fmt = n => n >= 1000 ? (n/1000).toFixed(1) + 'k tCO₂e' : Math.round(n) + ' tCO₂e';
+  const fmtRev = n => '$' + Math.round(n).toLocaleString();
+
+  document.getElementById('res-flare').textContent      = fmt(e_flare);
+  document.getElementById('res-fugitive').textContent   = fmt(e_fugitive);
+  document.getElementById('res-combustion').textContent = fmt(e_combustion);
+  document.getElementById('res-scope2').textContent     = fmt(e_scope2);
+  document.getElementById('res-pneum').textContent      = fmt(e_pneum);
+  document.getElementById('res-total').textContent      = fmt(total_all);
+  document.getElementById('res-abate').textContent      = fmt(abatable);
+  document.getElementById('res-carbon-rev').textContent = fmtRev(carbon_rev);
+
+  // Animate bars
+  const maxVal = Math.max(e_flare, e_fugitive, e_combustion, e_scope2, e_pneum);
+  const pct = v => maxVal > 0 ? Math.min(Math.round((v/maxVal)*90), 90) : 0;
+  setTimeout(() => {
+    document.getElementById('bar-flare').style.width      = pct(e_flare)      + '%';
+    document.getElementById('bar-fugitive').style.width   = pct(e_fugitive)   + '%';
+    document.getElementById('bar-combustion').style.width = pct(e_combustion) + '%';
+    document.getElementById('bar-scope2').style.width     = pct(e_scope2)     + '%';
+    document.getElementById('bar-pneum').style.width      = pct(e_pneum)      + '%';
+  }, 60);
+}
+
+// ── Newsletter ────────────────────────────────────────────────
+function subscribeNL() {
+  const email = document.getElementById('nl-email')?.value;
+  if (!email || !email.includes('@')) return;
+  document.getElementById('nl-confirm').classList.remove('hidden');
+  document.getElementById('nl-email').value = '';
+}
+
+// ── Init ──────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  lucide.createIcons();
+  // Handle hash → activate the right tab
+  const hash = window.location.hash.replace('#','');
+  const map  = { academy:0, regulations:1, glossary:2, whitepapers:3, courses:4, calculator:5 };
+  if (hash && map[hash] !== undefined) {
+    const tabs = document.querySelectorAll('.hub-tab');
+    showHub(hash, tabs[map[hash]]);
+  }
+});
+
+// Smooth hash clicks
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) { e.preventDefault(); t.scrollIntoView({ behavior:'smooth', block:'start' }); }
+  });
+});
+</script>
+
+</body>
+</html>

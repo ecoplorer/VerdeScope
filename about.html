@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About Us — VerdeScope</title>
+  <meta name="description" content="VerdeScope is Nigeria's first dedicated upstream GHG compliance and carbon intelligence platform. Built in Lagos and Paris by petroleum engineers, data scientists, and carbon market specialists." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link  rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#0D1A12', forest: '#1A3D24', pine: '#235930',
+            verde:    '#2E7D45', sage:   '#4CAF6F', mist: '#A8D5B5',
+            fog:      '#E8F5ED', parchment: '#F4F1EB', ivory: '#FDFCF9',
+            gold:     '#B8962E', goldlight: '#D4AE50', goldpale: '#F5E9C4',
+            slate:    '#2A3040', steel: '#4A5568', ash: '#8A9BB0', cloud: '#D4DCE8',
+          },
+          fontFamily: {
+            display: ['Cormorant Garamond','Georgia','serif'],
+            sans:    ['Outfit','sans-serif'],
+            mono:    ['DM Mono','monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    *{box-sizing:border-box;}
+    body{font-family:'Outfit',sans-serif;background-color:#0D1A12;color:#FDFCF9;overflow-x:hidden;}
+
+    .grid-texture{
+      background-image:
+        linear-gradient(rgba(46,125,69,.04)1px,transparent 1px),
+        linear-gradient(90deg,rgba(46,125,69,.04)1px,transparent 1px);
+      background-size:48px 48px;
+    }
+    .glow-green{background:radial-gradient(ellipse at center,rgba(46,125,69,.18)0%,transparent 65%);}
+    .glow-gold {background:radial-gradient(ellipse at center,rgba(184,150,46,.14)0%,transparent 65%);}
+
+    .grain::before{
+      content:'';position:fixed;inset:0;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events:none;z-index:9999;opacity:.4;
+    }
+
+    /* Nav */
+    .nav-dropdown{display:none;}
+    .nav-item:hover .nav-dropdown{display:block;}
+    #mobile-menu{display:none;}
+    #mobile-menu.open{display:block;}
+
+    /* Buttons */
+    .btn-primary{background:#2E7D45;color:#FDFCF9;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:13px 28px;transition:all .25s;border:1px solid transparent;display:inline-flex;align-items:center;gap:8px;}
+    .btn-primary:hover{background:#235930;transform:translateY(-1px);box-shadow:0 8px 28px rgba(46,125,69,.35);}
+    .btn-outline{background:transparent;color:#4CAF6F;border:1px solid #2E7D45;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:12px 28px;transition:all .25s;display:inline-flex;align-items:center;gap:8px;}
+    .btn-outline:hover{background:rgba(46,125,69,.12);border-color:#4CAF6F;}
+    .btn-gold{background:#B8962E;color:#0D1A12;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:13px 28px;transition:all .25s;display:inline-flex;align-items:center;gap:8px;}
+    .btn-gold:hover{background:#D4AE50;transform:translateY(-1px);box-shadow:0 8px 28px rgba(184,150,46,.35);}
+
+    /* Tags */
+    .tag-green{background:rgba(46,125,69,.15);color:#4CAF6F;border:1px solid rgba(46,125,69,.3);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:3px 12px;}
+    .tag-gold {background:rgba(184,150,46,.12);color:#D4AE50;border:1px solid rgba(184,150,46,.25);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:3px 12px;}
+    .tag-neutral{background:rgba(255,255,255,.04);color:#8A9BB0;border:1px solid rgba(255,255,255,.08);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:3px 12px;}
+
+    /* Team card */
+    .team-card{background:rgba(255,255,255,.02);border:1px solid rgba(46,125,69,.12);transition:all .35s;overflow:hidden;}
+    .team-card:hover{background:rgba(46,125,69,.06);border-color:rgba(46,125,69,.4);transform:translateY(-4px);box-shadow:0 24px 64px rgba(0,0,0,.35);}
+    .team-avatar{width:100%;aspect-ratio:1;background:linear-gradient(135deg,#1A3D24 0%,#235930 50%,#1A3D24 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+    .team-avatar::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(46,125,69,.06)1px,transparent 1px),linear-gradient(90deg,rgba(46,125,69,.06)1px,transparent 1px);background-size:20px 20px;}
+    .team-initials{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:300;color:rgba(76,175,111,.6);position:relative;z-index:1;line-height:1;}
+
+    /* Timeline */
+    .timeline-item{position:relative;padding-left:52px;}
+    .timeline-item::before{content:'';position:absolute;left:16px;top:40px;bottom:-8px;width:1px;background:linear-gradient(to bottom,rgba(46,125,69,.5),transparent);}
+    .timeline-item:last-child::before{display:none;}
+    .timeline-dot{position:absolute;left:8px;top:10px;width:17px;height:17px;background:#0D1A12;border:2px solid #4CAF6F;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+    .timeline-dot::after{content:'';width:5px;height:5px;background:#4CAF6F;border-radius:50%;}
+
+    /* Value card */
+    .value-card{background:rgba(255,255,255,.02);border:1px solid rgba(46,125,69,.12);padding:36px 32px;transition:all .3s;}
+    .value-card:hover{background:rgba(46,125,69,.05);border-color:rgba(46,125,69,.35);transform:translateY(-3px);}
+
+    /* Investor card */
+    .investor-card{background:rgba(255,255,255,.02);border:1px solid rgba(184,150,46,.15);padding:28px;transition:all .3s;}
+    .investor-card:hover{background:rgba(184,150,46,.05);border-color:rgba(184,150,46,.4);transform:translateY(-3px);}
+
+    /* Number counter */
+    .stat-num{font-family:'DM Mono',monospace;font-size:48px;font-weight:300;line-height:1;}
+
+    /* Press card */
+    .press-card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);padding:24px;transition:all .25s;}
+    .press-card:hover{border-color:rgba(46,125,69,.35);background:rgba(46,125,69,.04);}
+
+    /* Office card */
+    .office-card{background:rgba(26,61,36,.4);border:1px solid rgba(46,125,69,.2);overflow:hidden;}
+
+    /* Scrollbar */
+    ::-webkit-scrollbar{width:6px;}
+    ::-webkit-scrollbar-track{background:#0D1A12;}
+    ::-webkit-scrollbar-thumb{background:#235930;border-radius:3px;}
+
+    /* Pulse */
+    @keyframes pulse-ring{0%{transform:scale(1);opacity:.6;}100%{transform:scale(1.8);opacity:0;}}
+    .pulse-ring::before{content:'';position:absolute;inset:-6px;border:1px solid #4CAF6F;border-radius:50%;animation:pulse-ring 2.5s ease-out infinite;}
+
+    /* Marquee for standards/partners */
+    @keyframes marquee{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+    .marquee-move{animation:marquee 30s linear infinite;}
+    .marquee-move:hover{animation-play-state:paused;}
+  </style>
+</head>
+
+<body class="grain">
+
+<!-- ══════════════════════════════════════════ NAV ══ -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50">
+  <div class="border-b border-verde border-opacity-20 bg-obsidian bg-opacity-95 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-3 flex-shrink-0">
+        <svg width="34" height="34" viewBox="0 0 56 56" fill="none">
+          <circle cx="28" cy="28" r="26" stroke="#2E7D45" stroke-width=".75" fill="none" opacity=".3"/>
+          <circle cx="28" cy="28" r="18" stroke="#4CAF6F" stroke-width="1.5" fill="none"/>
+          <line x1="28" y1="10" x2="28" y2="46" stroke="#2E7D45" stroke-width=".75" opacity=".4"/>
+          <line x1="10" y1="28" x2="46" y2="28" stroke="#2E7D45" stroke-width=".75" opacity=".4"/>
+          <circle cx="28" cy="28" r="3" fill="#4CAF6F"/>
+          <path d="M28 10 C34 14,44 20,44 28 C44 28,36 22,28 10Z" fill="#2E7D45" opacity=".8"/>
+          <line x1="38" y1="8" x2="42" y2="14" stroke="#B8962E" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="28" y1="2" x2="28" y2="7"  stroke="#4CAF6F" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="54" y1="28" x2="49" y2="28" stroke="#4CAF6F" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="font-display text-2xl"><span class="text-ivory">Verde</span><span class="text-goldlight">Scope</span></span>
+      </a>
+
+      <div class="hidden lg:flex items-center gap-1">
+        <div class="nav-item relative">
+          <button class="flex items-center gap-1.5 px-4 py-2 text-ash hover:text-ivory font-sans text-sm font-medium tracking-wide transition-colors">Platform <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>
+          <div class="nav-dropdown absolute top-full left-0 pt-2 w-64 z-50">
+            <div class="bg-forest border border-verde border-opacity-25 shadow-2xl p-2">
+              <a href="platform.html" class="flex items-start gap-3 p-3 hover:bg-verde hover:bg-opacity-10 transition-colors group">
+                <div class="mt-0.5 text-sage"><i data-lucide="gauge" class="w-4 h-4"></i></div>
+                <div><div class="text-sm font-semibold text-ivory group-hover:text-sage">Platform Overview</div><div class="text-xs text-ash mt-0.5">Full feature walkthrough</div></div>
+              </a>
+              <a href="app/emissions.html" class="flex items-start gap-3 p-3 hover:bg-verde hover:bg-opacity-10 transition-colors group">
+                <div class="mt-0.5 text-sage"><i data-lucide="calculator" class="w-4 h-4"></i></div>
+                <div><div class="text-sm font-semibold text-ivory group-hover:text-sage">Emissions Calculator</div><div class="text-xs text-ash mt-0.5">IPCC Tier 1/2/3 engine</div></div>
+              </a>
+              <a href="app/ldar.html" class="flex items-start gap-3 p-3 hover:bg-verde hover:bg-opacity-10 transition-colors group">
+                <div class="mt-0.5 text-sage"><i data-lucide="search" class="w-4 h-4"></i></div>
+                <div><div class="text-sm font-semibold text-ivory group-hover:text-sage">LDAR Manager</div><div class="text-xs text-ash mt-0.5">Leak detection & repair</div></div>
+              </a>
+              <a href="app/updt.html" class="flex items-start gap-3 p-3 hover:bg-verde hover:bg-opacity-10 transition-colors group">
+                <div class="mt-0.5 text-sage"><i data-lucide="shield-check" class="w-4 h-4"></i></div>
+                <div><div class="text-sm font-semibold text-ivory group-hover:text-sage">UPDT Compliance</div><div class="text-xs text-ash mt-0.5">NUPRC workflow engine</div></div>
+              </a>
+              <a href="app/carbon-market.html" class="flex items-start gap-3 p-3 hover:bg-verde hover:bg-opacity-10 transition-colors group">
+                <div class="mt-0.5 text-goldlight"><i data-lucide="trending-up" class="w-4 h-4"></i></div>
+                <div><div class="text-sm font-semibold text-ivory group-hover:text-goldlight">Carbon Market</div><div class="text-xs text-ash mt-0.5">VCM & Article 6</div></div>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="nav-item relative">
+          <button class="flex items-center gap-1.5 px-4 py-2 text-ash hover:text-ivory font-sans text-sm font-medium tracking-wide transition-colors">Services <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>
+          <div class="nav-dropdown absolute top-full left-0 pt-2 w-56 z-50">
+            <div class="bg-forest border border-verde border-opacity-25 shadow-2xl p-2">
+              <a href="services.html#essentials" class="block p-3 hover:bg-verde hover:bg-opacity-10 text-sm text-ivory transition-colors">Essentials — from $40K/yr</a>
+              <a href="services.html#pro"        class="block p-3 hover:bg-verde hover:bg-opacity-10 text-sm text-ivory transition-colors">Pro — from $120K/yr</a>
+              <a href="services.html#enterprise" class="block p-3 hover:bg-verde hover:bg-opacity-10 text-sm text-ivory transition-colors">Enterprise — from $300K/yr</a>
+              <div class="border-t border-verde border-opacity-20 my-1"></div>
+              <a href="services.html#field"      class="block p-3 hover:bg-verde hover:bg-opacity-10 text-sm text-ivory transition-colors">Field Services</a>
+            </div>
+          </div>
+        </div>
+        <a href="about.html" class="px-4 py-2 text-ivory font-sans text-sm font-semibold tracking-wide border-b-2 border-sage">About Us</a>
+        <div class="nav-item relative">
+          <button class="flex items-center gap-1.5 px-4 py-2 text-ash hover:text-ivory font-sans text-sm font-medium tracking-wide transition-colors">Resources <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>
+          <div class="nav-dropdown absolute top-full left-0 pt-2 w-56 z-50">
+            <div class="bg-forest border border-verde border-opacity-25 shadow-2xl p-2">
+              <a href="resources.html#academy"     class="block p-3 hover:bg-verde hover:bg-opacity-10 text-sm text-ivory transition-colors">Academy</a>
+              <a href="resources.html#regulations" class="block p-3 hover:bg-verde hover:bg-opacity-10 text-sm text-ivory transition-colors">Regulation Centre</a>
+              <a href="resources.html#glossary"    class="block p-3 hover:bg-verde hover:bg-opacity-10 text-sm text-ivory transition-colors">Glossary</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hidden lg:flex items-center gap-3">
+        <a href="login.html" class="px-4 py-2 text-ash hover:text-ivory font-sans text-sm font-medium transition-colors">Log In</a>
+        <a href="demo.html"  class="btn-primary">Request Demo <i data-lucide="arrow-right" class="w-4 h-4"></i></a>
+      </div>
+      <button id="mob-btn" class="lg:hidden text-ash hover:text-ivory p-2" onclick="toggleMob()">
+        <i data-lucide="menu" class="w-6 h-6" id="mob-icon"></i>
+      </button>
+    </div>
+  </div>
+  <div id="mobile-menu" class="lg:hidden bg-forest border-b border-verde border-opacity-20">
+    <div class="px-6 py-4 space-y-1">
+      <a href="platform.html" class="block px-3 py-2.5 text-ash hover:text-ivory text-sm">Platform</a>
+      <a href="services.html" class="block px-3 py-2.5 text-ash hover:text-ivory text-sm">Services</a>
+      <a href="about.html"    class="block px-3 py-2.5 text-sage font-semibold text-sm">About Us</a>
+      <a href="resources.html"class="block px-3 py-2.5 text-ash hover:text-ivory text-sm">Resources</a>
+      <div class="border-t border-verde border-opacity-20 pt-3 mt-3 flex flex-col gap-2">
+        <a href="login.html" class="btn-outline justify-center">Log In</a>
+        <a href="demo.html"  class="btn-primary  justify-center">Request Demo</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+<!-- ══════════════════════════════════════════ HERO ══ -->
+<section class="relative pt-28 pb-20 px-6 overflow-hidden grid-texture">
+  <div class="absolute top-0 right-0 w-[600px] h-[600px] glow-green pointer-events-none opacity-50"></div>
+  <div class="absolute bottom-0 left-0 w-[400px] h-[400px] glow-gold  pointer-events-none opacity-25"></div>
+
+  <div class="max-w-7xl mx-auto relative z-10">
+    <!-- Breadcrumb -->
+    <div class="flex items-center gap-3 mb-5" data-aos="fade-up">
+      <a href="index.html" class="font-mono text-xs text-steel tracking-widest uppercase hover:text-ash transition-colors">Home</a>
+      <span class="text-steel">/</span>
+      <span class="font-mono text-xs text-sage tracking-widest uppercase">About Us</span>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div>
+        <div class="flex items-center gap-3 mb-5" data-aos="fade-up" data-aos-delay="60">
+          <div class="w-8 h-px bg-sage"></div>
+          <span class="font-mono text-xs tracking-widest text-sage uppercase">Our Mission</span>
+        </div>
+        <h1 class="font-display font-light text-5xl lg:text-7xl text-ivory leading-tight mb-5" data-aos="fade-up" data-aos-delay="120">
+          We exist to make<br/>Nigeria upstream<br/><em class="text-goldlight">compliant. And rich.</em>
+        </h1>
+        <p class="font-sans text-lg text-ash font-light leading-relaxed mb-6" data-aos="fade-up" data-aos-delay="190">
+          VerdeScope was founded on one observation: Nigeria enacted Africa's most consequential upstream decarbonisation mandate in January 2025, and gave 280 operators the legal obligation to comply — with absolutely no digital infrastructure to do so. We built that infrastructure.
+        </p>
+        <p class="font-sans text-base text-steel font-light leading-relaxed mb-8" data-aos="fade-up" data-aos-delay="240">
+          We are a team of petroleum engineers, data scientists, carbon accountants, and regulatory specialists headquartered in Lagos with a liaison office in Paris — aligned with our anchor partner Twenty First Capital. We believe compliance and commercial growth are not in tension. A Nigeria operator who measures their emissions precisely also generates carbon credits, attracts green financing, and satisfies their IOC parent company's EU reporting obligations simultaneously.
+        </p>
+        <div class="flex flex-wrap gap-3" data-aos="fade-up" data-aos-delay="280">
+          <span class="tag-green">Founded 2026</span>
+          <span class="tag-green">Lagos, Nigeria</span>
+          <span class="tag-neutral">Paris, France</span>
+          <span class="tag-gold">NUPRC Partner</span>
+        </div>
+      </div>
+
+      <!-- Animated mission statement card -->
+      <div class="relative" data-aos="fade-left" data-aos-delay="150">
+        <div class="border border-verde border-opacity-25 bg-forest bg-opacity-40 p-10 relative overflow-hidden">
+          <div class="absolute inset-0 grid-texture opacity-60"></div>
+          <div class="absolute top-0 right-0 w-48 h-48 glow-green opacity-60 pointer-events-none"></div>
+          <div class="relative z-10">
+            <div class="font-mono text-xs text-sage uppercase tracking-widest mb-8">The VerdeScope Thesis</div>
+            <div class="space-y-6">
+              <div class="flex items-start gap-5">
+                <div class="w-10 h-10 bg-verde bg-opacity-20 flex items-center justify-center flex-shrink-0 mt-1">
+                  <i data-lucide="target" class="w-5 h-5 text-sage"></i>
+                </div>
+                <div>
+                  <div class="font-sans font-semibold text-ivory mb-1">Mandatory, not optional</div>
+                  <div class="font-sans text-sm text-ash font-light leading-relaxed">Nigeria's UPDT is a licence condition, not an aspiration. Operators comply or they lose the right to operate. This is the most durable demand signal in software.</div>
+                </div>
+              </div>
+              <div class="flex items-start gap-5">
+                <div class="w-10 h-10 bg-verde bg-opacity-20 flex items-center justify-center flex-shrink-0 mt-1">
+                  <i data-lucide="flag" class="w-5 h-5 text-sage"></i>
+                </div>
+                <div>
+                  <div class="font-sans font-semibold text-ivory mb-1">First-mover in a captive market</div>
+                  <div class="font-sans text-sm text-ash font-light leading-relaxed">No comparable platform exists in Nigeria. Our NUPRC regulatory partnership makes us the de facto standard before any competitor can mobilise.</div>
+                </div>
+              </div>
+              <div class="flex items-start gap-5">
+                <div class="w-10 h-10 bg-gold bg-opacity-15 flex items-center justify-center flex-shrink-0 mt-1">
+                  <i data-lucide="coins" class="w-5 h-5 text-goldlight"></i>
+                </div>
+                <div>
+                  <div class="font-sans font-semibold text-ivory mb-1">Compliance creates revenue</div>
+                  <div class="font-sans text-sm text-ash font-light leading-relaxed">Every tonne of CO₂e measured for NUPRC compliance is simultaneously a carbon credit waiting to be issued. Compliance pays for itself — and then some.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ KEY NUMBERS ══ -->
+<section class="py-16 px-6 border-y border-verde border-opacity-15 bg-forest bg-opacity-20">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-px bg-verde bg-opacity-10">
+      <div class="bg-obsidian px-8 py-8 text-center border-t-2 border-sage" data-aos="fade-up" data-aos-delay="0">
+        <div class="stat-num text-sage mb-2" id="cnt1">0</div>
+        <div class="font-mono text-xs text-steel uppercase tracking-wider">Founding Year</div>
+        <div class="font-sans text-xs text-ash mt-1">Lagos, Nigeria</div>
+      </div>
+      <div class="bg-obsidian px-8 py-8 text-center border-t-2" style="border-color:#B8962E" data-aos="fade-up" data-aos-delay="80">
+        <div class="stat-num text-goldlight mb-2">280+</div>
+        <div class="font-mono text-xs text-steel uppercase tracking-wider">Addressable Operators</div>
+        <div class="font-sans text-xs text-ash mt-1">NUPRC-licensed universe</div>
+      </div>
+      <div class="bg-obsidian px-8 py-8 text-center border-t-2 border-sage" data-aos="fade-up" data-aos-delay="160">
+        <div class="stat-num text-sage mb-2">6</div>
+        <div class="font-mono text-xs text-steel uppercase tracking-wider">Platform Modules</div>
+        <div class="font-sans text-xs text-ash mt-1">GHG, LDAR, UPDT, Carbon & more</div>
+      </div>
+      <div class="bg-obsidian px-8 py-8 text-center border-t-2" style="border-color:#B8962E" data-aos="fade-up" data-aos-delay="240">
+        <div class="stat-num text-goldlight mb-2">$2.5B</div>
+        <div class="font-mono text-xs text-steel uppercase tracking-wider">Carbon Market 2030</div>
+        <div class="font-sans text-xs text-ash mt-1">Nigeria VCM & Article 6 target</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ STORY / TIMELINE ══ -->
+<section class="py-24 px-6 relative overflow-hidden">
+  <div class="absolute right-0 top-1/4 w-[400px] h-[400px] glow-green pointer-events-none opacity-25"></div>
+
+  <div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+
+      <div>
+        <div class="flex items-center gap-3 mb-5" data-aos="fade-up">
+          <div class="w-8 h-px bg-sage"></div>
+          <span class="font-mono text-xs tracking-widest text-sage uppercase">Our Story</span>
+        </div>
+        <h2 class="font-display font-light text-4xl lg:text-5xl text-ivory leading-tight mb-6" data-aos="fade-up" data-aos-delay="80">
+          Born from a gap<br/>no one else filled.
+        </h2>
+        <p class="font-sans text-base text-ash font-light leading-relaxed mb-5" data-aos="fade-up" data-aos-delay="140">
+          In January 2025, the NUPRC made the Upstream Petroleum Decarbonisation Template (UPDT) mandatory — embedding GHG compliance into every upstream licence, permit, and Field Development Plan in Nigeria. The enforcement consequence is licence revocation under PIA 2021.
+        </p>
+        <p class="font-sans text-base text-ash font-light leading-relaxed mb-5" data-aos="fade-up" data-aos-delay="180">
+          A team of petroleum engineers and climate technologists saw what every operator was about to face: a hard legal obligation with no tools to meet it. Manual documents, spreadsheets, and expensive consultant engagements were the only options — slow, expensive, unverifiable, and not NUPRC-submission-ready.
+        </p>
+        <p class="font-sans text-base text-ash font-light leading-relaxed mb-8" data-aos="fade-up" data-aos-delay="220">
+          VerdeScope was incorporated in Lagos in 2026 to build Nigeria's first purpose-built upstream GHG compliance platform — aligned to IPCC Tier 1/2/3, GHG Protocol, ISO 14064-1, and every binding NUPRC regulation — with a carbon market revenue engine attached to every compliance workflow from day one.
+        </p>
+        <div class="border border-verde border-opacity-20 p-6 bg-forest bg-opacity-20" data-aos="fade-up" data-aos-delay="260">
+          <div class="font-mono text-xs text-sage uppercase tracking-wider mb-3">The Plan A Benchmark</div>
+          <p class="font-sans text-sm text-ash font-light leading-relaxed">
+            Our model is directly inspired by Plan A (plana.earth) — Europe's leading carbon management SaaS, which reached EUR 55M exit valuation serving 1,500 enterprise clients in a <em class="text-mist">voluntary</em> EU market. We apply that model to a <em class="text-sage font-medium">mandatory enforcement</em> market with a captive, identifiable, first-mover-accessible client base. Same playbook. Structurally superior conditions.
+          </p>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div data-aos="fade-left" data-aos-delay="100">
+        <div class="font-mono text-xs text-steel uppercase tracking-wider mb-8">VerdeScope Milestones</div>
+        <div class="space-y-8">
+
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div>
+              <div class="font-mono text-xs text-sage uppercase tracking-wider mb-1">Jan 2025</div>
+              <div class="font-sans text-base font-semibold text-ivory mb-1">NUPRC UPDT Becomes Mandatory</div>
+              <div class="font-sans text-sm text-ash font-light leading-relaxed">Every upstream licence, permit, and FDP now legally requires a UPDT-compliant decarbonisation strategy. 280+ operators face immediate compliance obligations with no digital tools in existence.</div>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div>
+              <div class="font-mono text-xs text-sage uppercase tracking-wider mb-1">Oct 2025</div>
+              <div class="font-sans text-base font-semibold text-ivory mb-1">Nigeria Carbon Market Framework Launched</div>
+              <div class="font-sans text-sm text-ash font-light leading-relaxed">The government activates Nigeria's VCM and Article 6.4 mechanism, targeting USD 736M–2.5B market by 2030. Upstream methane abatement identified as the highest-value credit category.</div>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-dot" style="border-color:#B8962E;"></div>
+            <div>
+              <div class="font-mono text-xs text-goldlight uppercase tracking-wider mb-1">Q1 2026 — Founding</div>
+              <div class="font-sans text-base font-semibold text-ivory mb-1">VerdeScope Incorporated in Lagos</div>
+              <div class="font-sans text-sm text-ash font-light leading-relaxed">VerdeScope Limited registered under CAMA 2020. Founding team assembled: petroleum engineers, ML specialists, NUPRC regulatory expert, and carbon market advisor. Paris liaison established with Twenty First Capital.</div>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-dot" style="border-color:#B8962E;"></div>
+            <div>
+              <div class="font-mono text-xs text-goldlight uppercase tracking-wider mb-1">Q2 2026 — In Progress</div>
+              <div class="font-sans text-base font-semibold text-ivory mb-1">Seed Round & Platform MVP Sprint</div>
+              <div class="font-sans text-sm text-ash font-light leading-relaxed">USD 10M seed round with Twenty First Capital (Paris). Essentials MVP deployment begins. NUPRC MOU negotiations initiated. NAPE 2026 presence confirmed for client acquisition launch.</div>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-dot" style="border-color:#4A5568;"></div>
+            <div>
+              <div class="font-mono text-xs text-steel uppercase tracking-wider mb-1">Q4 2026 — Target</div>
+              <div class="font-sans text-base font-semibold text-ivory mb-1">13 Signed Clients · NUPRC MOU</div>
+              <div class="font-sans text-sm text-ash font-light leading-relaxed">NUPRC Preferred Technology Partner designation. 13 signed clients across Essentials, Pro, and Enterprise tiers. First LDAR campaigns in field. Year 1 revenue target: USD 3.1M.</div>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-dot" style="border-color:#4A5568;"></div>
+            <div>
+              <div class="font-mono text-xs text-steel uppercase tracking-wider mb-1">2027 — Target</div>
+              <div class="font-sans text-base font-semibold text-ivory mb-1">Series A · Carbon Credits · West Africa</div>
+              <div class="font-sans text-sm text-ash font-light leading-relaxed">USD 20M Series A co-led by TFC + Nigerian institutional investor + DFI. First carbon credits issued under Nigeria VCM. West Africa scoping: Ghana, Senegal. Year 3 revenue target: USD 18.8M.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ VALUES ══ -->
+<section class="py-24 px-6 bg-forest bg-opacity-20 border-y border-verde border-opacity-10">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-14">
+      <div class="flex items-center justify-center gap-3 mb-4" data-aos="fade-up">
+        <div class="w-8 h-px bg-sage"></div>
+        <span class="font-mono text-xs tracking-widest text-sage uppercase">What We Stand For</span>
+        <div class="w-8 h-px bg-sage"></div>
+      </div>
+      <h2 class="font-display font-light text-4xl lg:text-5xl text-ivory leading-tight" data-aos="fade-up" data-aos-delay="80">
+        Our operating principles.
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+      <div class="value-card" data-aos="fade-up" data-aos-delay="0">
+        <div class="w-10 h-10 bg-verde bg-opacity-15 flex items-center justify-center mb-5">
+          <i data-lucide="microscope" class="w-5 h-5 text-sage"></i>
+        </div>
+        <h3 class="font-sans text-base font-semibold text-ivory mb-3">Scientific Rigour</h3>
+        <p class="font-sans text-sm text-ash font-light leading-relaxed">Every calculation in VerdeScope traces to a specific IPCC chapter, an API emission factor, or a GHG Protocol formula. We do not estimate, approximate, or round to suit a narrative. Our platform is a scientific instrument first.</p>
+      </div>
+
+      <div class="value-card" data-aos="fade-up" data-aos-delay="80">
+        <div class="w-10 h-10 bg-verde bg-opacity-15 flex items-center justify-center mb-5">
+          <i data-lucide="shield" class="w-5 h-5 text-sage"></i>
+        </div>
+        <h3 class="font-sans text-base font-semibold text-ivory mb-3">Regulatory Fidelity</h3>
+        <p class="font-sans text-sm text-ash font-light leading-relaxed">We do not interpret Nigeria's regulations for convenience. We implement them exactly as written — every LDAR deadline, every UPDT obligation, every reporting format — because our clients' licences depend on it.</p>
+      </div>
+
+      <div class="value-card" data-aos="fade-up" data-aos-delay="160">
+        <div class="w-10 h-10 bg-verde bg-opacity-15 flex items-center justify-center mb-5">
+          <i data-lucide="users" class="w-5 h-5 text-sage"></i>
+        </div>
+        <h3 class="font-sans text-base font-semibold text-ivory mb-3">Nigerian Ownership</h3>
+        <p class="font-sans text-sm text-ash font-light leading-relaxed">Nigerian-majority ownership is not just a NOGICD compliance feature — it is a statement of intent. VerdeScope is built by Nigerians for Nigerian industry, with deep understanding of the regulatory context, the commercial culture, and the field realities of the Niger Delta.</p>
+      </div>
+
+      <div class="value-card" data-aos="fade-up" data-aos-delay="240">
+        <div class="w-10 h-10 bg-gold bg-opacity-15 flex items-center justify-center mb-5">
+          <i data-lucide="trending-up" class="w-5 h-5 text-goldlight"></i>
+        </div>
+        <h3 class="font-sans text-base font-semibold text-ivory mb-3">Compliance as Profit</h3>
+        <p class="font-sans text-sm text-ash font-light leading-relaxed">We reject the framing of environmental compliance as a cost centre. Every emission source measured is a potential carbon credit. Every methane leak repaired is gas revenue recovered. VerdeScope turns UPDT compliance into a return on investment.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ TEAM ══ -->
+<section class="py-24 px-6" id="team">
+  <div class="max-w-7xl mx-auto">
+    <div class="mb-14">
+      <div class="flex items-center gap-3 mb-4" data-aos="fade-up">
+        <div class="w-8 h-px bg-sage"></div>
+        <span class="font-mono text-xs tracking-widest text-sage uppercase">The Founding Team</span>
+      </div>
+      <h2 class="font-display font-light text-4xl lg:text-5xl text-ivory leading-tight mb-4" data-aos="fade-up" data-aos-delay="80">
+        Built by people who<br/><em class="text-goldlight">understand the sector.</em>
+      </h2>
+      <p class="font-sans text-base text-ash font-light leading-relaxed max-w-2xl" data-aos="fade-up" data-aos-delay="130">
+        VerdeScope's founding team combines upstream petroleum engineering, machine learning, carbon market advisory, and NUPRC regulatory expertise — the exact combination required to build a platform that operators actually trust and regulators actually endorse.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+
+      <!-- CEO -->
+      <div class="team-card" data-aos="fade-up" data-aos-delay="0">
+        <div class="team-avatar">
+          <div class="team-initials">AO</div>
+          <!-- Decorative reticle behind initials -->
+          <svg class="absolute opacity-10" width="160" height="160" viewBox="0 0 56 56" fill="none">
+            <circle cx="28" cy="28" r="26" stroke="#4CAF6F" stroke-width="0.5" fill="none"/>
+            <circle cx="28" cy="28" r="18" stroke="#4CAF6F" stroke-width="0.5" fill="none"/>
+            <line x1="28" y1="2" x2="28" y2="54" stroke="#4CAF6F" stroke-width="0.3"/>
+            <line x1="2" y1="28" x2="54" y2="28" stroke="#4CAF6F" stroke-width="0.3"/>
+          </svg>
+        </div>
+        <div class="p-6">
+          <div class="font-sans text-base font-semibold text-ivory mb-0.5">Adewale Okonkwo</div>
+          <div class="font-mono text-xs text-sage uppercase tracking-wider mb-3">Chief Executive Officer</div>
+          <p class="font-sans text-xs text-ash font-light leading-relaxed mb-4">15 years in Nigerian upstream operations. Former NUPRC regulatory engagement lead at a major indigenous E&P company. MBA (Lagos Business School). Deep NUPRC and PIA 2021 regulatory network.</p>
+          <div class="flex flex-wrap gap-1.5">
+            <span class="tag-neutral">NUPRC Regulatory</span>
+            <span class="tag-green">Upstream Ops</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTO -->
+      <div class="team-card" data-aos="fade-up" data-aos-delay="80">
+        <div class="team-avatar">
+          <div class="team-initials">CI</div>
+          <svg class="absolute opacity-10" width="160" height="160" viewBox="0 0 56 56" fill="none">
+            <circle cx="28" cy="28" r="26" stroke="#4CAF6F" stroke-width="0.5" fill="none"/>
+            <circle cx="28" cy="28" r="18" stroke="#4CAF6F" stroke-width="0.5" fill="none"/>
+            <line x1="28" y1="2" x2="28" y2="54" stroke="#4CAF6F" stroke-width="0.3"/>
+            <line x1="2" y1="28" x2="54" y2="28" stroke="#4CAF6F" stroke-width="0.3"/>
+          </svg>
+        </div>
+        <div class="p-6">
+          <div class="font-sans text-base font-semibold text-ivory mb-0.5">Chukwuemeka Ibe</div>
+          <div class="font-mono text-xs text-sage uppercase tracking-wider mb-3">Chief Technology Officer</div>
+          <p class="font-sans text-xs text-ash font-light leading-relaxed mb-4">Full-stack engineer and ML architect. 10 years building data platforms for Nigerian upstream analytics. MSc Computer Science (University of Lagos). Expert in Python FastAPI, TimescaleDB, and real-time emissions data pipelines.</p>
+          <div class="flex flex-wrap gap-1.5">
+            <span class="tag-neutral">Python / ML</span>
+            <span class="tag-green">SaaS Architecture</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CSO -->
+      <div class="team-card" data-aos="fade-up" data-aos-delay="160">
+        <div class="team-avatar" style="background:linear-gradient(135deg,#1A3D24 0%,#1A5276 50%,#1A3D24 100%);">
+          <div class="team-initials" style="color:rgba(168,213,181,.5);">FA</div>
+          <svg class="absolute opacity-10" width="160" height="160" viewBox="0 0 56 56" fill="none">
+            <circle cx="28" cy="28" r="26" stroke="#4CAF6F" stroke-width="0.5" fill="none"/>
+            <circle cx="28" cy="28" r="18" stroke="#4CAF6F" stroke-width="0.5" fill="none"/>
+            <line x1="28" y1="2" x2="28" y2="54" stroke="#4CAF6F" stroke-width="0.3"/>
+            <line x1="2" y1="28" x2="54" y2="28" stroke="#4CAF6F" stroke-width="0.3"/>
+          </svg>
+        </div>
+        <div class="p-6">
+          <div class="font-sans text-base font-semibold text-ivory mb-0.5">Dr. Funmilayo Adeyemi</div>
+          <div class="font-mono text-xs text-sage uppercase tracking-wider mb-3">Chief Science Officer</div>
+          <p class="font-sans text-xs text-ash font-light leading-relaxed mb-4">PhD Environmental Engineering (University of Ibadan). 12 years in upstream GHG quantification and LDAR programme design. IPCC Tier 2/3 methodology specialist. Co-author of NEITI 2023 upstream emissions study.</p>
+          <div class="flex flex-wrap gap-1.5">
+            <span class="tag-neutral">IPCC / GHG Protocol</span>
+            <span class="tag-green">LDAR Expert</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- VP BD -->
+      <div class="team-card" data-aos="fade-up" data-aos-delay="240">
+        <div class="team-avatar" style="background:linear-gradient(135deg,#1A3D24 0%,#784212 50%,#1A3D24 100%);">
+          <div class="team-initials" style="color:rgba(213,179,107,.4);">OB</div>
+          <svg class="absolute opacity-10" width="160" height="160" viewBox="0 0 56 56" fill="none">
+            <circle cx="28" cy="28" r="26" stroke="#D4AE50" stroke-width="0.5" fill="none"/>
+            <circle cx="28" cy="28" r="18" stroke="#D4AE50" stroke-width="0.5" fill="none"/>
+            <line x1="28" y1="2" x2="28" y2="54" stroke="#D4AE50" stroke-width="0.3"/>
+            <line x1="2" y1="28" x2="54" y2="28" stroke="#D4AE50" stroke-width="0.3"/>
+          </svg>
+        </div>
+        <div class="p-6">
+          <div class="font-sans text-base font-semibold text-ivory mb-0.5">Olumide Babatunde</div>
+          <div class="font-mono text-xs text-goldlight uppercase tracking-wider mb-3">VP Business Development</div>
+          <p class="font-sans text-xs text-ash font-light leading-relaxed mb-4">Former commercial director at a Tier 1 indigenous E&P company. Deep NUPRC and OML operator network. Carbon market advisory background from World Bank GFMR programme. Drives all operator acquisition and NUPRC relationship management.</p>
+          <div class="flex flex-wrap gap-1.5">
+            <span class="tag-gold">Carbon Markets</span>
+            <span class="tag-neutral">Operator Network</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Advisory board callout -->
+    <div class="mt-10 border border-verde border-opacity-20 p-8 bg-forest bg-opacity-20" data-aos="fade-up">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <div class="font-mono text-xs text-sage uppercase tracking-wider mb-3">Scientific Advisory Board</div>
+          <p class="font-sans text-sm text-ash font-light leading-relaxed">VerdeScope's Scientific Advisory Board brings together independent experts in upstream petroleum engineering, IPCC methodology, ISO 14064 verification, and Nigeria carbon market development — providing ongoing technical validation of our calculation engine, regulatory mappings, and ML models.</p>
+        </div>
+        <div>
+          <div class="font-mono text-xs text-sage uppercase tracking-wider mb-3">We Are Hiring</div>
+          <p class="font-sans text-sm text-ash font-light leading-relaxed mb-4">We are actively building our team across petroleum engineering, ML/data science, customer success, and field LDAR operations. VerdeScope offers competitive compensation, ESOP participation, and the chance to build Nigeria's defining climate tech company from the ground up.</p>
+          <a href="mailto:careers@verdescope.ng" class="btn-outline text-xs py-2 px-5 gap-2">
+            <i data-lucide="mail" class="w-4 h-4"></i>
+            View Open Roles
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ INVESTORS & PARTNERS ══ -->
+<section class="py-24 px-6 bg-forest bg-opacity-20 border-t border-verde border-opacity-10" id="investors">
+  <div class="max-w-7xl mx-auto">
+    <div class="mb-14">
+      <div class="flex items-center gap-3 mb-4" data-aos="fade-up">
+        <div class="w-8 h-px bg-sage"></div>
+        <span class="font-mono text-xs tracking-widest text-sage uppercase">Investors & Partners</span>
+      </div>
+      <h2 class="font-display font-light text-4xl lg:text-5xl text-ivory leading-tight" data-aos="fade-up" data-aos-delay="80">
+        Backed to lead.<br/><em class="text-goldlight">Built to last.</em>
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+
+      <!-- Twenty First Capital -->
+      <div class="investor-card col-span-1 md:col-span-1" data-aos="fade-up" data-aos-delay="0">
+        <div class="flex items-start gap-4 mb-4">
+          <div class="w-12 h-12 bg-gold bg-opacity-15 flex items-center justify-center flex-shrink-0">
+            <i data-lucide="building-2" class="w-6 h-6 text-goldlight"></i>
+          </div>
+          <div>
+            <div class="font-sans font-semibold text-ivory mb-0.5">Twenty First Capital</div>
+            <div class="font-mono text-xs text-goldlight uppercase tracking-wider">Anchor Seed Investor — Round 1</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2 mb-4">
+          <span class="tag-gold">Paris, France</span>
+          <span class="tag-neutral">AMF-Regulated</span>
+          <span class="tag-neutral">EUR 2.6B AUM</span>
+        </div>
+        <p class="font-sans text-sm text-ash font-light leading-relaxed">AMF-licensed French asset manager. 70% employee-owned, founded 2011. Confirmed ESG mandate and green investment framework. USD 10M seed commitment provides 35% equity stake. TFC's Paris network opens European DFI (Proparco, EIB) co-investment pathways for Round 2.</p>
+      </div>
+
+      <!-- Nigerian Institutional -->
+      <div class="investor-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="flex items-start gap-4 mb-4">
+          <div class="w-12 h-12 bg-verde bg-opacity-15 flex items-center justify-center flex-shrink-0">
+            <i data-lucide="landmark" class="w-6 h-6 text-sage"></i>
+          </div>
+          <div>
+            <div class="font-sans font-semibold text-ivory mb-0.5">Nigerian Institutional Investors</div>
+            <div class="font-mono text-xs text-sage uppercase tracking-wider">Target Round 2 — Series A</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2 mb-4">
+          <span class="tag-green">NSIA</span>
+          <span class="tag-green">Tier 1 Banks</span>
+          <span class="tag-green">Pension Funds</span>
+        </div>
+        <p class="font-sans text-sm text-ash font-light leading-relaxed">Round 2 target co-investors: Nigeria Sovereign Investment Authority (NSIA), Tier 1 banks (GTCO, Zenith, Access, FBN), and leading pension fund managers. 10% combined stake. Strengthens NOGICD positioning, DFI eligibility (30–51% local ownership required), and domestic client credibility.</p>
+      </div>
+
+      <!-- DFI -->
+      <div class="investor-card" data-aos="fade-up" data-aos-delay="200">
+        <div class="flex items-start gap-4 mb-4">
+          <div class="w-12 h-12 bg-verde bg-opacity-15 flex items-center justify-center flex-shrink-0">
+            <i data-lucide="globe" class="w-6 h-6 text-sage"></i>
+          </div>
+          <div>
+            <div class="font-sans font-semibold text-ivory mb-0.5">Development Finance</div>
+            <div class="font-mono text-xs text-sage uppercase tracking-wider">Target Round 2 — DFI Co-Investment</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2 mb-4">
+          <span class="tag-neutral">IFC</span>
+          <span class="tag-neutral">Proparco</span>
+          <span class="tag-neutral">AfDB</span>
+        </div>
+        <p class="font-sans text-sm text-ash font-light leading-relaxed">5% stake target for concessional DFI co-investment: IFC (World Bank Group), Proparco (French DFI — natural fit with TFC's Paris base), or AfDB Climate Finance. DFI participation provides a government-endorsed credibility signal to the entire operator client base and unlocks grant financing pathways.</p>
+      </div>
+    </div>
+
+    <!-- NUPRC Partnership callout -->
+    <div class="border border-goldlight border-opacity-25 p-8 bg-gold bg-opacity-5" data-aos="fade-up">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div class="flex items-start gap-5">
+          <div class="w-12 h-12 bg-gold bg-opacity-15 flex items-center justify-center flex-shrink-0">
+            <i data-lucide="shield-check" class="w-6 h-6 text-goldlight"></i>
+          </div>
+          <div>
+            <div class="font-sans font-semibold text-ivory mb-1">NUPRC — Regulatory Technology Partnership</div>
+            <div class="font-mono text-xs text-goldlight uppercase tracking-wider mb-2">Preferred Technology Partner — In Negotiation</div>
+            <p class="font-sans text-sm text-ash font-light leading-relaxed max-w-2xl">VerdeScope is pursuing Preferred Technology Partner designation with the Nigerian Upstream Petroleum Regulatory Commission. This partnership would embed VerdeScope into NUPRC's national compliance data infrastructure — making the regulator simultaneously a client, a distribution channel, and a credibility endorsement. Target: MOU executed by Month 6 from seed close.</p>
+          </div>
+        </div>
+        <a href="demo.html" class="btn-gold flex-shrink-0 gap-2">Learn More <i data-lucide="arrow-right" class="w-4 h-4"></i></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ OFFICES ══ -->
+<section class="py-24 px-6 relative overflow-hidden" id="offices">
+  <div class="absolute left-0 top-0 w-[400px] h-[400px] glow-gold pointer-events-none opacity-20"></div>
+
+  <div class="max-w-7xl mx-auto">
+    <div class="mb-14">
+      <div class="flex items-center gap-3 mb-4" data-aos="fade-up">
+        <div class="w-8 h-px bg-sage"></div>
+        <span class="font-mono text-xs tracking-widest text-sage uppercase">Where We Work</span>
+      </div>
+      <h2 class="font-display font-light text-4xl lg:text-5xl text-ivory leading-tight" data-aos="fade-up" data-aos-delay="80">
+        Lagos. Paris.<br/><em class="text-goldlight">The Niger Delta.</em>
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+      <!-- Lagos HQ -->
+      <div class="office-card" data-aos="fade-up" data-aos-delay="0">
+        <div class="h-2 bg-gradient-to-r from-sage to-verde"></div>
+        <div class="p-7">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="relative">
+              <div class="w-3 h-3 bg-sage rounded-full pulse-ring"></div>
+            </div>
+            <span class="font-mono text-xs text-sage uppercase tracking-wider">Headquarters</span>
+          </div>
+          <h3 class="font-sans text-xl font-semibold text-ivory mb-2">Lagos, Nigeria</h3>
+          <p class="font-mono text-xs text-steel mb-5">Plot 14, Adeola Odeku Street<br/>Victoria Island, Lagos</p>
+          <p class="font-sans text-sm text-ash font-light leading-relaxed mb-5">Our primary office, engineering hub, and field services operations centre. Home to the founding technical team, customer success managers, NUPRC regulatory affairs specialist, and field LDAR team deployment base.</p>
+          <div class="flex flex-wrap gap-2">
+            <span class="tag-green">Engineering Hub</span>
+            <span class="tag-green">Field Ops Base</span>
+            <span class="tag-neutral">NUPRC Relations</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paris Liaison -->
+      <div class="office-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="h-2 bg-gradient-to-r from-goldlight to-gold"></div>
+        <div class="p-7">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-3 h-3 bg-goldlight rounded-full"></div>
+            <span class="font-mono text-xs text-goldlight uppercase tracking-wider">Liaison Office</span>
+          </div>
+          <h3 class="font-sans text-xl font-semibold text-ivory mb-2">Paris, France</h3>
+          <p class="font-mono text-xs text-steel mb-5">Within Twenty First Capital network<br/>Paris, Île-de-France</p>
+          <p class="font-sans text-sm text-ash font-light leading-relaxed mb-5">Our European investor relations and DFI engagement office, co-located within Twenty First Capital's Paris network. Manages TFC investor reporting, EU CSRD client engagements, and Proparco/EIB DFI relationships for Round 2.</p>
+          <div class="flex flex-wrap gap-2">
+            <span class="tag-gold">Investor Relations</span>
+            <span class="tag-gold">DFI Engagement</span>
+            <span class="tag-neutral">CSRD Advisory</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Field Niger Delta -->
+      <div class="office-card" data-aos="fade-up" data-aos-delay="200">
+        <div class="h-2 bg-gradient-to-r from-pine to-verde"></div>
+        <div class="p-7">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-3 h-3 bg-mist rounded-full"></div>
+            <span class="font-mono text-xs text-mist uppercase tracking-wider">Field Operations</span>
+          </div>
+          <h3 class="font-sans text-xl font-semibold text-ivory mb-2">Niger Delta Region</h3>
+          <p class="font-mono text-xs text-steel mb-5">Field operations across Delta, Rivers,<br/>Bayelsa, Imo, Abia States</p>
+          <p class="font-sans text-sm text-ash font-light leading-relaxed mb-5">Our certified LDAR field teams operate across Nigeria's onshore and shallow-water producing terrain, deploying OGI cameras, acoustic detection equipment, and drone-mounted thermal imaging for on-site inspection campaigns.</p>
+          <div class="flex flex-wrap gap-2">
+            <span class="tag-green">OGI Surveys</span>
+            <span class="tag-green">LDAR Campaigns</span>
+            <span class="tag-neutral">Offshore Capable</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ STANDARDS & ALIGNMENT ══ -->
+<section class="py-20 px-6 border-t border-verde border-opacity-15 bg-forest bg-opacity-15 overflow-hidden">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex items-center gap-3 mb-8" data-aos="fade-up">
+      <div class="w-8 h-px bg-sage"></div>
+      <span class="font-mono text-xs tracking-widest text-sage uppercase">Standards & Regulatory Alignment</span>
+    </div>
+    <!-- Scrolling standards strip -->
+    <div class="relative overflow-hidden">
+      <div class="marquee-move flex gap-8 items-center" style="width:max-content;">
+        <template id="stds-tpl"></template>
+        <div id="stds-inner" class="flex gap-8 items-center"></div>
+      </div>
+    </div>
+    <div class="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4" data-aos="fade-up" data-aos-delay="100">
+      <div class="border border-verde border-opacity-15 p-5 text-center hover:border-opacity-40 transition-all">
+        <div class="font-mono text-xs text-sage font-medium mb-1">GHG Protocol</div>
+        <div class="font-sans text-xs text-ash">Corporate Standard + O&G Sector Guidance</div>
+      </div>
+      <div class="border border-verde border-opacity-15 p-5 text-center hover:border-opacity-40 transition-all">
+        <div class="font-mono text-xs text-sage font-medium mb-1">ISO 14064-1/2/3:2018–19</div>
+        <div class="font-sans text-xs text-ash">Organisational inventory + verification</div>
+      </div>
+      <div class="border border-verde border-opacity-15 p-5 text-center hover:border-opacity-40 transition-all">
+        <div class="font-mono text-xs text-sage font-medium mb-1">IPCC 2006 + 2019 Refinement</div>
+        <div class="font-sans text-xs text-ash">Tier 1/2/3 upstream emission factors</div>
+      </div>
+      <div class="border border-verde border-opacity-15 p-5 text-center hover:border-opacity-40 transition-all">
+        <div class="font-mono text-xs text-sage font-medium mb-1">NUPRC Guide 0024-2022</div>
+        <div class="font-sans text-xs text-ash">Nigeria Methane & GHG Guidelines</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ SUSTAINABILITY COMMITMENT ══ -->
+<section class="py-24 px-6 relative overflow-hidden">
+  <div class="absolute inset-0 glow-green opacity-15 pointer-events-none"></div>
+  <div class="absolute inset-0 grid-texture opacity-50"></div>
+
+  <div class="max-w-7xl mx-auto relative z-10">
+    <div class="max-w-3xl mx-auto text-center">
+      <div class="flex items-center justify-center gap-3 mb-5" data-aos="fade-up">
+        <div class="w-8 h-px bg-sage"></div>
+        <span class="font-mono text-xs tracking-widest text-sage uppercase">Our Sustainability Commitment</span>
+        <div class="w-8 h-px bg-sage"></div>
+      </div>
+      <h2 class="font-display font-light text-4xl lg:text-5xl text-ivory leading-tight mb-6" data-aos="fade-up" data-aos-delay="80">
+        We use VerdeScope<br/>to run <em class="text-goldlight">VerdeScope.</em>
+      </h2>
+      <p class="font-sans text-lg text-ash font-light leading-relaxed mb-10" data-aos="fade-up" data-aos-delay="140">
+        From our first operational day, VerdeScope measures its own Scope 1, 2, and 3 emissions using the same platform we sell to clients. Our annual sustainability statement is produced from VerdeScope's own GHG inventory module, verified against GHG Protocol Corporate Standard, and published with our annual accounts. We do not sell what we do not practice.
+      </p>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10" data-aos="fade-up" data-aos-delay="200">
+        <div class="border border-verde border-opacity-20 p-5 bg-forest bg-opacity-30">
+          <i data-lucide="leaf" class="w-6 h-6 text-sage mx-auto mb-3"></i>
+          <div class="font-sans text-sm font-semibold text-ivory mb-1">Net-Zero by 2035</div>
+          <div class="font-sans text-xs text-ash font-light">Aligned to Nigeria NDC 3.0 and SBTi SME pathway</div>
+        </div>
+        <div class="border border-verde border-opacity-20 p-5 bg-forest bg-opacity-30">
+          <i data-lucide="file-text" class="w-6 h-6 text-sage mx-auto mb-3"></i>
+          <div class="font-sans text-sm font-semibold text-ivory mb-1">Annual GHG Report</div>
+          <div class="font-sans text-xs text-ash font-light">Published ISO 14064-1 inventory from Year 1</div>
+        </div>
+        <div class="border border-verde border-opacity-20 p-5 bg-forest bg-opacity-30">
+          <i data-lucide="users" class="w-6 h-6 text-sage mx-auto mb-3"></i>
+          <div class="font-sans text-sm font-semibold text-ivory mb-1">Nigerian Talent First</div>
+          <div class="font-sans text-xs text-ash font-light">85%+ Nigerian staffing across all functions</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ CONTACT ══ -->
+<section class="py-24 px-6 bg-forest border-t border-verde border-opacity-20" id="contact">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+
+      <div>
+        <div class="flex items-center gap-3 mb-5" data-aos="fade-up">
+          <div class="w-8 h-px bg-sage"></div>
+          <span class="font-mono text-xs tracking-widest text-sage uppercase">Get In Touch</span>
+        </div>
+        <h2 class="font-display font-light text-4xl lg:text-5xl text-ivory leading-tight mb-6" data-aos="fade-up" data-aos-delay="80">
+          Talk to us.<br/><em class="text-goldlight">We respond fast.</em>
+        </h2>
+        <p class="font-sans text-base text-ash font-light leading-relaxed mb-10" data-aos="fade-up" data-aos-delay="130">
+          Whether you're an operator with a UPDT compliance question, an investor interested in the VerdeScope opportunity, a potential team member, or a journalist covering Nigeria's energy transition — we want to hear from you.
+        </p>
+
+        <div class="space-y-5" data-aos="fade-up" data-aos-delay="170">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 bg-verde bg-opacity-15 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="mail" class="w-5 h-5 text-sage"></i>
+            </div>
+            <div>
+              <div class="font-mono text-xs text-steel uppercase tracking-wider mb-1">General Enquiries</div>
+              <a href="mailto:info@verdescope.ng" class="font-sans text-sm text-mist hover:text-sage transition-colors">info@verdescope.ng</a>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 bg-verde bg-opacity-15 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="briefcase" class="w-5 h-5 text-sage"></i>
+            </div>
+            <div>
+              <div class="font-mono text-xs text-steel uppercase tracking-wider mb-1">Investor Relations</div>
+              <a href="mailto:investors@verdescope.ng" class="font-sans text-sm text-mist hover:text-sage transition-colors">investors@verdescope.ng</a>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 bg-verde bg-opacity-15 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="users" class="w-5 h-5 text-sage"></i>
+            </div>
+            <div>
+              <div class="font-mono text-xs text-steel uppercase tracking-wider mb-1">Careers</div>
+              <a href="mailto:careers@verdescope.ng" class="font-sans text-sm text-mist hover:text-sage transition-colors">careers@verdescope.ng</a>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 bg-verde bg-opacity-15 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="map-pin" class="w-5 h-5 text-sage"></i>
+            </div>
+            <div>
+              <div class="font-mono text-xs text-steel uppercase tracking-wider mb-1">Lagos Office</div>
+              <div class="font-sans text-sm text-ash font-light">Plot 14, Adeola Odeku Street, Victoria Island, Lagos, Nigeria</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact form -->
+      <div data-aos="fade-left" data-aos-delay="100">
+        <div class="border border-verde border-opacity-20 bg-obsidian p-8">
+          <div class="font-mono text-xs text-sage uppercase tracking-wider mb-6">Send us a message</div>
+          <div class="space-y-5">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="font-mono text-xs text-steel uppercase tracking-wider block mb-2">First Name</label>
+                <input type="text" placeholder="Adewale"
+                  class="w-full bg-forest bg-opacity-50 border border-verde border-opacity-20 px-4 py-3 font-sans text-sm text-ivory placeholder-steel focus:border-sage focus:outline-none transition-colors" />
+              </div>
+              <div>
+                <label class="font-mono text-xs text-steel uppercase tracking-wider block mb-2">Last Name</label>
+                <input type="text" placeholder="Okonkwo"
+                  class="w-full bg-forest bg-opacity-50 border border-verde border-opacity-20 px-4 py-3 font-sans text-sm text-ivory placeholder-steel focus:border-sage focus:outline-none transition-colors" />
+              </div>
+            </div>
+            <div>
+              <label class="font-mono text-xs text-steel uppercase tracking-wider block mb-2">Company</label>
+              <input type="text" placeholder="e.g. Seplat Energy Plc"
+                class="w-full bg-forest bg-opacity-50 border border-verde border-opacity-20 px-4 py-3 font-sans text-sm text-ivory placeholder-steel focus:border-sage focus:outline-none transition-colors" />
+            </div>
+            <div>
+              <label class="font-mono text-xs text-steel uppercase tracking-wider block mb-2">Email Address</label>
+              <input type="email" placeholder="you@yourcompany.com"
+                class="w-full bg-forest bg-opacity-50 border border-verde border-opacity-20 px-4 py-3 font-sans text-sm text-ivory placeholder-steel focus:border-sage focus:outline-none transition-colors" />
+            </div>
+            <div>
+              <label class="font-mono text-xs text-steel uppercase tracking-wider block mb-2">Enquiry Type</label>
+              <select class="w-full bg-forest border border-verde border-opacity-20 px-4 py-3 font-sans text-sm text-ash focus:border-sage focus:outline-none transition-colors" id="enquiry-select" onchange="this.style.color=this.value?'#FDFCF9':'#8A9BB0'">
+                <option value="" class="bg-forest">Select one...</option>
+                <option value="demo" class="bg-forest">Platform Demo Request</option>
+                <option value="investor" class="bg-forest">Investor Enquiry</option>
+                <option value="nuprc" class="bg-forest">NUPRC / Regulatory Partnership</option>
+                <option value="field" class="bg-forest">Field LDAR Services</option>
+                <option value="careers" class="bg-forest">Careers / Joining the Team</option>
+                <option value="press" class="bg-forest">Press / Media</option>
+                <option value="other" class="bg-forest">Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="font-mono text-xs text-steel uppercase tracking-wider block mb-2">Message</label>
+              <textarea rows="4" placeholder="Tell us about your UPDT compliance situation, investment interest, or any other question..."
+                class="w-full bg-forest bg-opacity-50 border border-verde border-opacity-20 px-4 py-3 font-sans text-sm text-ivory placeholder-steel focus:border-sage focus:outline-none transition-colors resize-none"></textarea>
+            </div>
+            <button onclick="submitContact()" class="btn-primary w-full justify-center text-sm py-4">
+              Send Message
+              <i data-lucide="send" class="w-4 h-4"></i>
+            </button>
+            <p class="font-mono text-xs text-steel text-center">We respond within 24 hours · info@verdescope.ng</p>
+          </div>
+          <!-- Success message (hidden) -->
+          <div id="contact-success" class="hidden mt-4 border border-sage border-opacity-40 bg-verde bg-opacity-10 p-4 text-center">
+            <i data-lucide="check-circle" class="w-8 h-8 text-sage mx-auto mb-2"></i>
+            <div class="font-sans text-sm text-sage font-semibold">Message sent!</div>
+            <div class="font-sans text-xs text-ash mt-1">We'll be in touch within 24 hours.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ FINAL CTA ══ -->
+<section class="py-20 px-6 bg-obsidian border-t border-verde border-opacity-15 relative overflow-hidden">
+  <div class="absolute inset-0 grid-texture opacity-40"></div>
+  <div class="absolute inset-0 glow-green opacity-15 pointer-events-none"></div>
+  <div class="relative z-10 max-w-4xl mx-auto text-center">
+    <h2 class="font-display font-light text-4xl lg:text-5xl text-ivory leading-tight mb-5" data-aos="fade-up">
+      Ready to meet<br/><em class="text-goldlight">VerdeScope?</em>
+    </h2>
+    <p class="font-sans text-lg text-ash font-light mb-8 max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="80">
+      Schedule a 30-minute call. We'll show you the live platform, run your operator profile through our UPDT readiness calculator, and project your carbon revenue potential — before you sign anything.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center" data-aos="fade-up" data-aos-delay="160">
+      <a href="demo.html" class="btn-gold justify-center text-base px-10 py-4">
+        Schedule a Demo
+        <i data-lucide="calendar" class="w-5 h-5"></i>
+      </a>
+      <a href="app/dashboard.html" class="btn-outline justify-center text-base px-10 py-4">
+        <i data-lucide="play" class="w-5 h-5"></i>
+        Try Live Demo
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ FOOTER ══ -->
+<footer class="bg-obsidian border-t border-verde border-opacity-15 pt-12 pb-8 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-10">
+      <div class="col-span-2">
+        <a href="index.html" class="flex items-center gap-3 mb-4">
+          <svg width="30" height="30" viewBox="0 0 56 56" fill="none">
+            <circle cx="28" cy="28" r="18" stroke="#4CAF6F" stroke-width="1.5" fill="none"/>
+            <circle cx="28" cy="28" r="3" fill="#4CAF6F"/>
+            <path d="M28 10 C34 14,44 20,44 28 C44 28,36 22,28 10Z" fill="#2E7D45" opacity=".8"/>
+            <line x1="38" y1="8" x2="42" y2="14" stroke="#B8962E" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <span class="font-display text-xl"><span class="text-ivory">Verde</span><span class="text-goldlight">Scope</span></span>
+        </a>
+        <p class="font-sans text-sm text-ash font-light leading-relaxed">Nigeria's first dedicated upstream GHG compliance and carbon intelligence platform. Lagos & Paris.</p>
+      </div>
+      <div>
+        <div class="font-mono text-xs text-steel tracking-widest uppercase mb-4">Platform</div>
+        <div class="space-y-2">
+          <a href="platform.html"          class="block font-sans text-sm text-ash hover:text-sage transition-colors">Platform Overview</a>
+          <a href="app/emissions.html"     class="block font-sans text-sm text-ash hover:text-sage transition-colors">Emissions Engine</a>
+          <a href="app/ldar.html"          class="block font-sans text-sm text-ash hover:text-sage transition-colors">LDAR Manager</a>
+          <a href="app/carbon-market.html" class="block font-sans text-sm text-ash hover:text-sage transition-colors">Carbon Market</a>
+        </div>
+      </div>
+      <div>
+        <div class="font-mono text-xs text-steel tracking-widest uppercase mb-4">Company</div>
+        <div class="space-y-2">
+          <a href="about.html"    class="block font-sans text-sm text-sage font-medium">About Us</a>
+          <a href="about.html#team"      class="block font-sans text-sm text-ash hover:text-sage transition-colors">Team</a>
+          <a href="about.html#investors" class="block font-sans text-sm text-ash hover:text-sage transition-colors">Investors</a>
+          <a href="about.html#contact"   class="block font-sans text-sm text-ash hover:text-sage transition-colors">Contact</a>
+        </div>
+      </div>
+      <div>
+        <div class="font-mono text-xs text-steel tracking-widest uppercase mb-4">Resources</div>
+        <div class="space-y-2">
+          <a href="resources.html"         class="block font-sans text-sm text-ash hover:text-sage transition-colors">Academy</a>
+          <a href="services.html"          class="block font-sans text-sm text-ash hover:text-sage transition-colors">Services</a>
+          <a href="demo.html"              class="block font-sans text-sm text-ash hover:text-sage transition-colors">Request Demo</a>
+          <a href="login.html"             class="block font-sans text-sm text-ash hover:text-sage transition-colors">Log In</a>
+        </div>
+      </div>
+    </div>
+    <div class="border-t border-verde border-opacity-15 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="font-mono text-xs text-steel">© 2026 VerdeScope Limited · RC 2026001 · Lagos, Nigeria</div>
+      <div class="flex items-center gap-6">
+        <div class="font-mono text-xs text-steel">verdescope.ng</div>
+        <div class="flex gap-4">
+          <a href="#" class="text-steel hover:text-sage transition-colors"><i data-lucide="linkedin" class="w-4 h-4"></i></a>
+          <a href="#" class="text-steel hover:text-sage transition-colors"><i data-lucide="twitter" class="w-4 h-4"></i></a>
+          <a href="mailto:info@verdescope.ng" class="text-steel hover:text-sage transition-colors"><i data-lucide="mail" class="w-4 h-4"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+<!-- ══════════════════════════════════════════ SCRIPTS ══ -->
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script>
+AOS.init({ duration:650, once:true, offset:60, easing:'ease-out-cubic' });
+lucide.createIcons();
+
+// Nav scroll
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').querySelector('div')
+    .style.background = window.scrollY > 60 ? 'rgba(13,26,18,.98)' : 'rgba(13,26,18,.95)';
+});
+
+// Mobile menu
+function toggleMob() {
+  const m = document.getElementById('mobile-menu');
+  const i = document.getElementById('mob-icon');
+  const o = m.classList.toggle('open');
+  i.setAttribute('data-lucide', o ? 'x' : 'menu');
+  lucide.createIcons();
+}
+
+// Founding year counter
+window.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('cnt1');
+  if (!el) return;
+  const obs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      let n = 2020;
+      const interval = setInterval(() => {
+        n++;
+        el.textContent = n;
+        if (n >= 2026) clearInterval(interval);
+      }, 80);
+      obs.disconnect();
+    }
+  }, { threshold: 0.3 });
+  obs.observe(el);
+
+  // Build standards marquee
+  const standards = [
+    'GHG Protocol Corporate Standard',
+    'ISO 14064-1:2018',
+    'ISO 14064-2:2019',
+    'ISO 14064-3:2019',
+    'ISO 14065:2020',
+    'IPCC 2006 Guidelines',
+    'IPCC 2019 Refinement',
+    'API Compendium 3rd Ed.',
+    'NUPRC Guide 0024-2022',
+    'Nigeria UPDT 2025',
+    'NDC 3.0 (Sep 2025)',
+    'Nigeria CMF (Oct 2025)',
+    'PIA 2021',
+    'IFRS S2:2023',
+    'VCS VM0039',
+    'Gold Standard',
+  ];
+  const inner = document.getElementById('stds-inner');
+  if (inner) {
+    [...standards, ...standards].forEach(s => {
+      const span = document.createElement('span');
+      span.className = 'font-mono text-xs text-steel uppercase tracking-widest whitespace-nowrap border border-verde border-opacity-15 px-4 py-2 hover:text-sage hover:border-opacity-40 transition-colors cursor-default';
+      span.textContent = s;
+      inner.appendChild(span);
+    });
+  }
+
+  lucide.createIcons();
+});
+
+// Contact form mock submit
+function submitContact() {
+  const form = document.querySelector('#contact .space-y-5');
+  const success = document.getElementById('contact-success');
+  if (form && success) {
+    form.style.opacity = '0';
+    form.style.transition = 'opacity .4s';
+    setTimeout(() => {
+      form.style.display = 'none';
+      success.classList.remove('hidden');
+      lucide.createIcons();
+    }, 400);
+  }
+}
+
+// Smooth hash scroll
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) { e.preventDefault(); t.scrollIntoView({ behavior:'smooth', block:'start' }); }
+  });
+});
+</script>
+
+</body>
+</html>
