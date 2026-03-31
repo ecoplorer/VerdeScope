@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — VerdeScope Platform</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            obsidian:  '#0D1A12',
+            forest:    '#1A3D24',
+            pine:      '#235930',
+            verde:     '#2E7D45',
+            sage:      '#4CAF6F',
+            mist:      '#A8D5B5',
+            ivory:     '#FDFCF9',
+            gold:      '#B8962E',
+            goldlight: '#D4AE50',
+            slate:     '#2A3040',
+            steel:     '#4A5568',
+            ash:       '#8A9BB0',
+            cloud:     '#D4DCE8',
+          },
+          fontFamily: {
+            display: ['Cormorant Garamond', 'Georgia', 'serif'],
+            sans:    ['Outfit', 'sans-serif'],
+            mono:    ['DM Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: #0D1A12;
+      color: #FDFCF9;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: #0D1A12; }
+    ::-webkit-scrollbar-thumb { background: #235930; border-radius: 2px; }
+
+    /* ── Layout ── */
+    #app-shell  { display: flex; flex: 1; overflow: hidden; }
+    #sidebar    { width: 220px; flex-shrink: 0; background: #091410; border-right: 1px solid rgba(46,125,69,.18); display: flex; flex-direction: column; transition: width .25s; overflow: hidden; }
+    #sidebar.collapsed { width: 56px; }
+    #main-area  { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    #topbar     { height: 52px; flex-shrink: 0; background: rgba(13,26,18,.95); border-bottom: 1px solid rgba(46,125,69,.18); display: flex; align-items: center; padding: 0 20px; gap: 16px; backdrop-filter: blur(8px); }
+    #content    { flex: 1; overflow-y: auto; padding: 20px; background: #0D1A12; }
+
+    /* ── Grid texture on content ── */
+    #content {
+      background-image:
+        linear-gradient(rgba(46,125,69,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(46,125,69,.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      background-color: #0D1A12;
+    }
+
+    /* ── Sidebar nav ── */
+    .nav-logo          { padding: 14px 14px 10px; border-bottom: 1px solid rgba(46,125,69,.15); flex-shrink: 0; }
+    .nav-section-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: #4A5568; padding: 14px 14px 6px; white-space: nowrap; overflow: hidden; }
+    #sidebar.collapsed .nav-section-label { opacity: 0; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 14px; cursor: pointer;
+      font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500;
+      color: #8A9BB0; transition: all .18s; white-space: nowrap; overflow: hidden;
+      border-left: 2px solid transparent; text-decoration: none;
+    }
+    .nav-item:hover  { color: #FDFCF9; background: rgba(46,125,69,.08); }
+    .nav-item.active { color: #4CAF6F; background: rgba(46,125,69,.12); border-left-color: #4CAF6F; }
+    .nav-item .nav-icon  { flex-shrink: 0; width: 16px; height: 16px; }
+    .nav-item .nav-badge { margin-left: auto; background: #E74C3C; color: #fff; font-family: 'DM Mono', monospace; font-size: 9px; padding: 1px 5px; border-radius: 8px; flex-shrink: 0; }
+    .nav-item .nav-badge.gold { background: rgba(184,150,46,.3); color: #D4AE50; }
+    #sidebar.collapsed .nav-item span,
+    #sidebar.collapsed .nav-badge { display: none; }
+
+    /* ── KPI Cards ── */
+    .kpi-card {
+      background: rgba(255,255,255,.025);
+      border: 1px solid rgba(46,125,69,.15);
+      padding: 16px 18px;
+      transition: border-color .2s, transform .2s;
+      position: relative; overflow: hidden;
+    }
+    .kpi-card:hover { border-color: rgba(46,125,69,.4); transform: translateY(-2px); }
+    .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+    .kpi-card.green::before { background: #4CAF6F; }
+    .kpi-card.gold::before  { background: #D4AE50; }
+    .kpi-card.red::before   { background: #E74C3C; }
+    .kpi-card.blue::before  { background: #5DADE2; }
+    .kpi-value { font-family: 'DM Mono', monospace; font-size: 28px; font-weight: 300; line-height: 1; }
+    .kpi-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: #4A5568; margin-top: 4px; }
+    .kpi-sub   { font-family: 'Outfit', sans-serif; font-size: 11px; color: #8A9BB0; margin-top: 6px; }
+    .kpi-delta { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; }
+    .kpi-delta.up   { color: #4CAF6F; }
+    .kpi-delta.down { color: #E74C3C; }
+    .kpi-delta.warn { color: #D4AE50; }
+
+    /* ── Panel / widget ── */
+    .panel { background: rgba(255,255,255,.02); border: 1px solid rgba(46,125,69,.12); overflow: hidden; }
+    .panel-head {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(46,125,69,.12);
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(26,61,36,.25);
+    }
+    .panel-title { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8A9BB0; }
+    .panel-body  { padding: 14px 16px; }
+
+    /* ── Tags ── */
+    .tag   { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; padding: 2px 8px; }
+    .tag-g { background: rgba(46,125,69,.15);  color: #4CAF6F; border: 1px solid rgba(46,125,69,.3); }
+    .tag-r { background: rgba(231,76,60,.12);  color: #E74C3C; border: 1px solid rgba(231,76,60,.25); }
+    .tag-y { background: rgba(212,174,80,.12); color: #D4AE50; border: 1px solid rgba(212,174,80,.25); }
+    .tag-n { background: rgba(255,255,255,.04); color: #8A9BB0; border: 1px solid rgba(255,255,255,.1); }
+    .tag-b { background: rgba(93,173,226,.1);  color: #5DADE2; border: 1px solid rgba(93,173,226,.2); }
+
+    /* ── Status dot ── */
+    .dot   { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .dot-g { background: #4CAF6F; }
+    .dot-r { background: #E74C3C; }
+    .dot-y { background: #D4AE50; }
+    @keyframes pulse-dot { 0%,100%{ opacity:1; transform:scale(1); } 50%{ opacity:.4; transform:scale(1.5); } }
+    .dot-pulse { animation: pulse-dot 2s ease infinite; }
+
+    /* ── Progress bar ── */
+    .prog-track { height: 5px; background: rgba(46,125,69,.12); border-radius: 1px; overflow: hidden; }
+    .prog-fill  { height: 100%; border-radius: 1px; transition: width 1.2s cubic-bezier(.22,1,.36,1); }
+
+    /* ── Compliance ring ── */
+    .ring-wrap  { position: relative; display: inline-flex; }
+    .ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+    /* ── Alert / notification ── */
+    .alert-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+    .alert-item:last-child { border-bottom: none; }
+
+    /* ── Table ── */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .data-table th { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: #4A5568; padding: 8px 10px; text-align: left; border-bottom: 1px solid rgba(46,125,69,.12); background: rgba(26,61,36,.2); }
+    .data-table td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.03); color: #D4DCE8; vertical-align: middle; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(46,125,69,.04); }
+    .data-table .mono { font-family: 'DM Mono', monospace; font-size: 11px; }
+
+    /* ── Activity feed ── */
+    .feed-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+    .feed-item:last-child { border-bottom: none; }
+    .feed-time { font-family: 'DM Mono', monospace; font-size: 9px; color: #4A5568; flex-shrink: 0; width: 56px; padding-top: 2px; }
+    .feed-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+    /* ── Dropdown ── */
+    .dropdown      { position: relative; display: inline-block; }
+    .dropdown-menu { position: absolute; top: 100%; right: 0; background: #1A3D24; border: 1px solid rgba(46,125,69,.3); min-width: 180px; z-index: 100; display: none; }
+    .dropdown-item { display: block; padding: 8px 14px; cursor: pointer; color: #D4DCE8; transition: background .15s; font-size: 12px; }
+    .dropdown-item:hover { background: rgba(46,125,69,.12); color: #FDFCF9; }
+
+    /* ── Operator selector pill ── */
+    .op-pill { display: flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(46,125,69,.1); border: 1px solid rgba(46,125,69,.25); cursor: pointer; transition: all .2s; font-size: 12px; }
+    .op-pill:hover { background: rgba(46,125,69,.18); }
+
+    /* ── Notification badge ── */
+    .notif-badge { position: absolute; top: -3px; right: -3px; width: 14px; height: 14px; background: #E74C3C; border-radius: 50%; font-family: 'DM Mono', monospace; font-size: 8px; color: #fff; display: flex; align-items: center; justify-content: center; }
+
+    /* ── Tooltip ── */
+    [data-tip] { position: relative; }
+    [data-tip]:hover::after {
+      content: attr(data-tip);
+      position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+      background: #1A3D24; border: 1px solid rgba(46,125,69,.3);
+      font-family: 'DM Mono', monospace; font-size: 9px; color: #A8D5B5;
+      padding: 4px 8px; white-space: nowrap; pointer-events: none; z-index: 200;
+      margin-bottom: 4px;
+    }
+
+    /* ── Page routing ── */
+    .page-view        { display: none; }
+    .page-view.active { display: block; }
+
+    /* ── Demo banner ── */
+    #demo-banner { background: rgba(184,150,46,.12); border-bottom: 1px solid rgba(212,174,80,.25); padding: 6px 20px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+
+    /* ── Responsive sidebar collapse ── */
+    @media (max-width: 768px) {
+      #sidebar { width: 56px; }
+      #sidebar .nav-section-label,
+      #sidebar .nav-item span,
+      #sidebar .nav-badge { display: none; }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ═══════════════════ DEMO BANNER ═══ -->
+<div id="demo-banner">
+  <div class="flex items-center gap-3">
+    <div class="dot dot-y dot-pulse"></div>
+    <span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#D4AE50;">
+      Live Demo Mode — Seplat Energy Plc · OML 4, OML 38 · Pro Tier
+    </span>
+  </div>
+  <div class="flex items-center gap-4">
+    <a href="../demo.html" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#D4AE50;text-decoration:none;">Book Real Demo →</a>
+    <button onclick="document.getElementById('demo-banner').style.display='none'" style="color:#4A5568;background:none;border:none;cursor:pointer;font-size:16px;line-height:1;">×</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════ APP SHELL ═══ -->
+<div id="app-shell">
+
+  <!-- ════════ SIDEBAR ════════ -->
+  <nav id="sidebar">
+
+    <!-- Logo -->
+    <div class="nav-logo">
+      <a href="../index.html" class="flex items-center gap-2" style="text-decoration:none;">
+        <svg width="28" height="28" viewBox="0 0 56 56" fill="none">
+          <circle cx="28" cy="28" r="18" stroke="#4CAF6F" stroke-width="1.5" fill="none"/>
+          <circle cx="28" cy="28" r="3" fill="#4CAF6F"/>
+          <path d="M28 10 C34 14,44 20,44 28 C44 28,36 22,28 10Z" fill="#2E7D45" opacity=".8"/>
+          <line x1="38" y1="8" x2="42" y2="14" stroke="#B8962E" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:18px;">
+          <span style="color:#FDFCF9;">Verde</span><span style="color:#D4AE50;">Scope</span>
+        </span>
+      </a>
+    </div>
+
+    <!-- Operator selector -->
+    <div style="padding:10px 14px;border-bottom:1px solid rgba(46,125,69,.12);">
+      <div class="op-pill" onclick="toggleDropdown('op-dropdown')">
+        <i data-lucide="building-2" style="width:12px;height:12px;color:#4CAF6F;flex-shrink:0;"></i>
+        <span id="op-pill-label" style="font-family:'DM Mono',monospace;font-size:10px;color:#D4DCE8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">Seplat Energy Plc</span>
+        <i data-lucide="chevron-down" style="width:10px;height:10px;color:#4A5568;margin-left:auto;flex-shrink:0;"></i>
+      </div>
+      <div class="dropdown-menu" id="op-dropdown" style="top:100%;left:0;right:auto;margin-top:2px;">
+        <div class="dropdown-item" onclick="selectOperator('Seplat Energy Plc')">Seplat Energy Plc</div>
+        <div class="dropdown-item" onclick="selectOperator('Aiteo Eastern E&amp;P')">Aiteo Eastern E&amp;P</div>
+        <div class="dropdown-item" onclick="selectOperator('Aradel Energy')">Aradel Energy</div>
+        <div class="dropdown-item" onclick="selectOperator('ND Western Ltd')">ND Western Ltd</div>
+        <div class="dropdown-item" onclick="selectOperator('Eroton E&amp;P Co.')">Eroton E&amp;P Co.</div>
+      </div>
+    </div>
+
+    <!-- Nav links -->
+    <div style="flex:1;overflow-y:auto;padding-bottom:12px;">
+
+      <div class="nav-section-label">Core</div>
+
+      <a class="nav-item active" onclick="showPage('dashboard',this)" href="#">
+        <i data-lucide="layout-dashboard" class="nav-icon"></i>
+        <span>Dashboard</span>
+      </a>
+      <a class="nav-item" onclick="showPage('emissions',this)" href="#">
+        <i data-lucide="calculator" class="nav-icon"></i>
+        <span>Emissions</span>
+      </a>
+      <a class="nav-item" onclick="showPage('ldar',this)" href="#">
+        <i data-lucide="search" class="nav-icon"></i>
+        <span>LDAR Manager</span>
+        <span class="nav-badge">3</span>
+      </a>
+      <a class="nav-item" onclick="showPage('equipment',this)" href="#">
+        <i data-lucide="settings" class="nav-icon"></i>
+        <span>Equipment</span>
+        <span class="nav-badge">1</span>
+      </a>
+      <a class="nav-item" onclick="showPage('updt',this)" href="#">
+        <i data-lucide="shield-check" class="nav-icon"></i>
+        <span>UPDT Compliance</span>
+      </a>
+
+      <div class="nav-section-label">Revenue</div>
+
+      <a class="nav-item" onclick="showPage('carbon',this)" href="#">
+        <i data-lucide="trending-up" class="nav-icon"></i>
+        <span>Carbon Market</span>
+        <span class="nav-badge gold">$</span>
+      </a>
+
+      <div class="nav-section-label">Reports</div>
+
+      <a class="nav-item" onclick="showPage('reports',this)" href="#">
+        <i data-lucide="file-text" class="nav-icon"></i>
+        <span>Reports</span>
+      </a>
+      <a class="nav-item" onclick="showPage('verde-intel',this)" href="#">
+        <i data-lucide="brain" class="nav-icon"></i>
+        <span>Verde Intelligence</span>
+      </a>
+
+      <div class="nav-section-label">Account</div>
+
+      <a class="nav-item" href="../resources.html" target="_blank">
+        <i data-lucide="book-open" class="nav-icon"></i>
+        <span>Academy</span>
+      </a>
+      <a class="nav-item" href="#">
+        <i data-lucide="settings-2" class="nav-icon"></i>
+        <span>Settings</span>
+      </a>
+    </div>
+
+    <!-- Collapse toggle -->
+    <div style="padding:10px 14px;border-top:1px solid rgba(46,125,69,.12);">
+      <button onclick="toggleSidebar()" style="background:none;border:none;cursor:pointer;color:#4A5568;display:flex;align-items:center;gap:6px;" data-tip="Collapse">
+        <i data-lucide="panel-left-close" style="width:16px;height:16px;" id="collapse-icon"></i>
+        <span id="collapse-label" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;">Collapse</span>
+      </button>
+    </div>
+
+  </nav>
+  <!-- /sidebar -->
+
+
+  <!-- ════════ MAIN AREA ════════ -->
+  <div id="main-area">
+
+    <!-- ─── TOPBAR ─── -->
+    <div id="topbar">
+
+      <!-- Page title -->
+      <div style="flex:1;display:flex;align-items:center;gap:12px;">
+        <div>
+          <div id="topbar-title" style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8A9BB0;">Dashboard</div>
+          <div id="topbar-sub"   style="font-family:'Outfit',sans-serif;font-size:11px;color:#4A5568;">Q2 2026 · Last updated 3 min ago</div>
+        </div>
+      </div>
+
+      <!-- Quarter selector -->
+      <div class="dropdown">
+        <button onclick="toggleDropdown('q-dropdown')" style="display:flex;align-items:center;gap:5px;background:rgba(46,125,69,.1);border:1px solid rgba(46,125,69,.2);color:#D4DCE8;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;cursor:pointer;">
+          Q2 2026 <i data-lucide="chevron-down" style="width:10px;height:10px;"></i>
+        </button>
+        <div class="dropdown-menu" id="q-dropdown">
+          <div class="dropdown-item">Q1 2026</div>
+          <div class="dropdown-item">Q2 2026 (current)</div>
+          <div class="dropdown-item">Q4 2025</div>
+          <div class="dropdown-item">Q3 2025</div>
+        </div>
+      </div>
+
+      <!-- Export button -->
+      <button onclick="showPage('reports', document.querySelectorAll('.nav-item')[6])" style="display:flex;align-items:center;gap:5px;background:rgba(46,125,69,.1);border:1px solid rgba(46,125,69,.2);color:#4CAF6F;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;cursor:pointer;">
+        <i data-lucide="download" style="width:12px;height:12px;"></i> Export
+      </button>
+
+      <!-- Notifications -->
+      <div class="dropdown" style="position:relative;">
+        <button onclick="toggleDropdown('notif-dropdown')" style="background:none;border:none;cursor:pointer;color:#8A9BB0;position:relative;padding:4px;">
+          <i data-lucide="bell" style="width:18px;height:18px;"></i>
+          <span class="notif-badge">4</span>
+        </button>
+        <div class="dropdown-menu" id="notif-dropdown" style="min-width:280px;">
+          <div style="padding:8px 14px;border-bottom:1px solid rgba(46,125,69,.15);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;">Notifications</div>
+          <div class="dropdown-item" style="display:flex;gap:8px;align-items:flex-start;padding:10px 14px;">
+            <div class="dot dot-r" style="margin-top:4px;flex-shrink:0;"></div>
+            <div>
+              <div style="font-size:12px;color:#FDFCF9;font-weight:500;">LDAR: 3 leaks overdue</div>
+              <div style="font-size:11px;color:#8A9BB0;margin-top:2px;">OML 4 · Compressor area</div>
+            </div>
+          </div>
+          <div class="dropdown-item" style="display:flex;gap:8px;align-items:flex-start;padding:10px 14px;">
+            <div class="dot dot-y" style="margin-top:4px;flex-shrink:0;"></div>
+            <div>
+              <div style="font-size:12px;color:#FDFCF9;font-weight:500;">UPDT Q2 report due in 18 days</div>
+              <div style="font-size:11px;color:#8A9BB0;margin-top:2px;">Submission deadline: 30 Jun 2026</div>
+            </div>
+          </div>
+          <div class="dropdown-item" style="display:flex;gap:8px;align-items:flex-start;padding:10px 14px;">
+            <div class="dot dot-y" style="margin-top:4px;flex-shrink:0;"></div>
+            <div>
+              <div style="font-size:12px;color:#FDFCF9;font-weight:500;">Anomaly detected — OML 38 GCS-3</div>
+              <div style="font-size:11px;color:#8A9BB0;margin-top:2px;">CH₄ reading 3.1σ above mean</div>
+            </div>
+          </div>
+          <div class="dropdown-item" style="display:flex;gap:8px;align-items:flex-start;padding:10px 14px;">
+            <div class="dot dot-g" style="margin-top:4px;flex-shrink:0;"></div>
+            <div>
+              <div style="font-size:12px;color:#FDFCF9;font-weight:500;">Carbon project validated — OML 4</div>
+              <div style="font-size:11px;color:#8A9BB0;margin-top:2px;">VCS VM0039 · 8,420 tCO₂e verified</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- User avatar -->
+      <div style="display:flex;align-items:center;gap:8px;padding-left:8px;border-left:1px solid rgba(46,125,69,.15);">
+        <div style="width:30px;height:30px;background:rgba(46,125,69,.2);border:1px solid rgba(46,125,69,.35);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:13px;color:#4CAF6F;flex-shrink:0;">AO</div>
+        <div>
+          <div style="font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;color:#FDFCF9;">Adewale Okonkwo</div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;letter-spacing:.1em;text-transform:uppercase;">HSE Manager</div>
+        </div>
+      </div>
+
+    </div>
+    <!-- /topbar -->
+
+
+    <!-- ─── CONTENT AREA ─── -->
+    <div id="content">
+
+      <!-- ════════════════════════════════════════
+           PAGE: DASHBOARD
+           ════════════════════════════════════════ -->
+      <div class="page-view active" id="page-dashboard">
+
+        <!-- KPI Strip -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+
+          <!-- KPI 1: Total Emissions -->
+          <div class="kpi-card green">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+              <div>
+                <div class="kpi-value text-sage" id="kpi-total-emissions">47,832</div>
+                <div class="kpi-label">tCO₂e — Q2 YTD</div>
+                <div class="kpi-sub">Scope 1 + 2 · Tier 2 active</div>
+              </div>
+              <div style="width:32px;height:32px;background:rgba(46,125,69,.15);display:flex;align-items:center;justify-content:center;">
+                <i data-lucide="activity" style="width:16px;height:16px;color:#4CAF6F;"></i>
+              </div>
+            </div>
+            <div class="flex items-center gap-1 mt-2">
+              <span class="kpi-delta down">▼ 8.3%</span>
+              <span style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">vs Q1 2026</span>
+            </div>
+          </div>
+
+          <!-- KPI 2: UPDT Score -->
+          <div class="kpi-card red">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+              <div>
+                <div class="kpi-value" style="color:#E74C3C;" id="kpi-updt">72</div>
+                <div class="kpi-label">UPDT Score / 100</div>
+                <div class="kpi-sub">Obligation 5 incomplete</div>
+              </div>
+              <div style="width:32px;height:32px;background:rgba(231,76,60,.1);display:flex;align-items:center;justify-content:center;">
+                <i data-lucide="shield-check" style="width:16px;height:16px;color:#E74C3C;"></i>
+              </div>
+            </div>
+            <div class="flex items-center gap-1 mt-2">
+              <span class="kpi-delta warn">▲ 11pts</span>
+              <span style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">since onboarding</span>
+            </div>
+          </div>
+
+          <!-- KPI 3: Carbon Revenue -->
+          <div class="kpi-card gold">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+              <div>
+                <div class="kpi-value" style="color:#D4AE50;">$482K</div>
+                <div class="kpi-label">Carbon Revenue — Est.</div>
+                <div class="kpi-sub">8,420 tCO₂e · $14.3/t VCM</div>
+              </div>
+              <div style="width:32px;height:32px;background:rgba(184,150,46,.12);display:flex;align-items:center;justify-content:center;">
+                <i data-lucide="coins" style="width:16px;height:16px;color:#D4AE50;"></i>
+              </div>
+            </div>
+            <div class="flex items-center gap-1 mt-2">
+              <span class="kpi-delta up">▲ 2 projects</span>
+              <span style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">in validation</span>
+            </div>
+          </div>
+
+          <!-- KPI 4: LDAR Leaks -->
+          <div class="kpi-card blue">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+              <div>
+                <div class="kpi-value" style="color:#E74C3C;">3</div>
+                <div class="kpi-label">LDAR Leaks Overdue</div>
+                <div class="kpi-sub">14 total active · OML 4, 38</div>
+              </div>
+              <div style="width:32px;height:32px;background:rgba(231,76,60,.1);display:flex;align-items:center;justify-content:center;">
+                <i data-lucide="search" style="width:16px;height:16px;color:#E74C3C;"></i>
+              </div>
+            </div>
+            <div class="flex items-center gap-1 mt-2">
+              <span class="kpi-delta" style="color:#E74C3C;">⚠ 2 SLA breaches</span>
+            </div>
+          </div>
+
+        </div>
+        <!-- /KPI strip -->
+
+
+        <!-- Row 1: Emissions chart | UPDT ring | Alerts -->
+        <div style="display:grid;grid-template-columns:1fr 200px 280px;gap:12px;margin-bottom:12px;">
+
+          <!-- Emissions trend chart -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">GHG Emissions Trend — 12 Months (tCO₂e/month)</span>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <span class="tag tag-g">Scope 1</span>
+                <span class="tag tag-n">Scope 2</span>
+              </div>
+            </div>
+            <div class="panel-body" style="padding:12px 16px;">
+              <div style="position:relative;height:170px;">
+                <canvas id="emissionsChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- UPDT Compliance Ring -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">UPDT Score</span>
+            </div>
+            <div class="panel-body" style="text-align:center;padding:16px;">
+              <div class="ring-wrap" style="margin:0 auto 10px;">
+                <svg width="120" height="120" style="transform:rotate(-90deg);">
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(46,125,69,.12)" stroke-width="10"/>
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#4CAF6F" stroke-width="10"
+                    stroke-dasharray="314.16" id="updt-ring"
+                    stroke-dashoffset="314.16" stroke-linecap="round"/>
+                </svg>
+                <div class="ring-label">
+                  <div id="updt-score-num" style="font-family:'DM Mono',monospace;font-size:26px;font-weight:300;color:#4CAF6F;">0</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;letter-spacing:.1em;">/100</div>
+                </div>
+              </div>
+              <div style="font-family:'Outfit',sans-serif;font-size:11px;color:#A8D5B5;font-weight:500;margin-bottom:8px;">Good Progress</div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">Obl. 1–4</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;">Complete</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;">
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">Obl. 5</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#D4AE50;">22%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Alerts -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">Active Alerts</span>
+              <span class="tag tag-r">4 open</span>
+            </div>
+            <div class="panel-body" style="padding:8px 12px;">
+              <div class="alert-item">
+                <div class="dot dot-r dot-pulse" style="margin-top:3px;"></div>
+                <div>
+                  <div style="font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;color:#FDFCF9;">Leak overdue — C-04 OML 4</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">87,500 ppmv · 5-day SLA breached</div>
+                </div>
+              </div>
+              <div class="alert-item">
+                <div class="dot dot-r" style="margin-top:3px;"></div>
+                <div>
+                  <div style="font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;color:#FDFCF9;">Rod packing — C-03 replace</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">26,800 hrs · NUPRC §3.4.2</div>
+                </div>
+              </div>
+              <div class="alert-item">
+                <div class="dot dot-y" style="margin-top:3px;"></div>
+                <div>
+                  <div style="font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;color:#FDFCF9;">Anomaly — GCS-3 CH₄ spike</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">Verde Intelligence · 87% confidence</div>
+                </div>
+              </div>
+              <div class="alert-item">
+                <div class="dot dot-y" style="margin-top:3px;"></div>
+                <div>
+                  <div style="font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;color:#FDFCF9;">UPDT Q2 report due 30 Jun</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">18 days · Obligation 5 pending</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <!-- /Row 1 -->
+
+
+        <!-- Row 2: Scope breakdown | Facility table | Carbon pipeline -->
+        <div style="display:grid;grid-template-columns:260px 1fr 260px;gap:12px;margin-bottom:12px;">
+
+          <!-- Scope Breakdown -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">Scope Breakdown</span>
+              <span class="tag tag-n">Tier 2</span>
+            </div>
+            <div class="panel-body">
+
+              <div style="margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                  <span style="font-family:'DM Mono',monospace;font-size:10px;color:#A8D5B5;">Scope 1 — Direct</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:10px;color:#FDFCF9;">43,150 t</span>
+                </div>
+                <div class="prog-track">
+                  <div class="prog-fill" id="prog-s1" style="width:0%;background:#4CAF6F;"></div>
+                </div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:3px;">90.2% of total</div>
+              </div>
+
+              <div style="margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                  <span style="font-family:'DM Mono',monospace;font-size:10px;color:#8A9BB0;">Scope 2 — Energy</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:10px;color:#FDFCF9;">3,480 t</span>
+                </div>
+                <div class="prog-track">
+                  <div class="prog-fill" id="prog-s2" style="width:0%;background:#4A5568;"></div>
+                </div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:3px;">7.3% of total</div>
+              </div>
+
+              <div style="margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                  <span style="font-family:'DM Mono',monospace;font-size:10px;color:#8A9BB0;">Scope 3 — Value Chain</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:10px;color:#FDFCF9;">1,202 t</span>
+                </div>
+                <div class="prog-track">
+                  <div class="prog-fill" id="prog-s3" style="width:0%;background:#2A3040;"></div>
+                </div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:3px;">2.5% of total</div>
+              </div>
+
+              <div style="border-top:1px solid rgba(46,125,69,.12);padding-top:10px;">
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px;">Top Sources (Scope 1)</div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">Gas Flaring</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;">72%</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">Fugitive CH₄</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;">14%</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">Combustion</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;">9%</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;">
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">Pneumatics</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;">5%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Facility Emissions Table -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">Facility Emissions — Q2 2026</span>
+              <button onclick="showPage('emissions',null)" style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;background:none;border:none;cursor:pointer;letter-spacing:.1em;text-transform:uppercase;">View All →</button>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Facility</th>
+                    <th>Concession</th>
+                    <th>Scope 1 (tCO₂e)</th>
+                    <th>Scope 2</th>
+                    <th>Tier</th>
+                    <th>UPDT</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="font-weight:500;color:#FDFCF9;">GCS-7 Onshore</td>
+                    <td class="mono" style="color:#8A9BB0;">OML 4</td>
+                    <td class="mono" style="color:#4CAF6F;">18,420</td>
+                    <td class="mono" style="color:#8A9BB0;">1,240</td>
+                    <td><span class="tag tag-g">T2</span></td>
+                    <td><div class="prog-track" style="width:60px;"><div class="prog-fill" style="width:88%;background:#4CAF6F;"></div></div></td>
+                    <td><div style="display:flex;align-items:center;gap:4px;"><div class="dot dot-g"></div><span style="font-size:11px;color:#4CAF6F;">OK</span></div></td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight:500;color:#FDFCF9;">WPP-12 Onshore</td>
+                    <td class="mono" style="color:#8A9BB0;">OML 4</td>
+                    <td class="mono" style="color:#4CAF6F;">9,810</td>
+                    <td class="mono" style="color:#8A9BB0;">640</td>
+                    <td><span class="tag tag-g">T2</span></td>
+                    <td><div class="prog-track" style="width:60px;"><div class="prog-fill" style="width:75%;background:#D4AE50;"></div></div></td>
+                    <td><div style="display:flex;align-items:center;gap:4px;"><div class="dot dot-y"></div><span style="font-size:11px;color:#D4AE50;">Review</span></div></td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight:500;color:#FDFCF9;">GCS-3 Onshore</td>
+                    <td class="mono" style="color:#8A9BB0;">OML 38</td>
+                    <td class="mono" style="color:#E74C3C;">12,640</td>
+                    <td class="mono" style="color:#8A9BB0;">920</td>
+                    <td><span class="tag tag-b">T1</span></td>
+                    <td><div class="prog-track" style="width:60px;"><div class="prog-fill" style="width:62%;background:#E74C3C;"></div></div></td>
+                    <td><div style="display:flex;align-items:center;gap:4px;"><div class="dot dot-r dot-pulse"></div><span style="font-size:11px;color:#E74C3C;">Alert</span></div></td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight:500;color:#FDFCF9;">GPP-5 Onshore</td>
+                    <td class="mono" style="color:#8A9BB0;">OML 38</td>
+                    <td class="mono" style="color:#4CAF6F;">2,280</td>
+                    <td class="mono" style="color:#8A9BB0;">680</td>
+                    <td><span class="tag tag-g">T2</span></td>
+                    <td><div class="prog-track" style="width:60px;"><div class="prog-fill" style="width:95%;background:#4CAF6F;"></div></div></td>
+                    <td><div style="display:flex;align-items:center;gap:4px;"><div class="dot dot-g"></div><span style="font-size:11px;color:#4CAF6F;">OK</span></div></td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight:500;color:#FDFCF9;">WPP-8 Onshore</td>
+                    <td class="mono" style="color:#8A9BB0;">OML 4</td>
+                    <td class="mono" style="color:#4A5568;">—</td>
+                    <td class="mono" style="color:#8A9BB0;">—</td>
+                    <td><span class="tag tag-n">—</span></td>
+                    <td><div class="prog-track" style="width:60px;"><div class="prog-fill" style="width:12%;background:#4A5568;"></div></div></td>
+                    <td><div style="display:flex;align-items:center;gap:4px;"><div class="dot" style="background:#4A5568;"></div><span style="font-size:11px;color:#4A5568;">Pending</span></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Carbon Pipeline -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">Carbon Pipeline</span>
+              <span class="tag tag-y">$482K est.</span>
+            </div>
+            <div class="panel-body">
+
+              <div style="margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <span style="font-family:'Outfit',sans-serif;font-size:11px;font-weight:500;color:#FDFCF9;">Flare Gas Elim. — OML 38</span>
+                  <span class="tag tag-g">Verified</span>
+                </div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;margin-bottom:4px;">8,420 tCO₂e · VCS VM0039</div>
+                <div class="prog-track"><div class="prog-fill" id="cp1" style="width:0%;background:#4CAF6F;"></div></div>
+              </div>
+
+              <div style="margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <span style="font-family:'Outfit',sans-serif;font-size:11px;font-weight:500;color:#FDFCF9;">Methane Abatement — OML 4</span>
+                  <span class="tag tag-y">Validation</span>
+                </div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;margin-bottom:4px;">4,200 tCO₂e est. · In review</div>
+                <div class="prog-track"><div class="prog-fill" id="cp2" style="width:0%;background:#D4AE50;"></div></div>
+              </div>
+
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <span style="font-family:'Outfit',sans-serif;font-size:11px;font-weight:500;color:#FDFCF9;">LDAR Credits Pipeline</span>
+                  <span class="tag tag-n">Planning</span>
+                </div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;margin-bottom:4px;">~1,800 tCO₂e est. · PDD phase</div>
+                <div class="prog-track"><div class="prog-fill" id="cp3" style="width:0%;background:#4A5568;"></div></div>
+              </div>
+
+              <!-- Revenue summary -->
+              <div style="border-top:1px solid rgba(46,125,69,.12);margin-top:12px;padding-top:10px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;text-transform:uppercase;letter-spacing:.12em;">VCM Price (spot)</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#D4AE50;">$14.30 / t</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;">
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;text-transform:uppercase;letter-spacing:.12em;">Est. Annual Revenue</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:12px;color:#D4AE50;font-weight:500;">$482,000</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+        <!-- /Row 2 -->
+
+
+        <!-- Row 3: LDAR summary | Activity feed | Energy intensity -->
+        <div style="display:grid;grid-template-columns:1fr 240px 260px;gap:12px;">
+
+          <!-- LDAR Summary -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">LDAR Programme — Active Leaks</span>
+              <button onclick="showPage('ldar',null)" style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;background:none;border:none;cursor:pointer;letter-spacing:.1em;text-transform:uppercase;">Manage →</button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-bottom:1px solid rgba(46,125,69,.1);">
+              <div style="text-align:center;padding:12px;border-right:1px solid rgba(46,125,69,.1);">
+                <div style="font-family:'DM Mono',monospace;font-size:22px;color:#E74C3C;">3</div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;text-transform:uppercase;letter-spacing:.12em;margin-top:2px;">Overdue</div>
+              </div>
+              <div style="text-align:center;padding:12px;border-right:1px solid rgba(46,125,69,.1);">
+                <div style="font-family:'DM Mono',monospace;font-size:22px;color:#D4AE50;">7</div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;text-transform:uppercase;letter-spacing:.12em;margin-top:2px;">In Progress</div>
+              </div>
+              <div style="text-align:center;padding:12px;">
+                <div style="font-family:'DM Mono',monospace;font-size:22px;color:#4CAF6F;">4</div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;text-transform:uppercase;letter-spacing:.12em;margin-top:2px;">Repaired</div>
+              </div>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Component</th>
+                    <th>Facility</th>
+                    <th>ppmv</th>
+                    <th>SLA</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="color:#FDFCF9;font-weight:500;">Compressor C-04 Flange</td>
+                    <td class="mono" style="color:#8A9BB0;">OML 4</td>
+                    <td class="mono" style="color:#E74C3C;">87,500</td>
+                    <td><span class="tag tag-r">OVERDUE</span></td>
+                    <td><div class="dot dot-r dot-pulse"></div></td>
+                  </tr>
+                  <tr>
+                    <td style="color:#FDFCF9;font-weight:500;">Tank T-11 Hatch Seal</td>
+                    <td class="mono" style="color:#8A9BB0;">OML 4</td>
+                    <td class="mono" style="color:#E74C3C;">56,200</td>
+                    <td><span class="tag tag-r">OVERDUE</span></td>
+                    <td><div class="dot dot-r"></div></td>
+                  </tr>
+                  <tr>
+                    <td style="color:#FDFCF9;font-weight:500;">Valve V-22 Stem Pack.</td>
+                    <td class="mono" style="color:#8A9BB0;">OML 38</td>
+                    <td class="mono" style="color:#D4AE50;">12,400</td>
+                    <td><span class="tag tag-y">7 days</span></td>
+                    <td><div class="dot dot-y"></div></td>
+                  </tr>
+                  <tr>
+                    <td style="color:#FDFCF9;font-weight:500;">Pneumatic P-08 Stem</td>
+                    <td class="mono" style="color:#8A9BB0;">OML 4</td>
+                    <td class="mono" style="color:#4CAF6F;">4,200</td>
+                    <td><span class="tag tag-g">Repaired ✓</span></td>
+                    <td><div class="dot dot-g"></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Activity Feed -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">Recent Activity</span>
+            </div>
+            <div class="panel-body" style="padding:8px 12px;overflow-y:auto;max-height:220px;">
+              <div class="feed-item">
+                <div class="feed-time">09:42</div>
+                <div class="feed-icon" style="background:rgba(231,76,60,.12);">
+                  <i data-lucide="alert-circle" style="width:12px;height:12px;color:#E74C3C;"></i>
+                </div>
+                <div style="flex:1;">
+                  <div style="font-family:'Outfit',sans-serif;font-size:11px;font-weight:500;color:#FDFCF9;">C-04 leak SLA breached</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">OML 4 · 87,500 ppmv</div>
+                </div>
+              </div>
+              <div class="feed-item">
+                <div class="feed-time">08:15</div>
+                <div class="feed-icon" style="background:rgba(212,174,80,.1);">
+                  <i data-lucide="brain" style="width:12px;height:12px;color:#D4AE50;"></i>
+                </div>
+                <div style="flex:1;">
+                  <div style="font-family:'Outfit',sans-serif;font-size:11px;font-weight:500;color:#FDFCF9;">Verde Intelligence alert</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">GCS-3 CH₄ 3.1σ anomaly</div>
+                </div>
+              </div>
+              <div class="feed-item">
+                <div class="feed-time">Yesterday</div>
+                <div class="feed-icon" style="background:rgba(46,125,69,.12);">
+                  <i data-lucide="check-circle" style="width:12px;height:12px;color:#4CAF6F;"></i>
+                </div>
+                <div style="flex:1;">
+                  <div style="font-family:'Outfit',sans-serif;font-size:11px;font-weight:500;color:#FDFCF9;">P-08 repair confirmed</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">Re-survey: 480 ppmv ✓</div>
+                </div>
+              </div>
+              <div class="feed-item">
+                <div class="feed-time">2 days</div>
+                <div class="feed-icon" style="background:rgba(184,150,46,.1);">
+                  <i data-lucide="trending-up" style="width:12px;height:12px;color:#D4AE50;"></i>
+                </div>
+                <div style="flex:1;">
+                  <div style="font-family:'Outfit',sans-serif;font-size:11px;font-weight:500;color:#FDFCF9;">VCS credits verified</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">OML 38 · 8,420 tCO₂e</div>
+                </div>
+              </div>
+              <div class="feed-item">
+                <div class="feed-time">3 days</div>
+                <div class="feed-icon" style="background:rgba(46,125,69,.12);">
+                  <i data-lucide="file-check" style="width:12px;height:12px;color:#4CAF6F;"></i>
+                </div>
+                <div style="flex:1;">
+                  <div style="font-family:'Outfit',sans-serif;font-size:11px;font-weight:500;color:#FDFCF9;">Q1 GHG report submitted</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">NUPRC format · OML 4 + 38</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Energy Intensity -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">Energy Intensity</span>
+              <span class="tag tag-g">On Track</span>
+            </div>
+            <div class="panel-body">
+              <div style="margin-bottom:12px;">
+                <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:300;color:#4CAF6F;">0.184</div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;letter-spacing:.14em;text-transform:uppercase;margin-top:2px;">tCO₂e / BOE · Q2 2026</div>
+              </div>
+              <div style="height:80px;margin-bottom:10px;">
+                <canvas id="eiChart"></canvas>
+              </div>
+              <div style="border-top:1px solid rgba(46,125,69,.1);padding-top:8px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">2020 Baseline</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#FDFCF9;">0.218 tCO₂e/BOE</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">NUPRC Target (2026)</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#D4AE50;">≤ 0.196 tCO₂e/BOE</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;">
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">Progress vs target</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;">−5.9% YoY ✓</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <!-- /Row 3 -->
+
+      </div>
+      <!-- /page-dashboard -->
+
+
+      <!-- ════════════════════════════════════════
+           PAGE: EMISSIONS (stub)
+           ════════════════════════════════════════ -->
+      <div class="page-view" id="page-emissions">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#4CAF6F;margin-bottom:4px;">Module 01</div>
+            <h2 style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#FDFCF9;">GHG Emissions Calculator</h2>
+          </div>
+          <a href="../app/emissions.html" style="background:#2E7D45;color:#FDFCF9;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:10px 18px;text-decoration:none;display:flex;align-items:center;gap:6px;">
+            Open Full Module <i data-lucide="arrow-right" style="width:14px;height:14px;"></i>
+          </a>
+        </div>
+        <div class="panel" style="padding:40px;text-align:center;">
+          <i data-lucide="calculator" style="width:48px;height:48px;color:#4CAF6F;margin:0 auto 16px;display:block;"></i>
+          <div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:500;color:#FDFCF9;margin-bottom:8px;">IPCC Tier 1/2/3 Emissions Engine</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:13px;color:#8A9BB0;max-width:400px;margin:0 auto 20px;">Full GHG calculations across all 12 upstream emission source categories. This module is built and available — click Open Full Module above.</div>
+          <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;">
+            <span class="tag tag-g">GHG Protocol</span>
+            <span class="tag tag-g">ISO 14064-1</span>
+            <span class="tag tag-g">IPCC 2019</span>
+            <span class="tag tag-n">API Compendium</span>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ════════════════════════════════════════
+           PAGE: LDAR (stub)
+           ════════════════════════════════════════ -->
+      <div class="page-view" id="page-ldar">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#4CAF6F;margin-bottom:4px;">Module 02 · 3 Overdue</div>
+            <h2 style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#FDFCF9;">LDAR Programme Manager</h2>
+          </div>
+          <a href="../app/ldar.html" style="background:#E74C3C;color:#FDFCF9;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:10px 18px;text-decoration:none;display:flex;align-items:center;gap:6px;">
+            Manage Leaks <i data-lucide="arrow-right" style="width:14px;height:14px;"></i>
+          </a>
+        </div>
+        <div class="panel" style="padding:40px;text-align:center;">
+          <i data-lucide="search" style="width:48px;height:48px;color:#E74C3C;margin:0 auto 16px;display:block;"></i>
+          <div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:500;color:#FDFCF9;margin-bottom:8px;">3 Leaks Require Immediate Attention</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:13px;color:#8A9BB0;max-width:400px;margin:0 auto 20px;">C-04 and T-11 have breached their 5-day NUPRC SLA. Click Manage Leaks to access the full LDAR module with inspection schedules, leak tracking, and NUPRC annual report generation.</div>
+          <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;">
+            <span class="tag tag-r">2 SLA Breached</span>
+            <span class="tag tag-y">7 In Progress</span>
+            <span class="tag tag-g">4 Repaired</span>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ════════════════════════════════════════
+           PAGE: EQUIPMENT (stub)
+           ════════════════════════════════════════ -->
+      <div class="page-view" id="page-equipment">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#4CAF6F;margin-bottom:4px;">Module 03 · 1 Action Required</div>
+            <h2 style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#FDFCF9;">Equipment Compliance Tracker</h2>
+          </div>
+          <a href="../app/equipment.html" style="background:#D4AE50;color:#0D1A12;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:10px 18px;text-decoration:none;display:flex;align-items:center;gap:6px;">
+            View Equipment <i data-lucide="arrow-right" style="width:14px;height:14px;"></i>
+          </a>
+        </div>
+        <div class="panel" style="padding:40px;text-align:center;">
+          <i data-lucide="settings" style="width:48px;height:48px;color:#D4AE50;margin:0 auto 16px;display:block;"></i>
+          <div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:500;color:#FDFCF9;margin-bottom:8px;">Compressor C-03 Rod Packing — Replace Now</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:13px;color:#8A9BB0;max-width:400px;margin:0 auto 20px;">C-03 has reached 26,800 operating hours — above the 26,000 hr NUPRC replacement threshold. Pneumatic phase-in currently at 78% vs 85% target for Year 4.</div>
+          <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;">
+            <span class="tag tag-r">Rod Packing Overdue</span>
+            <span class="tag tag-y">Pneumatics 78% / 85%</span>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ════════════════════════════════════════
+           PAGE: UPDT (stub)
+           ════════════════════════════════════════ -->
+      <div class="page-view" id="page-updt">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#D4AE50;margin-bottom:4px;">Module 04 · Score 72/100</div>
+            <h2 style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#FDFCF9;">NUPRC UPDT Compliance Workflow</h2>
+          </div>
+          <a href="../app/updt.html" style="background:#2E7D45;color:#FDFCF9;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:10px 18px;text-decoration:none;display:flex;align-items:center;gap:6px;">
+            Open Workflow <i data-lucide="arrow-right" style="width:14px;height:14px;"></i>
+          </a>
+        </div>
+        <div class="panel" style="padding:40px;text-align:center;">
+          <i data-lucide="shield-check" style="width:48px;height:48px;color:#D4AE50;margin:0 auto 16px;display:block;"></i>
+          <div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:500;color:#FDFCF9;margin-bottom:8px;">UPDT Score 72/100 — Obligation 5 Incomplete</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:13px;color:#8A9BB0;max-width:400px;margin:0 auto 20px;">Obligations 1–4 are substantially complete. Obligation 5 (CCS/NBS/Offsets Plan) is at 22%. Complete it to reach 90+ score and unlock full FDP submission eligibility.</div>
+          <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;">
+            <span class="tag tag-g">Obl. 1–4 Active</span>
+            <span class="tag tag-y">Obl. 5 at 22%</span>
+            <span class="tag tag-r">Q2 Report Due 30 Jun</span>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ════════════════════════════════════════
+           PAGE: CARBON MARKET (stub)
+           ════════════════════════════════════════ -->
+      <div class="page-view" id="page-carbon">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#D4AE50;margin-bottom:4px;">Module 06 · $482K Est. Revenue</div>
+            <h2 style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#FDFCF9;">Carbon Market &amp; Revenue Module</h2>
+          </div>
+          <a href="../app/carbon-market.html" style="background:#B8962E;color:#0D1A12;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:10px 18px;text-decoration:none;display:flex;align-items:center;gap:6px;">
+            Open Module <i data-lucide="arrow-right" style="width:14px;height:14px;"></i>
+          </a>
+        </div>
+        <div class="panel" style="padding:40px;text-align:center;">
+          <i data-lucide="coins" style="width:48px;height:48px;color:#D4AE50;margin:0 auto 16px;display:block;"></i>
+          <div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:500;color:#FDFCF9;margin-bottom:8px;">$482,000 Estimated Annual Carbon Revenue</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:13px;color:#8A9BB0;max-width:400px;margin:0 auto 20px;">8,420 tCO₂e verified under VCS VM0039 (OML 38 flare gas elimination). Two additional projects in validation pipeline. VCM spot price: $14.30/tCO₂e.</div>
+          <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;">
+            <span class="tag tag-g">VCS Verified</span>
+            <span class="tag tag-y">2 In Validation</span>
+            <span class="tag tag-n">Nigeria CMF Aligned</span>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ════════════════════════════════════════
+           PAGE: REPORTS (stub)
+           ════════════════════════════════════════ -->
+      <div class="page-view" id="page-reports">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#4CAF6F;margin-bottom:4px;">Reports &amp; Documents</div>
+            <h2 style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#FDFCF9;">Regulatory Reports &amp; Exports</h2>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+          <div class="panel" style="padding:24px;cursor:pointer;" onmouseover="this.style.borderColor='rgba(46,125,69,.4)'" onmouseout="this.style.borderColor='rgba(46,125,69,.12)'">
+            <i data-lucide="file-text" style="width:32px;height:32px;color:#4CAF6F;margin-bottom:12px;display:block;"></i>
+            <div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:#FDFCF9;margin-bottom:4px;">NUPRC Q2 2026 GHG Report</div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;color:#8A9BB0;margin-bottom:12px;">Due 30 Jun 2026 · Draft ready</div>
+            <span class="tag tag-y">Draft</span>
+          </div>
+          <div class="panel" style="padding:24px;cursor:pointer;" onmouseover="this.style.borderColor='rgba(46,125,69,.4)'" onmouseout="this.style.borderColor='rgba(46,125,69,.12)'">
+            <i data-lucide="shield-check" style="width:32px;height:32px;color:#D4AE50;margin-bottom:12px;display:block;"></i>
+            <div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:#FDFCF9;margin-bottom:4px;">UPDT Submission Package</div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;color:#8A9BB0;margin-bottom:12px;">Score 72/100 · Obligations 1–4</div>
+            <span class="tag tag-g">Available</span>
+          </div>
+          <div class="panel" style="padding:24px;cursor:pointer;" onmouseover="this.style.borderColor='rgba(46,125,69,.4)'" onmouseout="this.style.borderColor='rgba(46,125,69,.12)'">
+            <i data-lucide="download" style="width:32px;height:32px;color:#4CAF6F;margin-bottom:12px;display:block;"></i>
+            <div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:#FDFCF9;margin-bottom:4px;">ISO 14064-1 Inventory Statement</div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;color:#8A9BB0;margin-bottom:12px;">Q1 2026 · Verified · Enterprise</div>
+            <span class="tag tag-g">Download PDF</span>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ════════════════════════════════════════
+           PAGE: VERDE INTELLIGENCE (stub)
+           ════════════════════════════════════════ -->
+      <div class="page-view" id="page-verde-intel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#D4AE50;margin-bottom:4px;">Module 05 · AI/ML</div>
+            <h2 style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#FDFCF9;">Verde Intelligence</h2>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">
+
+          <!-- ML-1: Anomaly Detection -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">ML-1: Anomaly Detection</span>
+              <span class="tag tag-y">1 Active</span>
+            </div>
+            <div class="panel-body">
+              <div style="display:flex;gap:8px;align-items:flex-start;padding:8px;background:rgba(212,174,80,.06);border:1px solid rgba(212,174,80,.2);margin-bottom:8px;">
+                <div class="dot dot-y dot-pulse" style="margin-top:3px;flex-shrink:0;"></div>
+                <div>
+                  <div style="font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;color:#FDFCF9;">GCS-3 CH₄ spike — 87% confidence</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;margin-top:2px;">Mar 14: 4.2 tCO₂e/day — 3.1σ above 12-month mean. Nearest: GCS-7 Jun 2025 valve seal.</div>
+                </div>
+              </div>
+              <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">Isolation Forest model · 98.4% accuracy on 24-month training set</div>
+            </div>
+          </div>
+
+          <!-- ML-3: Compliance Risk -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">ML-3: Compliance Risk</span>
+            </div>
+            <div class="panel-body">
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;">
+                <div style="padding:10px;background:rgba(46,125,69,.08);border:1px solid rgba(46,125,69,.2);text-align:center;">
+                  <div style="font-family:'DM Mono',monospace;font-size:20px;color:#4CAF6F;">34</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;text-transform:uppercase;">30-Day</div>
+                </div>
+                <div style="padding:10px;background:rgba(212,174,80,.08);border:1px solid rgba(212,174,80,.2);text-align:center;">
+                  <div style="font-family:'DM Mono',monospace;font-size:20px;color:#D4AE50;">67</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;text-transform:uppercase;">60-Day</div>
+                </div>
+                <div style="padding:10px;background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.2);text-align:center;">
+                  <div style="font-family:'DM Mono',monospace;font-size:20px;color:#E74C3C;">82</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;text-transform:uppercase;">90-Day</div>
+                </div>
+              </div>
+              <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">XGBoost · Score ≥80 triggers CSM escalation</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <!-- /page-verde-intel -->
+
+
+    </div><!-- /content -->
+  </div><!-- /main-area -->
+
+</div><!-- /app-shell -->
+
+
+<!-- ═══════════════════ SCRIPTS ═══ -->
+<script>
+
+  /* ────────────────────────────────────
+     Page Routing
+     ──────────────────────────────────── */
+  function showPage(name, navEl) {
+    // Hide all pages
+    document.querySelectorAll('.page-view').forEach(function(p) {
+      p.classList.remove('active');
+    });
+
+    // Show target page
+    var page = document.getElementById('page-' + name);
+    if (page) page.classList.add('active');
+
+    // Update nav active state
+    document.querySelectorAll('.nav-item').forEach(function(n) {
+      n.classList.remove('active');
+    });
+    if (navEl) navEl.classList.add('active');
+
+    // Update topbar title
+    var titles = {
+      'dashboard':   'Dashboard',
+      'emissions':   'GHG Emissions Calculator',
+      'ldar':        'LDAR Programme Manager',
+      'equipment':   'Equipment Compliance Tracker',
+      'updt':        'UPDT Compliance Workflow',
+      'carbon':      'Carbon Market Module',
+      'reports':     'Reports & Documents',
+      'verde-intel': 'Verde Intelligence'
+    };
+    var titleEl = document.getElementById('topbar-title');
+    if (titleEl) titleEl.textContent = titles[name] || name;
+
+    // Re-render Lucide icons (needed for stub pages)
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+
+
+  /* ────────────────────────────────────
+     Sidebar Collapse / Expand
+     ──────────────────────────────────── */
+  var sidebarCollapsed = false;
+
+  function toggleSidebar() {
+    sidebarCollapsed = !sidebarCollapsed;
+    var sidebar     = document.getElementById('sidebar');
+    var collapseIcon  = document.getElementById('collapse-icon');
+    var collapseLabel = document.getElementById('collapse-label');
+
+    if (sidebarCollapsed) {
+      sidebar.classList.add('collapsed');
+      if (collapseIcon)  collapseIcon.setAttribute('data-lucide', 'panel-left-open');
+      if (collapseLabel) collapseLabel.textContent = 'Expand';
+    } else {
+      sidebar.classList.remove('collapsed');
+      if (collapseIcon)  collapseIcon.setAttribute('data-lucide', 'panel-left-close');
+      if (collapseLabel) collapseLabel.textContent = 'Collapse';
+    }
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+
+
+  /* ────────────────────────────────────
+     Dropdown Toggle
+     ──────────────────────────────────── */
+  function toggleDropdown(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var isOpen = el.style.display === 'block';
+
+    // Close all open dropdowns first
+    document.querySelectorAll('.dropdown-menu').forEach(function(m) {
+      m.style.display = 'none';
+    });
+
+    el.style.display = isOpen ? 'none' : 'block';
+  }
+
+  // Close dropdowns on outside click
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.dropdown') && !e.target.closest('.op-pill')) {
+      document.querySelectorAll('.dropdown-menu').forEach(function(m) {
+        m.style.display = 'none';
+      });
+    }
+  });
+
+
+  /* ────────────────────────────────────
+     Operator Selector
+     ──────────────────────────────────── */
+  function selectOperator(name) {
+    var pill = document.getElementById('op-pill-label');
+    if (pill) pill.textContent = name;
+    document.querySelectorAll('.dropdown-menu').forEach(function(m) {
+      m.style.display = 'none';
+    });
+  }
+
+
+  /* ────────────────────────────────────
+     Animate Progress Bars + UPDT Ring
+     ──────────────────────────────────── */
+  function animateUI() {
+    // Scope breakdown progress bars
+    setTimeout(function() { var e = document.getElementById('prog-s1'); if (e) e.style.width = '90%'; }, 400);
+    setTimeout(function() { var e = document.getElementById('prog-s2'); if (e) e.style.width = '7%';  }, 500);
+    setTimeout(function() { var e = document.getElementById('prog-s3'); if (e) e.style.width = '3%';  }, 600);
+
+    // Carbon pipeline progress bars
+    setTimeout(function() { var e = document.getElementById('cp1'); if (e) e.style.width = '84%'; }, 700);
+    setTimeout(function() { var e = document.getElementById('cp2'); if (e) e.style.width = '42%'; }, 800);
+    setTimeout(function() { var e = document.getElementById('cp3'); if (e) e.style.width = '18%'; }, 900);
+
+    // UPDT ring count-up animation
+    var target       = 72;
+    var circumference = 314.16;
+    var ring   = document.getElementById('updt-ring');
+    var numEl  = document.getElementById('updt-score-num');
+    if (!ring || !numEl) return;
+
+    var current = 0;
+    var interval = setInterval(function() {
+      current += 2;
+      if (current >= target) {
+        current = target;
+        clearInterval(interval);
+      }
+      ring.style.strokeDashoffset = circumference - (current / 100) * circumference;
+      numEl.textContent = current;
+    }, 25);
+  }
+
+
+  /* ────────────────────────────────────
+     Chart: GHG Emissions Trend (12 mo.)
+     ──────────────────────────────────── */
+  function buildEmissionsChart() {
+    var ctx = document.getElementById('emissionsChart');
+    if (!ctx || typeof Chart === 'undefined') return;
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr'],
+        datasets: [
+          {
+            label: 'Scope 1',
+            data: [42100, 44800, 43200, 41900, 45100, 43800, 40200, 38900, 47200, 46100, 48300, 43150],
+            backgroundColor: 'rgba(46,125,69,.55)',
+            borderColor: '#4CAF6F',
+            borderWidth: 1,
+            borderRadius: 1,
+          },
+          {
+            label: 'Scope 2',
+            data: [3100, 3400, 3200, 3000, 3600, 3300, 3100, 2900, 3800, 3500, 3700, 3480],
+            backgroundColor: 'rgba(74,85,104,.4)',
+            borderColor: '#4A5568',
+            borderWidth: 1,
+            borderRadius: 1,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#111E15',
+            borderColor: 'rgba(46,125,69,.4)',
+            borderWidth: 1,
+            titleColor: '#A8D5B5',
+            bodyColor: '#8A9BB0',
+            titleFont: { family: 'DM Mono', size: 10 },
+            bodyFont:  { family: 'DM Mono', size: 10 },
+            callbacks: {
+              label: function(ctx) {
+                return ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString() + ' tCO₂e';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(46,125,69,.06)', drawBorder: false },
+            ticks: { color: '#4A5568', font: { family: 'DM Mono', size: 9 } }
+          },
+          y: {
+            grid: { color: 'rgba(46,125,69,.06)', drawBorder: false },
+            ticks: {
+              color: '#4A5568',
+              font: { family: 'DM Mono', size: 9 },
+              callback: function(v) { return (v / 1000).toFixed(0) + 'k'; }
+            }
+          }
+        }
+      }
+    });
+  }
+
+
+  /* ────────────────────────────────────
+     Chart: Energy Intensity Trend
+     ──────────────────────────────────── */
+  function buildEIChart() {
+    var ctx = document.getElementById('eiChart');
+    if (!ctx || typeof Chart === 'undefined') return;
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['2020','2021','2022','2023','2024','2025','Q2\'26'],
+        datasets: [
+          {
+            label: 'EI Actual',
+            data: [0.218, 0.213, 0.208, 0.203, 0.196, 0.191, 0.184],
+            borderColor: '#4CAF6F',
+            backgroundColor: 'rgba(46,125,69,.08)',
+            borderWidth: 2,
+            pointRadius: 3,
+            pointBackgroundColor: '#4CAF6F',
+            fill: true,
+            tension: 0.3,
+          },
+          {
+            label: 'Target',
+            data: [0.218, 0.212, 0.207, 0.201, 0.196, 0.191, 0.186],
+            borderColor: 'rgba(212,174,80,.5)',
+            backgroundColor: 'transparent',
+            borderWidth: 1,
+            borderDash: [4, 4],
+            pointRadius: 0,
+            tension: 0.3,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#111E15',
+            borderColor: 'rgba(46,125,69,.3)',
+            borderWidth: 1,
+            titleColor: '#A8D5B5',
+            bodyColor: '#8A9BB0',
+            titleFont: { family: 'DM Mono', size: 9 },
+            bodyFont:  { family: 'DM Mono', size: 9 }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#4A5568', font: { family: 'DM Mono', size: 8 } }
+          },
+          y: {
+            grid: { color: 'rgba(46,125,69,.06)', drawBorder: false },
+            ticks: {
+              color: '#4A5568',
+              font: { family: 'DM Mono', size: 8 },
+              callback: function(v) { return v.toFixed(3); }
+            },
+            min: 0.17,
+            max: 0.23
+          }
+        }
+      }
+    });
+  }
+
+
+  /* ────────────────────────────────────
+     Initialise on DOM Ready
+     ──────────────────────────────────── */
+  window.addEventListener('DOMContentLoaded', function() {
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    buildEmissionsChart();
+    buildEIChart();
+    animateUI();
+  });
+
+</script>
+</body>
+</html>
