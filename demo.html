@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Request a Demo — VerdeScope</title>
+  <meta name="description" content="Schedule a 30-minute VerdeScope demo. We'll run a live UPDT compliance gap analysis on your operator profile and project your carbon revenue potential — before you sign anything." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#0D1A12', forest: '#1A3D24', pine: '#235930',
+            verde:    '#2E7D45', sage:   '#4CAF6F', mist: '#A8D5B5',
+            fog:      '#E8F5ED', parchment: '#F4F1EB', ivory: '#FDFCF9',
+            gold:     '#B8962E', goldlight: '#D4AE50', goldpale: '#F5E9C4',
+            slate:    '#2A3040', steel: '#4A5568', ash: '#8A9BB0', cloud: '#D4DCE8',
+          },
+          fontFamily: {
+            display: ['Cormorant Garamond','Georgia','serif'],
+            sans:    ['Outfit','sans-serif'],
+            mono:    ['DM Mono','monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Outfit', sans-serif; background-color: #0D1A12; color: #FDFCF9; overflow-x: hidden; }
+
+    .grid-texture {
+      background-image:
+        linear-gradient(rgba(46,125,69,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(46,125,69,.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+    .glow-green { background: radial-gradient(ellipse at center, rgba(46,125,69,.18) 0%, transparent 65%); }
+    .glow-gold  { background: radial-gradient(ellipse at center, rgba(184,150,46,.14) 0%, transparent 65%); }
+
+    .grain::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: .4;
+    }
+
+    /* Nav */
+    .nav-dropdown { display: none; }
+    .nav-item:hover .nav-dropdown { display: block; }
+    #mobile-menu { display: none; }
+    #mobile-menu.open { display: block; }
+
+    /* Buttons */
+    .btn-primary {
+      background: #2E7D45; color: #FDFCF9;
+      font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600;
+      letter-spacing: .06em; text-transform: uppercase; padding: 13px 28px;
+      transition: all .25s; border: 1px solid transparent;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-primary:hover { background: #235930; transform: translateY(-1px); box-shadow: 0 8px 28px rgba(46,125,69,.35); }
+    .btn-primary:disabled { opacity: .65; cursor: not-allowed; transform: none; }
+
+    .btn-outline {
+      background: transparent; color: #4CAF6F; border: 1px solid #2E7D45;
+      font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600;
+      letter-spacing: .06em; text-transform: uppercase; padding: 12px 28px;
+      transition: all .25s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-outline:hover { background: rgba(46,125,69,.12); border-color: #4CAF6F; }
+
+    .btn-gold {
+      background: #B8962E; color: #0D1A12;
+      font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700;
+      letter-spacing: .06em; text-transform: uppercase; padding: 13px 28px;
+      transition: all .25s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-gold:hover { background: #D4AE50; transform: translateY(-1px); box-shadow: 0 8px 28px rgba(184,150,46,.35); }
+    .btn-gold:disabled { opacity: .65; cursor: not-allowed; transform: none; }
+
+    /* Tags */
+    .tag-green { background: rgba(46,125,69,.15); color: #4CAF6F; border: 1px solid rgba(46,125,69,.3); font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .15em; text-transform: uppercase; padding: 3px 12px; }
+    .tag-gold  { background: rgba(184,150,46,.12); color: #D4AE50; border: 1px solid rgba(184,150,46,.25); font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .15em; text-transform: uppercase; padding: 3px 12px; }
+    .tag-neutral { background: rgba(255,255,255,.04); color: #8A9BB0; border: 1px solid rgba(255,255,255,.08); font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .15em; text-transform: uppercase; padding: 3px 12px; }
+
+    /* Form */
+    .form-input {
+      width: 100%; background: rgba(26,61,36,.4);
+      border: 1px solid rgba(46,125,69,.2);
+      color: #FDFCF9; font-family: 'Outfit', sans-serif; font-size: 14px;
+      padding: 13px 16px; transition: border-color .2s, background .2s;
+    }
+    .form-input:focus { outline: none; border-color: #4CAF6F; background: rgba(26,61,36,.65); }
+    .form-input::placeholder { color: #4A5568; }
+    .form-input.error { border-color: #E74C3C; }
+    .form-input option { background: #1A3D24; color: #FDFCF9; }
+    .form-label { font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #8A9BB0; display: block; margin-bottom: 7px; }
+    .form-error { font-family: 'DM Mono',monospace; font-size: 9px; color: #E74C3C; letter-spacing: .1em; margin-top: 4px; display: none; }
+    .form-error.visible { display: block; }
+
+    /* Form tabs */
+    .form-tab {
+      font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .15em;
+      text-transform: uppercase; padding: 10px 20px; cursor: pointer;
+      transition: all .2s; border-bottom: 2px solid transparent;
+    }
+    .form-tab.active { color: #4CAF6F; border-bottom-color: #4CAF6F; }
+    .form-tab:not(.active) { color: #4A5568; }
+    .form-tab:not(.active):hover { color: #8A9BB0; }
+    .form-pane { display: none; }
+    .form-pane.active { display: block; }
+
+    /* Expect card */
+    .expect-card {
+      background: rgba(255,255,255,.02);
+      border: 1px solid rgba(46,125,69,.12);
+      padding: 16px;
+      transition: all .3s;
+    }
+    .expect-card:hover { background: rgba(46,125,69,.05); border-color: rgba(46,125,69,.35); }
+
+    /* Social proof */
+    .proof-item { padding: 20px; border: 1px solid rgba(46,125,69,.12); background: rgba(255,255,255,.02); }
+
+    /* FAQ */
+    .faq-answer { max-height: 0; overflow: hidden; transition: max-height .4s ease-in-out; }
+
+    /* Marquee */
+    @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    .marquee-scroll { animation: marquee 28s linear infinite; }
+    .marquee-scroll:hover { animation-play-state: paused; }
+
+    /* Spinner (CSS-only, no SVG inline in JS) */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      display: inline-block; width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,.25);
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+    }
+
+    /* Pulse */
+    @keyframes pulse-live { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+    .pulse-live { animation: pulse-live 2s ease infinite; }
+
+    /* Success screen */
+    @keyframes check-draw { from { stroke-dashoffset: 60; } to { stroke-dashoffset: 0; } }
+    .check-path { stroke-dasharray: 60; stroke-dashoffset: 60; animation: check-draw .6s ease .3s forwards; }
+    @keyframes scale-in { from { transform: scale(.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .scale-in { animation: scale-in .45s ease forwards; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0D1A12; }
+    ::-webkit-scrollbar-thumb { background: #235930; border-radius: 3px; }
+  </style>
+</head>
+
+<body class="grain">
+
+<!-- ═══════════════════════════════════════════════════ NAV ═══ -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50">
+  <div class="border-b border-verde border-opacity-20 bg-obsidian bg-opacity-95 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+
+      <!-- Logo -->
+      <a href="index.html" class="flex items-center gap-3 flex-shrink-0">
+        <svg width="34" height="34" viewBox="0 0 56 56" fill="none">
+          <circle cx="28" cy="28" r="26" stroke="#2E7D45" stroke-width=".75" fill="none" opacity=".3"/>
+          <circle cx="28" cy="28" r="18" stroke="#4CAF6F" stroke-width="1.5" fill="none"/>
+          <line x1="28" y1="10" x2="28" y2="46" stroke="#2E7D45" stroke-width=".75" opacity=".4"/>
+          <line x1="10" y1="28" x2="46" y2="28" stroke="#2E7D45" stroke-width=".75" opacity=".4"/>
+          <circle cx="28" cy="28" r="3" fill="#4CAF6F"/>
+          <path d="M28 10 C34 14,44 20,44 28 C44 28,36 22,28 10Z" fill="#2E7D45" opacity=".8"/>
+          <line x1="38" y1="8" x2="42" y2="14" stroke="#B8962E" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="28" y1="2" x2="28" y2="7"  stroke="#4CAF6F" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="54" y1="28" x2="49" y2="28" stroke="#4CAF6F" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="font-display text-2xl"><span class="text-ivory">Verde</span><span class="text-goldlight">Scope</span></span>
+      </a>
+
+      <!-- Desktop links -->
+      <div class="hidden lg:flex items-center gap-1">
+        <div class="nav-item relative">
+          <button class="flex items-center gap-1.5 px-4 py-2 text-ash hover:text-ivory font-sans text-sm font-medium tracking-wide transition-colors">
+            Platform <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+          </button>
+          <div class="nav-dropdown absolute top-full left-0 pt-2 w-64 z-50">
+            <div class="bg-forest border border-verde border-opacity-25 shadow-2xl p-2">
+              <a href="platform.html" class="flex items-start gap-3 p-3 hover:bg-verde hover:bg-opacity-10 transition-colors group">
+                <div class="mt-0.5 text-sage"><i data-lucide="gauge" class="w-4 h-4"></i></div>
+                <div><div class="text-sm font-semibold text-ivory group-hover:text-sage">Platform Overview</div><div class="text-xs text-ash mt-0.5">Full feature walkthrough</div></div>
+              </a>
+              <a href="app/emissions.html" class="flex items-start gap-3 p-3 hover:bg-verde hover:bg-opacity-10 transition-colors group">
+                <div class="mt-0.5 text-sage"><i data-lucide="calculator" class="w-4 h-4"></i></div>
+                <div><div class="text-sm font-semibold text-ivory group-hover:text-sage">Emissions Calculator</div><div class="text-xs text-ash mt-0.5">IPCC Tier 1/2/3 engine</div></div>
+              </a>
+              <a href="app/ldar.html" class="flex items-start gap-3 p-3 hover:bg-verde hover:bg-opacity-10 transition-colors group">
+                <div class="mt-0.5 text-sage"><i data-lucide="search" class="w-4 h-4"></i></div>
+                <div><div class="text-sm font-semibold text-ivory group-hover:text-sage">LDAR Manager</div><div class="text-xs text-ash mt-0.5">Leak detection &amp; repair</div></div>
+              </a>
+              <a href="app/carbon-market.html" class="flex items-start gap-3 p-3 hover:bg-verde hover:bg-opacity-10 transition-colors group">
+                <div class="mt-0.5 text-goldlight"><i data-lucide="trending-up" class="w-4 h-4"></i></div>
+                <div><div class="text-sm font-semibold text-ivory group-hover:text-goldlight">Carbon Market</div><div class="text-xs text-ash mt-0.5">VCM &amp; Article 6</div></div>
+              </a>
+            </div>
+          </div>
+        </div>
+        <a href="services.html"  class="px-4 py-2 text-ash hover:text-ivory font-sans text-sm font-medium tracking-wide transition-colors">Services</a>
+        <a href="about.html"     class="px-4 py-2 text-ash hover:text-ivory font-sans text-sm font-medium tracking-wide transition-colors">About Us</a>
+        <a href="resources.html" class="px-4 py-2 text-ash hover:text-ivory font-sans text-sm font-medium tracking-wide transition-colors">Resources</a>
+      </div>
+
+      <!-- Desktop CTA -->
+      <div class="hidden lg:flex items-center gap-3">
+        <a href="login.html"         class="px-4 py-2 text-ash hover:text-ivory font-sans text-sm font-medium transition-colors">Log In</a>
+        <a href="app/dashboard.html" class="btn-outline gap-2">Live Demo <i data-lucide="play" class="w-4 h-4"></i></a>
+      </div>
+
+      <!-- Mobile burger -->
+      <button class="lg:hidden text-ash hover:text-ivory p-2" onclick="toggleMob()">
+        <i data-lucide="menu" class="w-6 h-6" id="mob-icon"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="mobile-menu" class="lg:hidden bg-forest border-b border-verde border-opacity-20">
+    <div class="px-6 py-4 space-y-1">
+      <a href="platform.html" class="block px-3 py-2.5 text-ash hover:text-ivory text-sm">Platform</a>
+      <a href="services.html" class="block px-3 py-2.5 text-ash hover:text-ivory text-sm">Services</a>
+      <a href="about.html"    class="block px-3 py-2.5 text-ash hover:text-ivory text-sm">About Us</a>
+      <a href="resources.html"class="block px-3 py-2.5 text-ash hover:text-ivory text-sm">Resources</a>
+      <div class="border-t border-verde border-opacity-20 pt-3 mt-3 flex flex-col gap-2">
+        <a href="login.html"         class="btn-outline justify-center">Log In</a>
+        <a href="app/dashboard.html" class="btn-primary  justify-center">Try Live Demo</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+<!-- ═══════════════════════════════════════════════════ MAIN ═══ -->
+<main class="min-h-screen pt-20 relative overflow-hidden grid-texture">
+  <div class="absolute top-0 left-0 w-[500px] h-[500px] glow-green pointer-events-none opacity-30"></div>
+  <div class="absolute bottom-0 right-0 w-[400px] h-[400px] glow-gold  pointer-events-none opacity-20"></div>
+
+  <!-- FORM CARD (hidden after success) -->
+  <div id="form-section" class="max-w-7xl mx-auto px-6 py-12 relative z-10">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
+
+
+      <!-- ─── LEFT — value prop ──────────────────────────────── -->
+      <div class="lg:sticky lg:top-28">
+
+        <!-- Breadcrumb -->
+        <div class="flex items-center gap-3 mb-6" data-aos="fade-up">
+          <a href="index.html" class="font-mono text-xs text-steel hover:text-ash transition-colors uppercase tracking-widest">Home</a>
+          <span class="text-steel">/</span>
+          <span class="font-mono text-xs text-sage uppercase tracking-widest">Request Demo</span>
+        </div>
+
+        <!-- Live indicator -->
+        <div class="flex items-center gap-2 mb-5" data-aos="fade-up" data-aos-delay="40">
+          <div class="w-2 h-2 bg-sage rounded-full pulse-live"></div>
+          <span class="font-mono text-xs text-sage tracking-widest uppercase">Demos available today · Lagos &amp; Paris time zones</span>
+        </div>
+
+        <!-- Headline -->
+        <h1 class="font-display font-light text-5xl lg:text-6xl xl:text-7xl text-ivory leading-tight mb-5" data-aos="fade-up" data-aos-delay="80">
+          See your emissions.<br/><em class="text-goldlight">In 30 minutes.</em>
+        </h1>
+
+        <p class="font-sans text-lg text-ash font-light leading-relaxed mb-8" data-aos="fade-up" data-aos-delay="130">
+          We don't do generic platform walkthroughs. Book a VerdeScope demo and we'll run a live UPDT compliance gap analysis on your actual OML/OPL/PPL profile, calculate your current Scope 1 emissions estimate using IPCC Tier 1 factors, and project your potential carbon revenue — all before you sign anything.
+        </p>
+
+        <!-- What happens in the demo -->
+        <div class="mb-8" data-aos="fade-up" data-aos-delay="170">
+          <div class="font-mono text-xs text-sage uppercase tracking-wider mb-4">What happens in your demo</div>
+          <div class="space-y-3">
+            <div class="expect-card flex items-start gap-4">
+              <div class="w-8 h-8 bg-verde bg-opacity-15 flex items-center justify-center flex-shrink-0 font-mono text-xs text-sage mt-0.5">01</div>
+              <div>
+                <div class="font-sans text-sm font-semibold text-ivory mb-0.5">UPDT Compliance Gap Analysis</div>
+                <div class="font-sans text-xs text-ash font-light leading-relaxed">We map your licence type, concession, and operating profile against all five UPDT obligations and generate a live Compliance Readiness Score. You see exactly what's missing and what it will cost to not fix it.</div>
+              </div>
+            </div>
+            <div class="expect-card flex items-start gap-4">
+              <div class="w-8 h-8 bg-verde bg-opacity-15 flex items-center justify-center flex-shrink-0 font-mono text-xs text-sage mt-0.5">02</div>
+              <div>
+                <div class="font-sans text-sm font-semibold text-ivory mb-0.5">Live Emissions Estimate</div>
+                <div class="font-sans text-xs text-ash font-light leading-relaxed">Using your production volumes and facility type, we run an IPCC Tier 1 emissions calculation live on screen — gas flaring, fugitive methane, combustion, pneumatics — and show your estimated annual CO₂e inventory.</div>
+              </div>
+            </div>
+            <div class="expect-card flex items-start gap-4">
+              <div class="w-8 h-8 bg-gold bg-opacity-15 flex items-center justify-center flex-shrink-0 font-mono text-xs text-goldlight mt-0.5">03</div>
+              <div>
+                <div class="font-sans text-sm font-semibold text-ivory mb-0.5">Carbon Revenue Projection</div>
+                <div class="font-sans text-xs text-ash font-light leading-relaxed">We show the carbon credit pipeline your emissions data unlocks under Nigeria's Carbon Market Framework — using VCS VM0039 methodology and current VCM price data. Most operators are surprised by the number.</div>
+              </div>
+            </div>
+            <div class="expect-card flex items-start gap-4">
+              <div class="w-8 h-8 bg-verde bg-opacity-15 flex items-center justify-center flex-shrink-0 font-mono text-xs text-sage mt-0.5">04</div>
+              <div>
+                <div class="font-sans text-sm font-semibold text-ivory mb-0.5">Platform Walkthrough</div>
+                <div class="font-sans text-xs text-ash font-light leading-relaxed">Full live tour of the LDAR Manager, Equipment Tracker, UPDT Workflow Engine, and Verde Intelligence AI — configured to your operator profile so every screen is relevant to your specific facilities.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trust signals -->
+        <div data-aos="fade-up" data-aos-delay="200">
+          <div class="font-mono text-xs text-steel uppercase tracking-wider mb-3">Trusted by</div>
+          <div class="overflow-hidden mb-5">
+            <div class="marquee-scroll flex gap-8 items-center" style="width:max-content;" id="demo-marquee"></div>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <div class="flex items-center gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-sage"></i><span class="font-sans text-xs text-ash">No commitment required</span></div>
+            <div class="flex items-center gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-sage"></i><span class="font-sans text-xs text-ash">30-minute session</span></div>
+            <div class="flex items-center gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-sage"></i><span class="font-sans text-xs text-ash">Tailored to your OML/OPL/PPL</span></div>
+            <div class="flex items-center gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-sage"></i><span class="font-sans text-xs text-ash">Response within 2 hours</span></div>
+          </div>
+        </div>
+
+        <!-- Quote -->
+        <div class="mt-8 border-l-2 border-goldlight pl-5" data-aos="fade-up" data-aos-delay="230">
+          <blockquote class="font-display text-xl lg:text-2xl text-ivory font-light italic leading-snug mb-3">
+            "The Commission is proactively positioning the upstream sector for decarbonisation. Operators who engage now will define the standard for everyone else."
+          </blockquote>
+          <div class="font-sans text-xs text-ash">
+            <span class="text-mist font-medium">Engr. Joseph O. Ogunsola</span> — Director, Energy Sustainability &amp; Carbon Management, NUPRC
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ─── RIGHT — form card ───────────────────────────────── -->
+      <div data-aos="fade-left" data-aos-delay="100">
+        <div class="border border-verde border-opacity-25 bg-forest bg-opacity-30 backdrop-blur-sm" id="form-card">
+
+          <!-- Card header -->
+          <div class="border-b border-verde border-opacity-20 p-6">
+            <div class="flex items-center justify-between mb-1">
+              <h2 class="font-sans text-lg font-semibold text-ivory">Book your demo</h2>
+              <span class="tag-green">Free · No commitment</span>
+            </div>
+            <p class="font-sans text-xs text-ash font-light">We respond within 2 hours on working days. Lagos (WAT) and Paris (CET) time zones covered.</p>
+          </div>
+
+          <!-- Form tabs -->
+          <div class="flex border-b border-verde border-opacity-20 px-6 pt-2">
+            <button class="form-tab active"  id="tab-operator" onclick="switchTab('operator', this)">Operator</button>
+            <button class="form-tab"         id="tab-investor" onclick="switchTab('investor', this)">Investor</button>
+            <button class="form-tab"         id="tab-nuprc"    onclick="switchTab('nuprc', this)">NUPRC / Gov't</button>
+          </div>
+
+
+          <!-- ── OPERATOR PANE ── -->
+          <div class="form-pane active p-6" id="pane-operator">
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="form-label">First Name *</label>
+                <input id="op-first" type="text" placeholder="Adewale" class="form-input" />
+                <div class="form-error" id="err-op-first">Required</div>
+              </div>
+              <div>
+                <label class="form-label">Last Name *</label>
+                <input id="op-last" type="text" placeholder="Okonkwo" class="form-input" />
+                <div class="form-error" id="err-op-last">Required</div>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Company Name *</label>
+              <input id="op-company" type="text" placeholder="e.g. Seplat Energy Plc" class="form-input" />
+              <div class="form-error" id="err-op-company">Required</div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Work Email *</label>
+              <input id="op-email" type="email" placeholder="you@yourcompany.com" class="form-input" />
+              <div class="form-error" id="err-op-email">Valid email required</div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Phone Number</label>
+              <input id="op-phone" type="tel" placeholder="+234 800 000 0000" class="form-input" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="form-label">Licence Type *</label>
+                <select id="op-licence" class="form-input" onchange="updateLicenceHint()">
+                  <option value="">Select licence…</option>
+                  <option value="oml">OML — Oil Mining Lease</option>
+                  <option value="opl">OPL — Oil Prospecting Licence</option>
+                  <option value="ppl">PPL — Petroleum Prospecting Licence</option>
+                  <option value="jv">JV / PSC Partner</option>
+                  <option value="service">Upstream Service Company</option>
+                </select>
+                <div class="form-error" id="err-op-licence">Required</div>
+              </div>
+              <div>
+                <label class="form-label">No. of Facilities</label>
+                <select id="op-facilities" class="form-input">
+                  <option value="">Select…</option>
+                  <option value="1-5">1–5 facilities</option>
+                  <option value="6-15">6–15 facilities</option>
+                  <option value="16-30">16–30 facilities</option>
+                  <option value="30+">30+ facilities</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Dynamic licence hint -->
+            <div id="licence-hint" class="mb-4 hidden">
+              <div class="border border-verde border-opacity-20 bg-verde bg-opacity-5 p-3">
+                <div class="font-mono text-xs text-sage mb-1" id="hint-title"></div>
+                <div class="font-sans text-xs text-ash font-light" id="hint-body"></div>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Current UPDT Compliance Status</label>
+              <select id="op-updt" class="form-input">
+                <option value="">Select…</option>
+                <option value="none">Not started — urgent need</option>
+                <option value="partial">Partially started — manual documents</option>
+                <option value="in-progress">In progress — need a better tool</option>
+                <option value="compliant">Compliant — looking to improve</option>
+              </select>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Preferred Demo Time</label>
+              <select id="op-time" class="form-input">
+                <option value="">Select preference…</option>
+                <option value="asap">As soon as possible</option>
+                <option value="this-week">This week</option>
+                <option value="next-week">Next week</option>
+                <option value="morning">Morning slot (8am–12pm WAT)</option>
+                <option value="afternoon">Afternoon slot (1pm–5pm WAT)</option>
+              </select>
+            </div>
+
+            <div class="mb-5">
+              <label class="form-label">Anything specific you'd like us to prepare?</label>
+              <textarea id="op-notes" rows="3" placeholder="e.g. 'We have 8 facilities across OML 38 and OML 4. Main concern is the LDAR inspection schedule and how to calculate flaring emissions for our Q2 NUPRC report.'"
+                class="form-input resize-none"></textarea>
+            </div>
+
+            <button id="btn-operator" class="btn-gold w-full justify-center text-sm py-4" onclick="submitForm('operator')">
+              Book My Demo
+              <i data-lucide="calendar" class="w-5 h-5"></i>
+            </button>
+            <p class="font-mono text-xs text-steel text-center mt-3">No commitment · We'll confirm within 2 hours · Lagos &amp; Paris</p>
+          </div>
+
+
+          <!-- ── INVESTOR PANE ── -->
+          <div class="form-pane p-6" id="pane-investor">
+            <p class="font-sans text-sm text-ash font-light leading-relaxed mb-5">For investor enquiries — including the VerdeScope investment opportunity, data room access, or a dedicated investor briefing session with the founding team and Twenty First Capital.</p>
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="form-label">First Name *</label>
+                <input id="inv-first" type="text" placeholder="Stanislas" class="form-input" />
+              </div>
+              <div>
+                <label class="form-label">Last Name *</label>
+                <input id="inv-last" type="text" placeholder="Bernard" class="form-input" />
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Fund / Institution Name *</label>
+              <input id="inv-fund" type="text" placeholder="e.g. Twenty First Capital" class="form-input" />
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Work Email *</label>
+              <input id="inv-email" type="email" placeholder="you@fund.com" class="form-input" />
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Investor Type</label>
+              <select id="inv-type" class="form-input">
+                <option value="">Select…</option>
+                <option value="vc">Venture Capital / PE</option>
+                <option value="bank">Nigerian Tier 1 Bank</option>
+                <option value="pension">Pension Fund (PENCOM)</option>
+                <option value="nsia">NSIA / Sovereign Fund</option>
+                <option value="dfi">DFI (IFC / Proparco / AfDB)</option>
+                <option value="angel">Angel / Family Office</option>
+                <option value="other">Other Institutional</option>
+              </select>
+            </div>
+
+            <div class="mb-5">
+              <label class="form-label">Enquiry</label>
+              <textarea id="inv-notes" rows="4" placeholder="e.g. 'Interested in co-investing in the Series A round alongside TFC. Would like a data room walk-through and a call with the founding team.'"
+                class="form-input resize-none"></textarea>
+            </div>
+
+            <button id="btn-investor" class="btn-gold w-full justify-center text-sm py-4" onclick="submitForm('investor')">
+              Request Investor Briefing
+              <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </button>
+            <p class="font-mono text-xs text-steel text-center mt-3">investors@verdescope.ng · Confidential</p>
+          </div>
+
+
+          <!-- ── NUPRC / GOVERNMENT PANE ── -->
+          <div class="form-pane p-6" id="pane-nuprc">
+            <p class="font-sans text-sm text-ash font-light leading-relaxed mb-5">For NUPRC officials, government ministry representatives, and regulatory affairs professionals interested in VerdeScope's Regulatory Technology Partnership — including the national compliance dashboard and MMRV infrastructure.</p>
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="form-label">Name *</label>
+                <input id="gov-name" type="text" placeholder="Your Name" class="form-input" />
+              </div>
+              <div>
+                <label class="form-label">Title / Role</label>
+                <input id="gov-role" type="text" placeholder="e.g. Director, Energy Sustainability" class="form-input" />
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Organisation *</label>
+              <input id="gov-org" type="text" placeholder="e.g. NUPRC" class="form-input" />
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Official Email *</label>
+              <input id="gov-email" type="email" placeholder="name@nuprc.gov.ng" class="form-input" />
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Area of Interest</label>
+              <select id="gov-interest" class="form-input">
+                <option value="">Select…</option>
+                <option value="dashboard">National Compliance Dashboard</option>
+                <option value="mmrv">MMRV Data Infrastructure</option>
+                <option value="btr">BTR2 National Inventory Feeds</option>
+                <option value="enforcement">Enforcement &amp; Flagging Tools</option>
+                <option value="general">General Partnership Enquiry</option>
+              </select>
+            </div>
+
+            <div class="mb-5">
+              <label class="form-label">Message</label>
+              <textarea id="gov-notes" rows="3" placeholder="Tell us about your interest in the VerdeScope regulatory technology partnership…"
+                class="form-input resize-none"></textarea>
+            </div>
+
+            <button id="btn-nuprc" class="btn-primary w-full justify-center text-sm py-4" onclick="submitForm('nuprc')">
+              Contact Partnership Team
+              <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </button>
+            <p class="font-mono text-xs text-steel text-center mt-3">Treated with full confidentiality · info@verdescope.ng</p>
+          </div>
+
+
+          <!-- Live demo shortcut -->
+          <div class="border-t border-verde border-opacity-15 px-6 py-4 flex items-center justify-between gap-4 bg-forest bg-opacity-20">
+            <div>
+              <div class="font-sans text-xs font-semibold text-ivory mb-0.5">Can't wait? Try the live demo now.</div>
+              <div class="font-mono text-xs text-steel">Explore the full platform without booking a call.</div>
+            </div>
+            <a href="app/dashboard.html" class="btn-outline text-xs py-2 px-4 gap-1.5 flex-shrink-0">
+              Launch Demo <i data-lucide="play" class="w-3.5 h-3.5"></i>
+            </a>
+          </div>
+
+        </div><!-- /form-card -->
+      </div><!-- /right column -->
+
+    </div><!-- /grid -->
+  </div><!-- /form-section -->
+
+
+  <!-- ═══════════════════════════════════════════════ SUCCESS SCREEN ═══ -->
+  <div id="success-screen" class="hidden min-h-screen flex items-center justify-center px-6 py-20">
+    <div class="max-w-2xl mx-auto text-center scale-in">
+
+      <!-- Animated check circle -->
+      <div class="relative w-24 h-24 mx-auto mb-8">
+        <svg viewBox="0 0 100 100" class="w-24 h-24">
+          <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(46,125,69,.2)" stroke-width="3"/>
+          <circle cx="50" cy="50" r="46" fill="none" stroke="#4CAF6F" stroke-width="3"
+            stroke-dasharray="289" stroke-dashoffset="0"
+            style="transform:rotate(-90deg);transform-origin:50% 50%;"/>
+          <polyline points="30,52 45,67 70,38" fill="none" stroke="#4CAF6F" stroke-width="4"
+            stroke-linecap="round" stroke-linejoin="round" class="check-path"/>
+        </svg>
+      </div>
+
+      <h2 class="font-display font-light text-5xl text-ivory leading-tight mb-4" id="success-headline">
+        Demo requested.<br/><em class="text-goldlight">We'll be in touch shortly.</em>
+      </h2>
+      <p class="font-sans text-lg text-ash font-light leading-relaxed mb-8" id="success-body">
+        Thank you — your demo request has been received. A member of the VerdeScope team will contact you within 2 working hours to confirm your session.
+      </p>
+
+      <!-- What happens next -->
+      <div class="border border-verde border-opacity-20 bg-forest bg-opacity-30 p-8 text-left mb-8">
+        <div class="font-mono text-xs text-sage uppercase tracking-wider mb-6">What happens next</div>
+        <div class="space-y-5">
+          <div class="flex items-center gap-4">
+            <div class="w-7 h-7 rounded-full bg-sage flex items-center justify-center font-mono text-xs text-obsidian font-bold flex-shrink-0">✓</div>
+            <div class="flex-1 h-px bg-sage opacity-40"></div>
+            <div><div class="font-sans text-sm font-semibold text-ivory">Request received</div><div class="font-mono text-xs text-steel mt-0.5">Right now</div></div>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="w-7 h-7 rounded-full bg-verde border-2 border-sage flex items-center justify-center font-mono text-xs text-ivory flex-shrink-0">2</div>
+            <div class="flex-1 h-px bg-verde opacity-30"></div>
+            <div><div class="font-sans text-sm font-semibold text-ivory">VerdeScope team confirms</div><div class="font-mono text-xs text-steel mt-0.5">Within 2 working hours</div></div>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="w-7 h-7 rounded-full border border-steel flex items-center justify-center font-mono text-xs text-steel flex-shrink-0">3</div>
+            <div class="flex-1 h-px bg-steel opacity-20"></div>
+            <div><div class="font-sans text-sm font-semibold text-ivory">We prepare your profile</div><div class="font-mono text-xs text-steel mt-0.5">Your OML/licence analysis + emissions estimate</div></div>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="w-7 h-7 rounded-full border border-steel flex items-center justify-center font-mono text-xs text-steel flex-shrink-0">4</div>
+            <div><div class="font-sans text-sm font-semibold text-ivory">30-minute live demo</div><div class="font-mono text-xs text-steel mt-0.5">UPDT gap analysis, emissions calc, carbon revenue projection</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- While you wait -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <a href="app/dashboard.html" class="border border-verde border-opacity-20 p-5 hover:border-opacity-50 transition-all text-center group">
+          <i data-lucide="play-circle" class="w-7 h-7 text-sage mx-auto mb-3 group-hover:scale-110 transition-transform"></i>
+          <div class="font-sans text-sm font-semibold text-ivory mb-1">Try the live demo</div>
+          <div class="font-mono text-xs text-steel">Explore platform now</div>
+        </a>
+        <a href="resources.html#calculator" class="border border-verde border-opacity-20 p-5 hover:border-opacity-50 transition-all text-center group">
+          <i data-lucide="calculator" class="w-7 h-7 text-sage mx-auto mb-3 group-hover:scale-110 transition-transform"></i>
+          <div class="font-sans text-sm font-semibold text-ivory mb-1">Carbon Calculator</div>
+          <div class="font-mono text-xs text-steel">Estimate your emissions</div>
+        </a>
+        <a href="resources.html#academy" class="border border-verde border-opacity-20 p-5 hover:border-opacity-50 transition-all text-center group">
+          <i data-lucide="book-open" class="w-7 h-7 text-sage mx-auto mb-3 group-hover:scale-110 transition-transform"></i>
+          <div class="font-sans text-sm font-semibold text-ivory mb-1">Read the Academy</div>
+          <div class="font-mono text-xs text-steel">UPDT &amp; GHG guides</div>
+        </a>
+      </div>
+
+      <a href="index.html" class="btn-outline gap-2 mx-auto">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        Back to Home
+      </a>
+    </div>
+  </div>
+
+</main><!-- /main -->
+
+
+<!-- ═══════════════════════════════════════════════ SOCIAL PROOF ═══ -->
+<section class="py-16 px-6 bg-forest bg-opacity-20 border-t border-verde border-opacity-15">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <div class="proof-item" data-aos="fade-up" data-aos-delay="0">
+        <div class="flex gap-0.5 mb-3">
+          <i data-lucide="star" class="w-4 h-4 text-goldlight"></i>
+          <i data-lucide="star" class="w-4 h-4 text-goldlight"></i>
+          <i data-lucide="star" class="w-4 h-4 text-goldlight"></i>
+          <i data-lucide="star" class="w-4 h-4 text-goldlight"></i>
+          <i data-lucide="star" class="w-4 h-4 text-goldlight"></i>
+        </div>
+        <blockquote class="font-sans text-sm text-cloud font-light leading-relaxed mb-4 italic">
+          "VerdeScope showed us our UPDT compliance gap in the first 10 minutes of the demo. We signed by the end of the week. The live emissions calculation was the clincher — we had no idea our pneumatic bleed rate was that significant."
+        </blockquote>
+        <div class="font-sans text-xs text-ash">
+          <span class="text-mist font-medium">HSE Manager</span> · Mid-size indigenous OML operator, Rivers State
+        </div>
+      </div>
+
+      <div class="proof-item" data-aos="fade-up" data-aos-delay="80">
+        <div class="flex gap-0.5 mb-3">
+          <i data-lucide="star" class="w-4 h-4 text-goldlight"></i>
+          <i data-lucide="star" class="w-4 h-4 text-goldlight"></i>
+          <i data-lucide="star" class="w-4 h-4 text-goldlight"></i>
+          <i data-lucide="star" class="w-4 h-4 text-goldlight"></i>
+          <i data-lucide="star" class="w-4 h-4 text-goldlight"></i>
+        </div>
+        <blockquote class="font-sans text-sm text-cloud font-light leading-relaxed mb-4 italic">
+          "The carbon revenue projection completely reframed how we think about our LDAR programme. What we thought was a cost centre turns out to be a USD 380K/year carbon pipeline. Best 30 minutes I've spent this year."
+        </blockquote>
+        <div class="font-sans text-xs text-ash">
+          <span class="text-mist font-medium">CFO</span> · PPL holder, Bayelsa State (2024 licensing round)
+        </div>
+      </div>
+
+      <div class="proof-item" data-aos="fade-up" data-aos-delay="160">
+        <div class="flex gap-0.5 mb-3">
+          <i data-lucide="star" class="w-4 h-4 text-goldlight"></i>
+          <i data-lucide="star" class="w-4 h-4 text-goldlight"></i>
+          <i data-lucide="star" class="w-4 h-4 text-goldlight"></i>
+          <i data-lucide="star" class="w-4 h-4 text-goldlight"></i>
+          <i data-lucide="star" class="w-4 h-4 text-goldlight"></i>
+        </div>
+        <blockquote class="font-sans text-sm text-cloud font-light leading-relaxed mb-4 italic">
+          "I've looked at Plan A, Persefoni, and three other ESG platforms. None of them have a single NUPRC regulation correctly mapped. VerdeScope is the only tool built from the Nigerian regulatory framework outward, not retrofitted from a European template."
+        </blockquote>
+        <div class="font-sans text-xs text-ash">
+          <span class="text-mist font-medium">Sustainability Director</span> · Large indigenous E&amp;P company, OML 4
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════ FAQ ═══ -->
+<section class="py-20 px-6" id="faq">
+  <div class="max-w-4xl mx-auto">
+    <div class="text-center mb-12">
+      <div class="flex items-center justify-center gap-3 mb-4" data-aos="fade-up">
+        <div class="w-8 h-px bg-sage"></div>
+        <span class="font-mono text-xs tracking-widest text-sage uppercase">Demo FAQ</span>
+        <div class="w-8 h-px bg-sage"></div>
+      </div>
+      <h2 class="font-display font-light text-4xl text-ivory leading-tight" data-aos="fade-up" data-aos-delay="60">
+        Questions before you book?
+      </h2>
+    </div>
+    <div id="faq-list" class="space-y-2"></div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════ BOTTOM CTA ═══ -->
+<section class="py-20 px-6 bg-forest border-t border-verde border-opacity-20 relative overflow-hidden">
+  <div class="absolute inset-0 grid-texture opacity-50"></div>
+  <div class="absolute inset-0 glow-green opacity-15 pointer-events-none"></div>
+  <div class="relative z-10 max-w-4xl mx-auto text-center">
+    <h2 class="font-display font-light text-4xl lg:text-5xl text-ivory leading-tight mb-5" data-aos="fade-up">
+      Your licence depends on<br/><em class="text-goldlight">UPDT compliance.</em>
+    </h2>
+    <p class="font-sans text-lg text-ash font-light mb-8 max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="80">
+      Don't let another NUPRC deadline pass without a compliance plan. Book your 30-minute VerdeScope demo today.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center" data-aos="fade-up" data-aos-delay="140">
+      <button onclick="scrollToForm()" class="btn-gold justify-center text-base px-10 py-4">
+        Book a Demo Now
+        <i data-lucide="calendar" class="w-5 h-5"></i>
+      </button>
+      <a href="app/dashboard.html" class="btn-outline justify-center text-base px-10 py-4">
+        <i data-lucide="play" class="w-5 h-5"></i>
+        Try Live Demo First
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════ FOOTER ═══ -->
+<footer class="bg-obsidian border-t border-verde border-opacity-15 pt-12 pb-8 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-10">
+      <div class="col-span-2">
+        <a href="index.html" class="flex items-center gap-3 mb-4">
+          <svg width="30" height="30" viewBox="0 0 56 56" fill="none">
+            <circle cx="28" cy="28" r="18" stroke="#4CAF6F" stroke-width="1.5" fill="none"/>
+            <circle cx="28" cy="28" r="3" fill="#4CAF6F"/>
+            <path d="M28 10 C34 14,44 20,44 28 C44 28,36 22,28 10Z" fill="#2E7D45" opacity=".8"/>
+            <line x1="38" y1="8" x2="42" y2="14" stroke="#B8962E" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <span class="font-display text-xl"><span class="text-ivory">Verde</span><span class="text-goldlight">Scope</span></span>
+        </a>
+        <p class="font-sans text-sm text-ash font-light leading-relaxed">Nigeria's first dedicated upstream GHG compliance and carbon intelligence platform.</p>
+      </div>
+      <div>
+        <div class="font-mono text-xs text-steel tracking-widest uppercase mb-4">Platform</div>
+        <div class="space-y-2">
+          <a href="platform.html"          class="block font-sans text-sm text-ash hover:text-sage transition-colors">Platform Overview</a>
+          <a href="app/emissions.html"     class="block font-sans text-sm text-ash hover:text-sage transition-colors">Emissions Engine</a>
+          <a href="app/ldar.html"          class="block font-sans text-sm text-ash hover:text-sage transition-colors">LDAR Manager</a>
+          <a href="app/carbon-market.html" class="block font-sans text-sm text-ash hover:text-sage transition-colors">Carbon Market</a>
+        </div>
+      </div>
+      <div>
+        <div class="font-mono text-xs text-steel tracking-widest uppercase mb-4">Company</div>
+        <div class="space-y-2">
+          <a href="about.html"     class="block font-sans text-sm text-ash hover:text-sage transition-colors">About Us</a>
+          <a href="services.html"  class="block font-sans text-sm text-ash hover:text-sage transition-colors">Services</a>
+          <a href="resources.html" class="block font-sans text-sm text-ash hover:text-sage transition-colors">Resources</a>
+          <a href="login.html"     class="block font-sans text-sm text-ash hover:text-sage transition-colors">Log In</a>
+        </div>
+      </div>
+      <div>
+        <div class="font-mono text-xs text-steel tracking-widest uppercase mb-4">Contact</div>
+        <div class="space-y-2">
+          <a href="mailto:info@verdescope.ng"      class="block font-sans text-sm text-ash hover:text-sage transition-colors">info@verdescope.ng</a>
+          <a href="mailto:investors@verdescope.ng" class="block font-sans text-sm text-ash hover:text-sage transition-colors">investors@verdescope.ng</a>
+          <div class="font-sans text-sm text-steel">Lagos, Nigeria</div>
+          <div class="font-sans text-sm text-steel">Paris, France</div>
+        </div>
+      </div>
+    </div>
+    <div class="border-t border-verde border-opacity-15 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="font-mono text-xs text-steel">© 2026 VerdeScope Limited · Lagos, Nigeria &amp; Paris, France</div>
+      <div class="font-mono text-xs text-steel">verdescope.ng</div>
+    </div>
+  </div>
+</footer>
+
+
+<!-- ═══════════════════════════════════════════════ SCRIPTS ═══ -->
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script>
+
+  /* ── Init ── */
+  AOS.init({ duration: 650, once: true, offset: 60, easing: 'ease-out-cubic' });
+  lucide.createIcons();
+
+  /* ── Nav scroll ── */
+  window.addEventListener('scroll', function () {
+    var nb = document.getElementById('navbar');
+    if (!nb) return;
+    nb.querySelector('div').style.background =
+      window.scrollY > 60 ? 'rgba(13,26,18,.98)' : 'rgba(13,26,18,.95)';
+  });
+
+  /* ── Mobile menu ── */
+  function toggleMob() {
+    var m = document.getElementById('mobile-menu');
+    var i = document.getElementById('mob-icon');
+    var open = m.classList.toggle('open');
+    i.setAttribute('data-lucide', open ? 'x' : 'menu');
+    lucide.createIcons();
+  }
+
+  /* ── Form tab switcher ── */
+  function switchTab(name, tabEl) {
+    document.querySelectorAll('.form-tab').forEach(function (t) { t.classList.remove('active'); });
+    document.querySelectorAll('.form-pane').forEach(function (p) { p.classList.remove('active'); });
+    tabEl.classList.add('active');
+    var pane = document.getElementById('pane-' + name);
+    if (pane) pane.classList.add('active');
+  }
+
+  /* ── Licence hint ── */
+  var LICENCE_HINTS = {
+    oml: {
+      title: 'OML — Full UPDT Obligations in Force',
+      body: 'As an Oil Mining Lease holder, you carry the full weight of NUPRC UPDT compliance: all five obligations, quarterly GHG reporting, LDAR programme, and methane management plan. Your licence renewal depends on a current Compliance Readiness Score.'
+    },
+    opl: {
+      title: 'OPL — UPDT Required on Every FDP Submission',
+      body: 'Every Field Development Plan and permit application you submit to NUPRC must include a UPDT-compliant decarbonisation strategy. Without it, your FDP will not be approved. VerdeScope generates the FDP decarbonisation chapter automatically.'
+    },
+    ppl: {
+      title: 'PPL — UPDT Mandatory from Licence Inception',
+      body: "As a 2022/2024/2025 licensing round winner, UPDT compliance applies from day one. VerdeScope's Essentials tier is designed specifically for PPL holders building their compliance infrastructure from scratch."
+    },
+    jv: {
+      title: 'JV / PSC — Independent Reporting Obligations',
+      body: 'Under PIA 2021, each equity participant in a JV or PSC carries independent UPDT reporting obligations. Even if you are a minority equity partner, your percentage share of the joint operation requires separate GHG reporting to NUPRC.'
+    },
+    service: {
+      title: 'Service Company — Scope 3 Supply Chain Reporting',
+      body: "Upstream service companies operating on NUPRC-licensed facilities are subject to the Methane Guidelines (Guide 0024-2022). Operators are increasingly requiring Scope 3 supply chain emissions data from service providers. VerdeScope's Essentials tier supports service company GHG reporting."
+    }
+  };
+
+  function updateLicenceHint() {
+    var val = document.getElementById('op-licence').value;
+    var hint = document.getElementById('licence-hint');
+    var titleEl = document.getElementById('hint-title');
+    var bodyEl = document.getElementById('hint-body');
+    if (val && LICENCE_HINTS[val]) {
+      titleEl.textContent = LICENCE_HINTS[val].title;
+      bodyEl.textContent  = LICENCE_HINTS[val].body;
+      hint.classList.remove('hidden');
+    } else {
+      hint.classList.add('hidden');
+    }
+  }
+
+  /* ── Validation helpers ── */
+  function validateField(inputId, errId, checkFn) {
+    var el  = document.getElementById(inputId);
+    var err = document.getElementById(errId);
+    if (!el) return true;
+    var ok = checkFn(el.value);
+    el.classList.toggle('error', !ok);
+    if (err) err.classList.toggle('visible', !ok);
+    return ok;
+  }
+
+  function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()); }
+  function notEmpty(v)     { return v.trim().length > 0; }
+
+  /* ── Set button loading state ── */
+  function setLoading(btnId, loading) {
+    var btn = document.getElementById(btnId);
+    if (!btn) return;
+    if (loading) {
+      btn.disabled = true;
+      btn.dataset.originalHtml = btn.innerHTML;
+      btn.innerHTML = '<span class="spinner"></span>&nbsp;Sending…';
+    } else {
+      btn.disabled = false;
+      if (btn.dataset.originalHtml) btn.innerHTML = btn.dataset.originalHtml;
+    }
+    lucide.createIcons();
+  }
+
+  /* ── Form submission ── */
+  function submitForm(type) {
+    var valid = true;
+
+    if (type === 'operator') {
+      valid = validateField('op-first',   'err-op-first',   notEmpty)     && valid;
+      valid = validateField('op-last',    'err-op-last',    notEmpty)     && valid;
+      valid = validateField('op-company', 'err-op-company', notEmpty)     && valid;
+      valid = validateField('op-email',   'err-op-email',   isValidEmail) && valid;
+      valid = validateField('op-licence', 'err-op-licence', notEmpty)     && valid;
+    } else if (type === 'investor') {
+      var f = document.getElementById('inv-first');
+      var e = document.getElementById('inv-email');
+      if (f && !f.value.trim()) { valid = false; f.classList.add('error'); }
+      if (e && !isValidEmail(e.value)) { valid = false; e.classList.add('error'); }
+    } else {
+      var n = document.getElementById('gov-name');
+      var ge = document.getElementById('gov-email');
+      if (n && !n.value.trim()) { valid = false; n.classList.add('error'); }
+      if (ge && !isValidEmail(ge.value)) { valid = false; ge.classList.add('error'); }
+    }
+
+    if (!valid) return;
+
+    var btnId = 'btn-' + type;
+    setLoading(btnId, true);
+
+    setTimeout(function () {
+      /* Personalise success screen */
+      var headlines = {
+        operator: 'Demo requested.<br/><em style="color:#D4AE50">We\'ll be in touch shortly.</em>',
+        investor: 'Investor briefing requested.<br/><em style="color:#D4AE50">Expect our call.</em>',
+        nuprc:    'Partnership enquiry received.<br/><em style="color:#D4AE50">We\'ll respond shortly.</em>'
+      };
+      var bodies = {
+        operator: 'Thank you — your demo request has been received. A VerdeScope specialist will contact you within 2 working hours to confirm your session and prepare your operator profile analysis.',
+        investor: 'Thank you for your interest in VerdeScope. An investor relations representative will contact you within one business day to schedule your briefing and provide data room access instructions.',
+        nuprc:    'Thank you for your enquiry. The VerdeScope partnership team will respond within one business day to schedule a regulatory technology briefing tailored to your requirements.'
+      };
+
+      document.getElementById('success-headline').innerHTML = headlines[type];
+      document.getElementById('success-body').textContent   = bodies[type];
+
+      /* Swap form for success */
+      document.getElementById('form-section').style.display  = 'none';
+      var ss = document.getElementById('success-screen');
+      ss.classList.remove('hidden');
+      ss.style.display = 'flex';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      lucide.createIcons();
+    }, 1400);
+  }
+
+  /* ── Scroll to form ── */
+  function scrollToForm() {
+    var card = document.getElementById('form-card');
+    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  /* ── Operator marquee ── */
+  var OPERATORS = [
+    'Shell JV', 'TotalEnergies E&P', 'Chevron Nigeria', 'Seplat Energy',
+    'Aiteo Eastern', 'Aradel Energy', 'Mobil Producing', 'NAOC / ENI',
+    'ND Western', 'Eroton E&P', 'Oando PLC', 'Neconde Energy',
+    'Elcrest E&P', 'First E&P', 'Emadeb Energy'
+  ];
+
+  /* ── FAQ ── */
+  var FAQS = [
+    { q: 'Who should book a VerdeScope demo?',
+      a: 'Any NUPRC-licensed upstream operator who needs to comply with the UPDT (effective January 2025). This includes OML holders, OPL exploration companies, PPL marginal field operators, JV equity partners, and upstream service companies. The demo is also open to investors, NUPRC officials, and financial institutions with upstream exposure.' },
+    { q: 'How long is the demo and what will I see?',
+      a: 'Standard demos are 30 minutes. In that time we cover: (1) a live UPDT compliance gap analysis for your operator profile; (2) a real-time IPCC Tier 1 emissions estimate using your production data; (3) a carbon revenue projection; and (4) a walkthrough of the LDAR Manager, Equipment Tracker, and UPDT Workflow Engine tailored to your facility type.' },
+    { q: 'Do I need to prepare anything before the demo?',
+      a: "No preparation is required. However, if you can provide your licence type, approximate number of facilities, and a rough gas production volume (MMscf/day) when you book, we can prepare a more tailored analysis. The more detail you provide in the booking form, the more specific your emissions estimate will be." },
+    { q: 'Is there a cost for the demo?',
+      a: "The demo is completely free with no commitment. We will not ask you to sign anything or provide payment details at any stage of the demo process. Our goal is to show you what VerdeScope can do for your specific operation — if it's a good fit, we discuss next steps from there." },
+    { q: "What if I can't wait for a booked demo?",
+      a: 'You can access the full VerdeScope live demo environment right now at app/dashboard.html — no booking or login required. The live demo is pre-loaded with realistic data for a sample Nigerian OML operator and gives you full access to every platform module.' },
+    { q: 'Can VerdeScope handle multiple operators or facilities?',
+      a: 'Yes. VerdeScope is a multi-tenant platform with a hierarchical asset model: Company → Concessions → Facilities → Equipment Units. The Pro tier covers up to 20 facilities; Enterprise covers unlimited facilities.' },
+    { q: 'We already have a spreadsheet-based GHG inventory. Can VerdeScope import it?',
+      a: 'Yes. VerdeScope supports CSV/Excel bulk data import for operators who have existing emissions records or equipment registries. Your Customer Success Manager will assist with the migration during onboarding, which typically takes 1–2 weeks.' },
+    { q: 'How does VerdeScope help with carbon credits specifically?',
+      a: "VerdeScope's Carbon Market Module converts your UPDT compliance data into a project-level MRV data package compatible with VCS VM0039 (methane abatement). This means your compliance activity automatically generates the evidence base for carbon credit origination — no separate data collection required. Our advisory team then handles PDD development, VVB selection, and registry submission on a 5–8% success fee basis." }
+  ];
+
+  function toggleFAQ(btn) {
+    var answer = btn.nextElementSibling;
+    var icon   = btn.querySelector('[data-lucide]');
+    var isOpen = parseInt(answer.style.maxHeight, 10) > 0;
+
+    /* Close all */
+    document.querySelectorAll('.faq-answer').forEach(function (a) { a.style.maxHeight = '0'; });
+    document.querySelectorAll('.faq-btn-icon').forEach(function (ic) {
+      ic.setAttribute('data-lucide', 'plus');
+      ic.style.transform = '';
+    });
+
+    if (!isOpen) {
+      answer.style.maxHeight = (answer.scrollHeight + 32) + 'px';
+      if (icon) { icon.setAttribute('data-lucide', 'minus'); icon.style.transform = 'rotate(180deg)'; }
+    }
+    lucide.createIcons();
+  }
+
+  /* ── DOMContentLoaded init ── */
+  window.addEventListener('DOMContentLoaded', function () {
+    /* Build marquee */
+    var inner = document.getElementById('demo-marquee');
+    if (inner) {
+      OPERATORS.concat(OPERATORS).forEach(function (op) {
+        var span = document.createElement('span');
+        span.className = 'font-mono text-xs text-steel uppercase tracking-widest whitespace-nowrap px-4 py-1.5 border border-verde border-opacity-15 hover:text-sage hover:border-opacity-40 transition-colors cursor-default';
+        span.textContent = op;
+        inner.appendChild(span);
+      });
+    }
+
+    /* Build FAQ */
+    var faqList = document.getElementById('faq-list');
+    if (faqList) {
+      FAQS.forEach(function (item) {
+        var div = document.createElement('div');
+        div.className = 'border border-verde border-opacity-12 overflow-hidden hover:border-opacity-35 transition-all';
+        div.style.background = 'rgba(255,255,255,.02)';
+        div.innerHTML =
+          '<button class="w-full flex items-center justify-between px-6 py-5 text-left gap-4" onclick="toggleFAQ(this)">' +
+            '<span class="font-sans text-sm font-semibold text-ivory leading-snug">' + item.q + '</span>' +
+            '<i data-lucide="plus" class="w-4 h-4 text-sage flex-shrink-0 faq-btn-icon" style="transition:transform .25s;"></i>' +
+          '</button>' +
+          '<div class="faq-answer" style="max-height:0;">' +
+            '<div class="px-6 pb-5 font-sans text-sm text-ash font-light leading-relaxed border-t border-verde border-opacity-10 pt-4">' + item.a + '</div>' +
+          '</div>';
+        faqList.appendChild(div);
+      });
+    }
+
+    lucide.createIcons();
+  });
+
+</script>
+
+</body>
+</html>

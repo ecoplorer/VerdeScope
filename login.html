@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Log In — VerdeScope</title>
+  <meta name="description" content="Log in to your VerdeScope account. Access your GHG emissions dashboard, LDAR manager, UPDT compliance workflow, and carbon market module." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#0D1A12', forest: '#1A3D24', pine: '#235930',
+            verde:    '#2E7D45', sage:   '#4CAF6F', mist: '#A8D5B5',
+            fog:      '#E8F5ED', parchment: '#F4F1EB', ivory: '#FDFCF9',
+            gold:     '#B8962E', goldlight: '#D4AE50', goldpale: '#F5E9C4',
+            slate:    '#2A3040', steel: '#4A5568', ash: '#8A9BB0', cloud: '#D4DCE8',
+          },
+          fontFamily: {
+            display: ['Cormorant Garamond','Georgia','serif'],
+            sans:    ['Outfit','sans-serif'],
+            mono:    ['DM Mono','monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    *{box-sizing:border-box;}
+    body{font-family:'Outfit',sans-serif;background-color:#0D1A12;color:#FDFCF9;overflow-x:hidden;min-height:100vh;}
+
+    /* Grid texture */
+    .grid-texture{
+      background-image:
+        linear-gradient(rgba(46,125,69,.04)1px,transparent 1px),
+        linear-gradient(90deg,rgba(46,125,69,.04)1px,transparent 1px);
+      background-size:48px 48px;
+    }
+    .glow-green{background:radial-gradient(ellipse at center,rgba(46,125,69,.20)0%,transparent 65%);}
+    .glow-gold {background:radial-gradient(ellipse at center,rgba(184,150,46,.15)0%,transparent 65%);}
+
+    /* Grain overlay */
+    .grain::before{
+      content:'';position:fixed;inset:0;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events:none;z-index:9999;opacity:.4;
+    }
+
+    /* Tags */
+    .tag-green{background:rgba(46,125,69,.15);color:#4CAF6F;border:1px solid rgba(46,125,69,.3);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:3px 12px;}
+    .tag-neutral{background:rgba(255,255,255,.04);color:#8A9BB0;border:1px solid rgba(255,255,255,.08);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:3px 12px;}
+
+    /* Form inputs */
+    .form-input{
+      width:100%;background:rgba(26,61,36,.4);
+      border:1px solid rgba(46,125,69,.2);
+      color:#FDFCF9;font-family:'Outfit',sans-serif;font-size:15px;
+      padding:14px 44px 14px 16px;
+      transition:border-color .2s,background .2s,box-shadow .2s;
+    }
+    .form-input:focus{
+      outline:none;border-color:#4CAF6F;
+      background:rgba(26,61,36,.65);
+      box-shadow:0 0 0 3px rgba(76,175,111,.1);
+    }
+    .form-input::placeholder{color:#4A5568;}
+    .form-input.error{border-color:#E74C3C;box-shadow:0 0 0 3px rgba(231,76,60,.08);}
+    .form-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#8A9BB0;display:block;margin-bottom:7px;}
+    .form-error{font-family:'DM Mono',monospace;font-size:9px;color:#E74C3C;letter-spacing:.1em;margin-top:5px;display:none;}
+    .form-error.show{display:block;}
+
+    /* Primary button */
+    .btn-primary{
+      background:#2E7D45;color:#FDFCF9;font-family:'Outfit',sans-serif;
+      font-size:14px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+      padding:14px 28px;transition:all .25s;border:none;cursor:pointer;
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;
+    }
+    .btn-primary:hover:not(:disabled){background:#235930;transform:translateY(-1px);box-shadow:0 8px 28px rgba(46,125,69,.35);}
+    .btn-primary:disabled{opacity:.6;cursor:not-allowed;}
+
+    /* SSO button */
+    .btn-sso{
+      background:rgba(255,255,255,.04);color:#D4DCE8;
+      font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;
+      padding:12px 20px;border:1px solid rgba(255,255,255,.1);
+      transition:all .2s;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+    }
+    .btn-sso:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);}
+
+    /* Password toggle */
+    .pwd-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#4A5568;cursor:pointer;transition:color .2s;}
+    .pwd-toggle:hover{color:#8A9BB0;}
+
+    /* Tab switcher */
+    .auth-tab{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.15em;text-transform:uppercase;padding:10px 20px;cursor:pointer;transition:all .2s;border-bottom:2px solid transparent;flex:1;text-align:center;}
+    .auth-tab.active{color:#4CAF6F;border-bottom-color:#4CAF6F;}
+    .auth-tab:not(.active){color:#4A5568;}
+    .auth-tab:not(.active):hover{color:#8A9BB0;}
+    .auth-pane{display:none;} .auth-pane.active{display:block;}
+
+    /* Checkbox */
+    .custom-check{width:18px;height:18px;border:1px solid rgba(46,125,69,.35);background:rgba(26,61,36,.4);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+    .custom-check.checked{background:#2E7D45;border-color:#4CAF6F;}
+    .custom-check.checked::after{content:'✓';color:#FDFCF9;font-size:11px;font-weight:700;}
+
+    /* Divider */
+    .or-divider{display:flex;align-items:center;gap:12px;margin:20px 0;}
+    .or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:rgba(46,125,69,.15);}
+    .or-divider span{font-family:'DM Mono',monospace;font-size:10px;color:#4A5568;letter-spacing:.15em;text-transform:uppercase;}
+
+    /* Role selector */
+    .role-card{border:1px solid rgba(46,125,69,.15);padding:14px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px;}
+    .role-card:hover{border-color:rgba(46,125,69,.4);background:rgba(46,125,69,.06);}
+    .role-card.selected{border-color:#4CAF6F;background:rgba(46,125,69,.12);}
+    .role-dot{width:10px;height:10px;border-radius:50%;border:2px solid #4A5568;flex-shrink:0;transition:all .2s;}
+    .role-card.selected .role-dot{border-color:#4CAF6F;background:#4CAF6F;}
+
+    /* Left panel feature list */
+    .feature-tick{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;}
+
+    /* Animations */
+    @keyframes fade-up{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+    .fade-up{animation:fade-up .55s ease both;}
+    .fade-up-1{animation-delay:.05s;}
+    .fade-up-2{animation-delay:.12s;}
+    .fade-up-3{animation-delay:.19s;}
+    .fade-up-4{animation-delay:.26s;}
+    .fade-up-5{animation-delay:.33s;}
+
+    @keyframes reticle-spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+    .spin-slow{animation:reticle-spin 25s linear infinite;}
+
+    /* Pulse dot */
+    @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.5);}}
+    .pulse{animation:pulse-dot 2s ease infinite;}
+
+    /* Strength bar */
+    .strength-segment{height:3px;border-radius:1px;flex:1;background:rgba(255,255,255,.08);transition:background .3s;}
+
+    /* Scrollbar */
+    ::-webkit-scrollbar{width:6px;} ::-webkit-scrollbar-track{background:#0D1A12;} ::-webkit-scrollbar-thumb{background:#235930;border-radius:3px;}
+
+    /* Shake animation for wrong credentials */
+    @keyframes shake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-6px);}40%,80%{transform:translateX(6px);}}
+    .shake{animation:shake .4s ease;}
+  </style>
+</head>
+
+<body class="grain">
+
+<!-- ════════════════════════════ FULL-PAGE LAYOUT ══ -->
+<div class="min-h-screen flex">
+
+
+  <!-- ════ LEFT PANEL — brand + value prop ════ -->
+  <div class="hidden lg:flex lg:w-[45%] xl:w-[42%] flex-col justify-between relative overflow-hidden bg-forest grid-texture p-12 xl:p-16">
+
+    <!-- Background glows -->
+    <div class="absolute top-0 right-0 w-[400px] h-[400px] glow-green pointer-events-none opacity-50"></div>
+    <div class="absolute bottom-0 left-0 w-[300px] h-[300px] glow-gold pointer-events-none opacity-25"></div>
+
+    <!-- Decorative reticle -->
+    <div class="absolute bottom-12 right-8 opacity-6 pointer-events-none">
+      <svg class="spin-slow" width="320" height="320" viewBox="0 0 56 56" fill="none">
+        <circle cx="28" cy="28" r="26" stroke="#4CAF6F" stroke-width=".4" fill="none"/>
+        <circle cx="28" cy="28" r="20" stroke="#4CAF6F" stroke-width=".3" fill="none"/>
+        <circle cx="28" cy="28" r="14" stroke="#4CAF6F" stroke-width=".4" fill="none"/>
+        <line x1="28" y1="2" x2="28" y2="54" stroke="#4CAF6F" stroke-width=".25"/>
+        <line x1="2" y1="28" x2="54" y2="28" stroke="#4CAF6F" stroke-width=".25"/>
+        <circle cx="28" cy="28" r="2" fill="#4CAF6F"/>
+      </svg>
+    </div>
+
+    <!-- Top — logo + tagline -->
+    <div class="relative z-10">
+      <a href="index.html" class="flex items-center gap-3 mb-10">
+        <svg width="38" height="38" viewBox="0 0 56 56" fill="none">
+          <circle cx="28" cy="28" r="26" stroke="#2E7D45" stroke-width=".75" fill="none" opacity=".3"/>
+          <circle cx="28" cy="28" r="18" stroke="#4CAF6F" stroke-width="1.5" fill="none"/>
+          <line x1="28" y1="10" x2="28" y2="46" stroke="#2E7D45" stroke-width=".75" opacity=".4"/>
+          <line x1="10" y1="28" x2="46" y2="28" stroke="#2E7D45" stroke-width=".75" opacity=".4"/>
+          <circle cx="28" cy="28" r="3" fill="#4CAF6F"/>
+          <path d="M28 10 C34 14,44 20,44 28 C44 28,36 22,28 10Z" fill="#2E7D45" opacity=".8"/>
+          <line x1="38" y1="8" x2="42" y2="14" stroke="#B8962E" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="28" y1="2" x2="28" y2="7"  stroke="#4CAF6F" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="54" y1="28" x2="49" y2="28" stroke="#4CAF6F" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="font-display text-2xl"><span class="text-ivory">Verde</span><span class="text-goldlight">Scope</span></span>
+      </a>
+
+      <h2 class="font-display font-light text-4xl xl:text-5xl text-ivory leading-tight mb-4">
+        Your compliance<br/>dashboard awaits.
+      </h2>
+      <p class="font-sans text-base text-ash font-light leading-relaxed mb-8">
+        Log in to access your real-time GHG emissions inventory, LDAR inspection schedule, UPDT compliance score, and carbon market pipeline.
+      </p>
+
+      <!-- Feature list -->
+      <div class="space-y-0">
+        <div class="feature-tick">
+          <div class="w-5 h-5 bg-verde bg-opacity-20 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <i data-lucide="check" class="w-3.5 h-3.5 text-sage"></i>
+          </div>
+          <div>
+            <div class="font-sans text-sm font-semibold text-ivory">Live GHG Emissions Dashboard</div>
+            <div class="font-sans text-xs text-ash font-light">Scope 1/2/3 · IPCC Tier 1/2/3 · Quarterly NUPRC reports</div>
+          </div>
+        </div>
+        <div class="feature-tick">
+          <div class="w-5 h-5 bg-verde bg-opacity-20 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <i data-lucide="check" class="w-3.5 h-3.5 text-sage"></i>
+          </div>
+          <div>
+            <div class="font-sans text-sm font-semibold text-ivory">LDAR Inspection Manager</div>
+            <div class="font-sans text-xs text-ash font-light">Auto-schedules · Leak SLA clocks · NUPRC annual report</div>
+          </div>
+        </div>
+        <div class="feature-tick">
+          <div class="w-5 h-5 bg-verde bg-opacity-20 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <i data-lucide="check" class="w-3.5 h-3.5 text-sage"></i>
+          </div>
+          <div>
+            <div class="font-sans text-sm font-semibold text-ivory">UPDT Compliance Score</div>
+            <div class="font-sans text-xs text-ash font-light">5-obligation workflow · Readiness score 0–100 · FDP package</div>
+          </div>
+        </div>
+        <div class="feature-tick">
+          <div class="w-5 h-5 bg-gold bg-opacity-15 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <i data-lucide="check" class="w-3.5 h-3.5 text-goldlight"></i>
+          </div>
+          <div>
+            <div class="font-sans text-sm font-semibold text-ivory">Carbon Market Revenue</div>
+            <div class="font-sans text-xs text-ash font-light">VCM pipeline · Article 6.4 · Verde Intelligence AI</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom — live stats ticker -->
+    <div class="relative z-10 border-t border-verde border-opacity-20 pt-8">
+      <div class="font-mono text-xs text-steel uppercase tracking-wider mb-4">Platform at a glance</div>
+      <div class="grid grid-cols-3 gap-4">
+        <div>
+          <div class="font-mono text-2xl text-sage mb-0.5">280+</div>
+          <div class="font-mono text-xs text-steel uppercase tracking-wider">Operators<br/>Addressable</div>
+        </div>
+        <div>
+          <div class="font-mono text-2xl text-goldlight mb-0.5">$2.5B</div>
+          <div class="font-mono text-xs text-steel uppercase tracking-wider">Carbon Market<br/>2030</div>
+        </div>
+        <div>
+          <div class="font-mono text-2xl text-sage mb-0.5">100%</div>
+          <div class="font-mono text-xs text-steel uppercase tracking-wider">NUPRC UPDT<br/>Coverage</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════ RIGHT PANEL — auth forms ════ -->
+  <div class="flex-1 flex flex-col justify-center px-6 py-10 lg:px-12 xl:px-16 relative overflow-hidden">
+
+    <!-- Subtle bg glow -->
+    <div class="absolute top-0 right-0 w-[400px] h-[400px] glow-green pointer-events-none opacity-20"></div>
+
+    <div class="w-full max-w-md mx-auto relative z-10">
+
+      <!-- Mobile logo (hidden on lg+) -->
+      <div class="lg:hidden mb-8 fade-up">
+        <a href="index.html" class="flex items-center gap-3">
+          <svg width="32" height="32" viewBox="0 0 56 56" fill="none">
+            <circle cx="28" cy="28" r="18" stroke="#4CAF6F" stroke-width="1.5" fill="none"/>
+            <circle cx="28" cy="28" r="3" fill="#4CAF6F"/>
+            <path d="M28 10 C34 14,44 20,44 28 C44 28,36 22,28 10Z" fill="#2E7D45" opacity=".8"/>
+            <line x1="38" y1="8" x2="42" y2="14" stroke="#B8962E" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <span class="font-display text-xl"><span class="text-ivory">Verde</span><span class="text-goldlight">Scope</span></span>
+        </a>
+      </div>
+
+      <!-- Auth tabs -->
+      <div class="flex border-b border-verde border-opacity-20 mb-6 fade-up fade-up-1">
+        <button class="auth-tab active" id="tab-login"   onclick="switchAuth('login')">Log In</button>
+        <button class="auth-tab"        id="tab-signup"  onclick="switchAuth('signup')">Create Account</button>
+        <button class="auth-tab"        id="tab-reset"   onclick="switchAuth('reset')" style="display:none;">Reset Password</button>
+      </div>
+
+
+      <!-- ══ LOGIN PANE ══ -->
+      <div class="auth-pane active fade-up fade-up-2" id="pane-login">
+
+        <div class="mb-6">
+          <h1 class="font-sans text-2xl font-semibold text-ivory mb-1">Welcome back</h1>
+          <p class="font-sans text-sm text-ash font-light">Log in to your VerdeScope account.</p>
+        </div>
+
+        <!-- SSO options -->
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <button class="btn-sso" onclick="handleSSO('microsoft')">
+            <!-- Microsoft SVG icon -->
+            <svg width="16" height="16" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
+              <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
+              <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
+              <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+            </svg>
+            Microsoft SSO
+          </button>
+          <button class="btn-sso" onclick="handleSSO('google')">
+            <!-- Google SVG icon -->
+            <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            Google SSO
+          </button>
+        </div>
+
+        <div class="or-divider"><span>or continue with email</span></div>
+
+        <!-- Email / password -->
+        <div class="mb-4">
+          <label class="form-label">Work Email</label>
+          <div class="relative">
+            <input id="login-email" type="email" placeholder="you@yourcompany.com"
+              class="form-input pr-12" oninput="clearError('login-email','err-login-email')" onkeydown="if(event.key==='Enter')doLogin()" />
+            <i data-lucide="mail" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-steel pointer-events-none"></i>
+          </div>
+          <div class="form-error" id="err-login-email">Please enter a valid email address</div>
+        </div>
+
+        <div class="mb-4">
+          <div class="flex justify-between mb-1.5">
+            <label class="form-label mb-0">Password</label>
+            <button onclick="switchAuth('reset')" class="font-mono text-xs text-sage hover:text-mist transition-colors uppercase tracking-wider">Forgot password?</button>
+          </div>
+          <div class="relative">
+            <input id="login-pwd" type="password" placeholder="••••••••••••"
+              class="form-input" oninput="clearError('login-pwd','err-login-pwd')" onkeydown="if(event.key==='Enter')doLogin()" />
+            <button class="pwd-toggle" onclick="togglePwd('login-pwd',this)" type="button">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <div class="form-error" id="err-login-pwd">Incorrect email or password</div>
+        </div>
+
+        <!-- Remember me -->
+        <div class="flex items-center gap-3 mb-6">
+          <div class="custom-check" id="remember-check" onclick="toggleCheck(this)"></div>
+          <span class="font-sans text-xs text-ash cursor-pointer" onclick="toggleCheck(document.getElementById('remember-check'))">Remember me for 30 days</span>
+        </div>
+
+        <!-- Submit -->
+        <button id="login-btn" class="btn-primary mb-4" onclick="doLogin()">
+          Log In to Dashboard
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Wrong credentials error banner -->
+        <div id="login-error" class="hidden border border-red-500 border-opacity-40 bg-red-900 bg-opacity-15 p-3 mb-4 flex items-start gap-3">
+          <i data-lucide="alert-circle" class="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5"></i>
+          <span class="font-sans text-xs text-red-300">Incorrect email or password. <button onclick="switchAuth('reset')" class="underline">Reset your password</button> or <a href="demo.html" class="underline">book a demo</a> to get set up.</span>
+        </div>
+
+        <!-- Demo shortcut -->
+        <div class="border border-verde border-opacity-15 p-4 bg-verde bg-opacity-5">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <div class="font-sans text-xs font-semibold text-ivory mb-0.5">Try the live demo — no login needed</div>
+              <div class="font-mono text-xs text-steel">Full platform with sample OML operator data</div>
+            </div>
+            <a href="app/dashboard.html" class="font-mono text-xs text-sage hover:text-mist transition-colors flex items-center gap-1 flex-shrink-0">
+              Launch <i data-lucide="play" class="w-3.5 h-3.5"></i>
+            </a>
+          </div>
+        </div>
+
+        <p class="font-sans text-xs text-steel text-center mt-5">
+          Don't have an account?
+          <button onclick="switchAuth('signup')" class="text-sage hover:text-mist transition-colors font-medium">Create one →</button>
+        </p>
+      </div>
+
+
+      <!-- ══ SIGN UP PANE ══ -->
+      <div class="auth-pane" id="pane-signup">
+
+        <div class="mb-5">
+          <h1 class="font-sans text-2xl font-semibold text-ivory mb-1">Create your account</h1>
+          <p class="font-sans text-sm text-ash font-light">Start your 30-day free trial. No credit card required.</p>
+        </div>
+
+        <!-- SSO -->
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <button class="btn-sso" onclick="handleSSO('microsoft')">
+            <svg width="16" height="16" viewBox="0 0 21 21" fill="none"><rect x="1" y="1" width="9" height="9" fill="#F25022"/><rect x="11" y="1" width="9" height="9" fill="#7FBA00"/><rect x="1" y="11" width="9" height="9" fill="#00A4EF"/><rect x="11" y="11" width="9" height="9" fill="#FFB900"/></svg>
+            Microsoft SSO
+          </button>
+          <button class="btn-sso" onclick="handleSSO('google')">
+            <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Google SSO
+          </button>
+        </div>
+
+        <div class="or-divider"><span>or register with email</span></div>
+
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div>
+            <label class="form-label">First Name *</label>
+            <input id="su-first" type="text" placeholder="Adewale" class="form-input" oninput="clearError('su-first','err-su-first')" />
+            <div class="form-error" id="err-su-first">Required</div>
+          </div>
+          <div>
+            <label class="form-label">Last Name *</label>
+            <input id="su-last" type="text" placeholder="Okonkwo" class="form-input" oninput="clearError('su-last','err-su-last')" />
+            <div class="form-error" id="err-su-last">Required</div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Company / Operator Name *</label>
+          <input id="su-company" type="text" placeholder="e.g. Seplat Energy Plc" class="form-input" oninput="clearError('su-company','err-su-company')" />
+          <div class="form-error" id="err-su-company">Required</div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Work Email *</label>
+          <div class="relative">
+            <input id="su-email" type="email" placeholder="you@yourcompany.com"
+              class="form-input pr-12" oninput="clearError('su-email','err-su-email')" />
+            <i data-lucide="mail" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-steel pointer-events-none"></i>
+          </div>
+          <div class="form-error" id="err-su-email">Valid work email required</div>
+        </div>
+
+        <!-- Role selector -->
+        <div class="mb-4">
+          <label class="form-label">Your Role</label>
+          <div class="space-y-2" id="role-selector">
+            <div class="role-card selected" onclick="selectRole(this)">
+              <div class="role-dot"></div>
+              <div>
+                <div class="font-sans text-sm text-ivory">HSE / Sustainability Manager</div>
+                <div class="font-mono text-xs text-steel mt-0.5">GHG reporting, LDAR, UPDT compliance</div>
+              </div>
+            </div>
+            <div class="role-card" onclick="selectRole(this)">
+              <div class="role-dot"></div>
+              <div>
+                <div class="font-sans text-sm text-ivory">Operations / Petroleum Engineer</div>
+                <div class="font-mono text-xs text-steel mt-0.5">Equipment tracking, field data entry</div>
+              </div>
+            </div>
+            <div class="role-card" onclick="selectRole(this)">
+              <div class="role-dot"></div>
+              <div>
+                <div class="font-sans text-sm text-ivory">Finance / CFO</div>
+                <div class="font-mono text-xs text-steel mt-0.5">Carbon revenue, green financing, reporting</div>
+              </div>
+            </div>
+            <div class="role-card" onclick="selectRole(this)">
+              <div class="role-dot"></div>
+              <div>
+                <div class="font-sans text-sm text-ivory">Executive / Other</div>
+                <div class="font-mono text-xs text-steel mt-0.5">Strategic overview</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Password *</label>
+          <div class="relative">
+            <input id="su-pwd" type="password" placeholder="Minimum 10 characters"
+              class="form-input" oninput="checkStrength(this.value);clearError('su-pwd','err-su-pwd')" />
+            <button class="pwd-toggle" onclick="togglePwd('su-pwd',this)" type="button">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <!-- Strength meter -->
+          <div class="flex gap-1.5 mt-2" id="strength-bars">
+            <div class="strength-segment" id="sb1"></div>
+            <div class="strength-segment" id="sb2"></div>
+            <div class="strength-segment" id="sb3"></div>
+            <div class="strength-segment" id="sb4"></div>
+            <div class="strength-segment" id="sb5"></div>
+          </div>
+          <div class="font-mono text-xs mt-1" id="strength-label" style="color:#4A5568;letter-spacing:.1em;text-transform:uppercase;font-size:9px;"></div>
+          <div class="form-error" id="err-su-pwd">Minimum 10 characters required</div>
+        </div>
+
+        <!-- Terms -->
+        <div class="flex items-start gap-3 mb-5">
+          <div class="custom-check mt-0.5" id="terms-check" onclick="toggleCheck(this)"></div>
+          <span class="font-sans text-xs text-ash leading-relaxed">
+            I agree to VerdeScope's
+            <a href="#" class="text-sage hover:text-mist transition-colors">Terms of Service</a>
+            and
+            <a href="#" class="text-sage hover:text-mist transition-colors">Privacy Policy</a>.
+            Data is processed in accordance with NDPR 2019.
+          </span>
+        </div>
+
+        <button id="signup-btn" class="btn-primary mb-4" onclick="doSignup()">
+          Create Account & Start Trial
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+
+        <p class="font-sans text-xs text-steel text-center">
+          Already have an account?
+          <button onclick="switchAuth('login')" class="text-sage hover:text-mist transition-colors font-medium">Log in →</button>
+        </p>
+      </div>
+
+
+      <!-- ══ RESET PASSWORD PANE ══ -->
+      <div class="auth-pane" id="pane-reset">
+
+        <div class="mb-6">
+          <h1 class="font-sans text-2xl font-semibold text-ivory mb-1">Reset your password</h1>
+          <p class="font-sans text-sm text-ash font-light">Enter your work email and we'll send a reset link within 2 minutes.</p>
+        </div>
+
+        <div id="reset-form-content">
+          <div class="mb-5">
+            <label class="form-label">Work Email</label>
+            <div class="relative">
+              <input id="reset-email" type="email" placeholder="you@yourcompany.com"
+                class="form-input pr-12" onkeydown="if(event.key==='Enter')doReset()" />
+              <i data-lucide="mail" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-steel pointer-events-none"></i>
+            </div>
+            <div class="form-error" id="err-reset">Valid email required</div>
+          </div>
+
+          <button id="reset-btn" class="btn-primary mb-4" onclick="doReset()">
+            Send Reset Link
+            <i data-lucide="send" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Success state -->
+        <div id="reset-success" class="hidden border border-sage border-opacity-30 bg-verde bg-opacity-8 p-5 text-center">
+          <i data-lucide="mail-check" class="w-8 h-8 text-sage mx-auto mb-3"></i>
+          <div class="font-sans text-sm font-semibold text-ivory mb-1">Reset link sent!</div>
+          <div class="font-sans text-xs text-ash font-light">Check your inbox — the link expires in 30 minutes. If you don't see it, check your spam folder or contact <a href="mailto:support@verdescope.ng" class="text-sage hover:text-mist transition-colors">support@verdescope.ng</a>.</div>
+        </div>
+
+        <p class="font-sans text-xs text-steel text-center mt-5">
+          Remember it now?
+          <button onclick="switchAuth('login')" class="text-sage hover:text-mist transition-colors font-medium">Back to login →</button>
+        </p>
+      </div>
+
+
+      <!-- ══ SIGNUP SUCCESS PANE ══ -->
+      <div class="auth-pane" id="pane-success">
+        <div class="text-center py-4">
+          <div class="w-16 h-16 bg-verde bg-opacity-15 flex items-center justify-center mx-auto mb-5">
+            <i data-lucide="check-circle" class="w-8 h-8 text-sage"></i>
+          </div>
+          <h2 class="font-sans text-2xl font-semibold text-ivory mb-2">Account created!</h2>
+          <p class="font-sans text-sm text-ash font-light leading-relaxed mb-6">
+            Welcome to VerdeScope. Check your inbox for a verification email, then log in to access your dashboard.
+          </p>
+          <div class="border border-verde border-opacity-20 p-5 bg-verde bg-opacity-5 mb-6 text-left">
+            <div class="font-mono text-xs text-sage uppercase tracking-wider mb-3">Your 30-day trial includes</div>
+            <div class="space-y-2">
+              <div class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-sage"></i><span class="font-sans text-xs text-cloud">Full GHG Emissions Calculator (IPCC Tier 1/2)</span></div>
+              <div class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-sage"></i><span class="font-sans text-xs text-cloud">LDAR schedule manager (up to 3 facilities)</span></div>
+              <div class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-sage"></i><span class="font-sans text-xs text-cloud">UPDT Obligations 1–3 workflow</span></div>
+              <div class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-sage"></i><span class="font-sans text-xs text-cloud">1 NUPRC report generation</span></div>
+              <div class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-sage"></i><span class="font-sans text-xs text-cloud">Carbon revenue estimator</span></div>
+            </div>
+          </div>
+          <button onclick="switchAuth('login')" class="btn-primary w-full gap-2 justify-center">
+            <i data-lucide="log-in" class="w-4 h-4"></i>
+            Log In Now
+          </button>
+        </div>
+      </div>
+
+
+      <!-- Bottom links -->
+      <div class="mt-8 pt-6 border-t border-verde border-opacity-15">
+        <div class="flex flex-wrap justify-center gap-x-6 gap-y-2">
+          <a href="index.html"    class="font-mono text-xs text-steel hover:text-ash transition-colors uppercase tracking-wider">Home</a>
+          <a href="platform.html" class="font-mono text-xs text-steel hover:text-ash transition-colors uppercase tracking-wider">Platform</a>
+          <a href="demo.html"     class="font-mono text-xs text-steel hover:text-ash transition-colors uppercase tracking-wider">Request Demo</a>
+          <a href="resources.html"class="font-mono text-xs text-steel hover:text-ash transition-colors uppercase tracking-wider">Resources</a>
+          <a href="mailto:support@verdescope.ng" class="font-mono text-xs text-steel hover:text-ash transition-colors uppercase tracking-wider">Support</a>
+        </div>
+        <p class="font-mono text-xs text-steel text-center mt-4 tracking-wider">
+          © 2026 VerdeScope Limited · Lagos & Paris · verdescope.ng
+        </p>
+      </div>
+
+    </div>
+  </div>
+  <!-- /RIGHT PANEL -->
+
+</div>
+
+
+<!-- ════════════════════════════ SCRIPTS ══ -->
+<script>
+
+lucide.createIcons();
+
+// ── Auth tab switcher ──────────────────────────────────────────
+function switchAuth(name) {
+  document.querySelectorAll('.auth-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.auth-tab').forEach(t => {
+    t.style.display = 'block';
+    t.classList.remove('active');
+  });
+
+  const pane = document.getElementById('pane-' + name);
+  if (pane) pane.classList.add('active');
+
+  // Update active tab indicator
+  const tabMap = { login:'tab-login', signup:'tab-signup', reset:'tab-reset', success:'tab-signup' };
+  const activeTab = document.getElementById(tabMap[name]);
+  if (activeTab) activeTab.classList.add('active');
+
+  // Hide reset tab unless on reset pane
+  const resetTab = document.getElementById('tab-reset');
+  if (resetTab) resetTab.style.display = name === 'reset' ? 'block' : 'none';
+}
+
+// ── Password visibility toggle ─────────────────────────────────
+function togglePwd(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const isText = input.type === 'text';
+  input.type = isText ? 'password' : 'text';
+  const icon = btn.querySelector('[data-lucide]');
+  if (icon) {
+    icon.setAttribute('data-lucide', isText ? 'eye' : 'eye-off');
+    lucide.createIcons();
+  }
+}
+
+// ── Checkbox toggle ────────────────────────────────────────────
+function toggleCheck(el) {
+  if (el) el.classList.toggle('checked');
+}
+
+// ── Role card selector ─────────────────────────────────────────
+function selectRole(card) {
+  document.querySelectorAll('#role-selector .role-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+}
+
+// ── Password strength ──────────────────────────────────────────
+function checkStrength(val) {
+  const bars   = [1,2,3,4,5].map(i => document.getElementById('sb'+i));
+  const label  = document.getElementById('strength-label');
+  let score = 0;
+  if (val.length >= 8)                       score++;
+  if (val.length >= 12)                      score++;
+  if (/[A-Z]/.test(val))                     score++;
+  if (/[0-9]/.test(val))                     score++;
+  if (/[^A-Za-z0-9]/.test(val))             score++;
+
+  const colours = ['#E74C3C','#E67E22','#F1C40F','#2ECC71','#27AE60'];
+  const labels  = ['Very Weak','Weak','Fair','Strong','Very Strong'];
+
+  bars.forEach((b, i) => {
+    if (!b) return;
+    b.style.background = i < score ? colours[score-1] : 'rgba(255,255,255,.08)';
+  });
+  if (label) {
+    label.textContent = val.length > 0 ? labels[score-1] || '' : '';
+    label.style.color  = val.length > 0 ? colours[score-1] : '#4A5568';
+  }
+}
+
+// ── Clear field error ──────────────────────────────────────────
+function clearError(inputId, errId) {
+  const el  = document.getElementById(inputId);
+  const err = document.getElementById(errId);
+  if (el)  el.classList.remove('error');
+  if (err) err.classList.remove('show');
+  // Also clear the login error banner
+  const loginErr = document.getElementById('login-error');
+  if (loginErr) loginErr.classList.add('hidden');
+}
+
+// ── Validate helper ────────────────────────────────────────────
+function validate(inputId, errId, check) {
+  const el  = document.getElementById(inputId);
+  const err = document.getElementById(errId);
+  if (!el) return true;
+  const ok = check(el.value);
+  el.classList.toggle('error', !ok);
+  if (err) err.classList.toggle('show', !ok);
+  return ok;
+}
+
+// ── Login ──────────────────────────────────────────────────────
+// Demo credentials: any email + password = success
+// Wrong password on blank fields = shows error state
+function doLogin() {
+  const emailOk = validate('login-email', 'err-login-email', v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()));
+  const pwdOk   = validate('login-pwd',   'err-login-pwd',   v => v.length >= 1);
+  if (!emailOk || !pwdOk) return;
+
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" opacity=".25"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Logging in…';
+
+  setTimeout(() => {
+    const email = document.getElementById('login-email').value.trim();
+    const pwd   = document.getElementById('login-pwd').value;
+
+    // Demo: correct credentials = any valid email + pwd >= 6 chars
+    if (pwd.length >= 6) {
+      // Success → redirect to dashboard
+      window.location.href = 'app/dashboard.html';
+    } else {
+      // Simulate wrong password
+      btn.disabled = false;
+      btn.innerHTML = 'Log In to Dashboard <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+
+      // Shake form card
+      const formArea = document.getElementById('pane-login');
+      if (formArea) {
+        formArea.style.animation = '';
+        void formArea.offsetWidth;
+        formArea.style.animation = 'shake .4s ease';
+        setTimeout(() => { if (formArea) formArea.style.animation = ''; }, 400);
+      }
+
+      // Show error banner
+      const errBanner = document.getElementById('login-error');
+      if (errBanner) errBanner.classList.remove('hidden');
+      document.getElementById('login-pwd')?.classList.add('error');
+      lucide.createIcons();
+    }
+  }, 1200);
+}
+
+// ── Sign up ────────────────────────────────────────────────────
+function doSignup() {
+  const ok = [
+    validate('su-first',   'err-su-first',   v => v.trim().length > 0),
+    validate('su-last',    'err-su-last',    v => v.trim().length > 0),
+    validate('su-company', 'err-su-company', v => v.trim().length > 0),
+    validate('su-email',   'err-su-email',   v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())),
+    validate('su-pwd',     'err-su-pwd',     v => v.length >= 10),
+  ].every(Boolean);
+
+  const termsChecked = document.getElementById('terms-check')?.classList.contains('checked');
+  if (!termsChecked) { alert('Please accept the Terms of Service to continue.'); return; }
+  if (!ok) return;
+
+  const btn = document.getElementById('signup-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" opacity=".25"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Creating account…';
+
+  setTimeout(() => {
+    switchAuth('success');
+    lucide.createIcons();
+  }, 1600);
+}
+
+// ── Reset password ─────────────────────────────────────────────
+function doReset() {
+  const ok = validate('reset-email', 'err-reset', v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()));
+  if (!ok) return;
+
+  const btn = document.getElementById('reset-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" opacity=".25"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Sending…';
+
+  setTimeout(() => {
+    document.getElementById('reset-form-content').style.display = 'none';
+    document.getElementById('reset-success').classList.remove('hidden');
+    lucide.createIcons();
+  }, 1300);
+}
+
+// ── SSO ────────────────────────────────────────────────────────
+function handleSSO(provider) {
+  // In production: initiate OAuth flow
+  // For demo: redirect to dashboard after brief delay
+  const labels = { microsoft:'Microsoft', google:'Google' };
+  const allBtns = document.querySelectorAll('.btn-sso');
+  allBtns.forEach(b => b.disabled = true);
+  setTimeout(() => {
+    window.location.href = 'app/dashboard.html';
+  }, 900);
+}
+
+// ── Init ───────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  lucide.createIcons();
+
+  // Check for ?signup=1 or ?reset=1 in URL
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('signup') === '1') switchAuth('signup');
+  if (params.get('reset')  === '1') switchAuth('reset');
+});
+</script>
+
+</body>
+</html>
