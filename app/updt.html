@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UPDT Compliance — VerdeScope</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#0D1A12', forest: '#1A3D24', pine: '#235930',
+            verde:    '#2E7D45', sage:   '#4CAF6F', mist: '#A8D5B5',
+            ivory:    '#FDFCF9', gold:   '#B8962E', goldlight: '#D4AE50',
+            slate:    '#2A3040', steel:  '#4A5568', ash: '#8A9BB0', cloud: '#D4DCE8',
+          },
+          fontFamily: {
+            display: ['Cormorant Garamond','serif'],
+            sans:    ['Outfit','sans-serif'],
+            mono:    ['DM Mono','monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: 'Outfit', sans-serif; background: #0D1A12; color: #FDFCF9; display: flex; flex-direction: column; }
+
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: #0D1A12; }
+    ::-webkit-scrollbar-thumb { background: #235930; border-radius: 2px; }
+
+    /* ── Layout ── */
+    #app-shell  { display: flex; flex: 1; overflow: hidden; }
+    #sidebar    { width: 220px; flex-shrink: 0; background: #091410; border-right: 1px solid rgba(46,125,69,.18); display: flex; flex-direction: column; transition: width .25s; overflow: hidden; }
+    #sidebar.collapsed { width: 56px; }
+    #main-area  { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    #topbar     { height: 52px; flex-shrink: 0; background: rgba(13,26,18,.95); border-bottom: 1px solid rgba(46,125,69,.18); display: flex; align-items: center; padding: 0 20px; gap: 16px; backdrop-filter: blur(8px); }
+    #content    { flex: 1; overflow-y: auto; background: #0D1A12;
+      background-image: linear-gradient(rgba(46,125,69,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(46,125,69,.025) 1px, transparent 1px);
+      background-size: 40px 40px; }
+
+    /* ── Sidebar ── */
+    .nav-logo { padding: 14px 14px 10px; border-bottom: 1px solid rgba(46,125,69,.15); flex-shrink: 0; }
+    .nav-section-label { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: #4A5568; padding: 14px 14px 6px; white-space: nowrap; overflow: hidden; }
+    #sidebar.collapsed .nav-section-label { opacity: 0; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; cursor: pointer; font-family: 'Outfit',sans-serif; font-size: 13px; font-weight: 500; color: #8A9BB0; transition: all .18s; white-space: nowrap; overflow: hidden; border-left: 2px solid transparent; text-decoration: none; }
+    .nav-item:hover  { color: #FDFCF9; background: rgba(46,125,69,.08); }
+    .nav-item.active { color: #4CAF6F; background: rgba(46,125,69,.12); border-left-color: #4CAF6F; }
+    .nav-item .nav-icon  { flex-shrink: 0; width: 16px; height: 16px; }
+    .nav-item .nav-badge { margin-left: auto; background: #E74C3C; color: #fff; font-family: 'DM Mono',monospace; font-size: 9px; padding: 1px 5px; border-radius: 8px; flex-shrink: 0; }
+    .nav-item .nav-badge.gold { background: rgba(184,150,46,.3); color: #D4AE50; }
+    #sidebar.collapsed .nav-item span, #sidebar.collapsed .nav-badge { display: none; }
+
+    /* ── Demo banner ── */
+    #demo-banner { background: rgba(184,150,46,.12); border-bottom: 1px solid rgba(212,174,80,.25); padding: 6px 20px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.5);} }
+    .dot-pulse { animation: pulse-dot 2s ease infinite; }
+
+    /* ── Module header + tabs — flex-shrink:0 keeps it always visible ── */
+    .module-header { flex-shrink: 0; padding: 20px 24px 0; border-bottom: 1px solid rgba(46,125,69,.12); background: rgba(9,20,16,.6); }
+    .mod-tab { font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; padding: 10px 16px; cursor: pointer; color: #4A5568; border-bottom: 2px solid transparent; transition: all .18s; white-space: nowrap; }
+    .mod-tab:hover { color: #8A9BB0; }
+    .mod-tab.active { color: #4CAF6F; border-bottom-color: #4CAF6F; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Score ring ── */
+    .score-ring-wrap { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+    .score-ring-label { position: absolute; text-align: center; }
+
+    /* ── Tags ── */
+    .tag { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; padding: 2px 8px; display: inline-block; }
+    .tag-g { background: rgba(46,125,69,.15);  color: #4CAF6F; border: 1px solid rgba(46,125,69,.3); }
+    .tag-r { background: rgba(231,76,60,.12);  color: #E74C3C; border: 1px solid rgba(231,76,60,.25); }
+    .tag-y { background: rgba(212,174,80,.12); color: #D4AE50; border: 1px solid rgba(212,174,80,.25); }
+    .tag-n { background: rgba(255,255,255,.04); color: #8A9BB0; border: 1px solid rgba(255,255,255,.1); }
+    .tag-b { background: rgba(93,173,226,.1);  color: #5DADE2; border: 1px solid rgba(93,173,226,.2); }
+    .tag-gold { background: rgba(184,150,46,.15); color: #D4AE50; border: 1px solid rgba(212,174,80,.3); }
+
+    /* ── Status dot ── */
+    .dot   { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+    .dot-g { background: #4CAF6F; }
+    .dot-r { background: #E74C3C; }
+    .dot-y { background: #D4AE50; }
+
+    /* ── Progress ── */
+    .prog-track { height: 5px; background: rgba(46,125,69,.12); border-radius: 1px; overflow: hidden; }
+    .prog-fill  { height: 100%; border-radius: 1px; transition: width 1.4s cubic-bezier(.22,1,.36,1); }
+    .prog-track.thick { height: 8px; }
+
+    /* ── Panel ── */
+    .panel { background: rgba(255,255,255,.02); border: 1px solid rgba(46,125,69,.12); overflow: hidden; }
+    .panel-head { padding: 12px 16px; border-bottom: 1px solid rgba(46,125,69,.12); display: flex; align-items: center; justify-content: space-between; background: rgba(26,61,36,.25); }
+    .panel-title { font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8A9BB0; }
+    .panel-body  { padding: 14px 16px; }
+
+    /* ── Obligation card ── */
+    .obl-card { border: 1px solid rgba(46,125,69,.12); background: rgba(255,255,255,.015); transition: border-color .2s, background .2s; cursor: pointer; }
+    .obl-card:hover { border-color: rgba(46,125,69,.3); background: rgba(46,125,69,.04); }
+    .obl-card.active-obl { border-color: #4CAF6F; background: rgba(46,125,69,.06); }
+    .obl-card.incomplete { border-color: rgba(212,174,80,.2); }
+    .obl-card.incomplete:hover { border-color: rgba(212,174,80,.45); }
+    .obl-number { font-family: 'Cormorant Garamond',serif; font-size: 36px; font-weight: 300; line-height: 1; color: rgba(46,125,69,.3); }
+    .obl-number.active { color: rgba(76,175,111,.5); }
+
+    /* ── Task checklist row ── */
+    .task-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+    .task-row:last-child { border-bottom: none; }
+    .task-check { width: 18px; height: 18px; border-radius: 2px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .15s; margin-top: 1px; }
+    .task-check.done { background: rgba(46,125,69,.25); border: 1px solid rgba(46,125,69,.5); }
+    .task-check.done:hover { background: rgba(46,125,69,.4); }
+    .task-check.todo { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1); }
+    .task-check.todo:hover { border-color: rgba(46,125,69,.4); background: rgba(46,125,69,.08); }
+    .task-text { font-size: 12px; line-height: 1.5; flex: 1; }
+    .task-text.done-text { color: #4A5568; text-decoration: line-through; }
+    .task-text.todo-text { color: #D4DCE8; }
+
+    /* ── Evidence upload slot ── */
+    .ev-slot { background: rgba(9,20,16,.8); border: 1px dashed rgba(46,125,69,.25); padding: 10px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all .2s; }
+    .ev-slot:hover { border-color: rgba(46,125,69,.5); background: rgba(26,61,36,.3); }
+    .ev-slot.has-file { border-style: solid; border-color: rgba(46,125,69,.3); background: rgba(46,125,69,.05); }
+
+    /* ── Data table ── */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .data-table th { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: #4A5568; padding: 8px 10px; text-align: left; border-bottom: 1px solid rgba(46,125,69,.12); background: rgba(26,61,36,.2); }
+    .data-table td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.03); color: #D4DCE8; vertical-align: middle; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(46,125,69,.04); }
+    .mono { font-family: 'DM Mono',monospace; font-size: 11px; }
+
+    /* ── Buttons ── */
+    .btn-primary { background: #2E7D45; color: #FDFCF9; font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; padding: 9px 16px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background .2s; }
+    .btn-primary:hover { background: #235930; }
+    .btn-outline  { background: transparent; color: #4CAF6F; border: 1px solid rgba(46,125,69,.35); font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; padding: 8px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all .2s; }
+    .btn-outline:hover { background: rgba(46,125,69,.1); border-color: #4CAF6F; }
+    .btn-gold { background: #B8962E; color: #0D1A12; font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; padding: 9px 16px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background .2s; font-weight: 700; }
+    .btn-gold:hover { background: #D4AE50; }
+    .btn-red { background: rgba(231,76,60,.1); color: #E74C3C; border: 1px solid rgba(231,76,60,.25); font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; padding: 8px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all .2s; }
+
+    /* ── Form elements ── */
+    .field-label { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: #8A9BB0; display: block; margin-bottom: 6px; }
+    .field-input { width: 100%; background: rgba(26,61,36,.45); border: 1px solid rgba(46,125,69,.25); color: #FDFCF9; font-family: 'DM Mono',monospace; font-size: 13px; padding: 10px 12px; transition: border-color .2s; }
+    .field-input:focus { outline: none; border-color: #4CAF6F; background: rgba(26,61,36,.65); }
+    .field-input::placeholder { color: #4A5568; }
+    .field-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234A5568' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+    .field-select option { background: #1A3D24; }
+
+    /* ── Notif badge ── */
+    .notif-badge { position: absolute; top: -3px; right: -3px; width: 14px; height: 14px; background: #E74C3C; border-radius: 50%; font-family: 'DM Mono',monospace; font-size: 8px; color: #fff; display: flex; align-items: center; justify-content: center; }
+
+    /* ── Modal ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(9,20,16,.85); backdrop-filter: blur(4px); z-index: 300; display: none; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: #0D1A12; border: 1px solid rgba(46,125,69,.3); width: 640px; max-width: 95vw; max-height: 92vh; overflow-y: auto; }
+    @keyframes modal-in { from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);} }
+    .modal-box { animation: modal-in .25s ease both; }
+    .modal-head { padding: 16px 20px; border-bottom: 1px solid rgba(46,125,69,.15); display: flex; align-items: center; justify-content: space-between; background: rgba(26,61,36,.3); }
+    .modal-body { padding: 20px; }
+
+    /* ── Tooltip ── */
+    [data-tip] { position: relative; }
+    [data-tip]:hover::after { content: attr(data-tip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #1A3D24; border: 1px solid rgba(46,125,69,.3); font-family: 'DM Mono',monospace; font-size: 9px; color: #A8D5B5; padding: 4px 8px; white-space: nowrap; pointer-events: none; z-index: 200; margin-bottom: 4px; }
+
+    /* ── NDC trajectory chart styles ── */
+    .trajectory-bar { background: rgba(46,125,69,.12); border-radius: 1px; position: relative; overflow: hidden; }
+    .trajectory-fill-actual { background: linear-gradient(90deg,#235930,#4CAF6F); height: 100%; border-radius: 1px; }
+    .trajectory-fill-target { background: rgba(212,174,80,.4); height: 100%; border-radius: 1px; }
+
+    /* ── FDP chapter section ── */
+    .fdp-section { border: 1px solid rgba(46,125,69,.12); margin-bottom: 2px; }
+    .fdp-section-head { padding: 10px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: background .15s; background: rgba(26,61,36,.15); }
+    .fdp-section-head:hover { background: rgba(26,61,36,.3); }
+    .fdp-section-body { padding: 12px 14px; border-top: 1px solid rgba(46,125,69,.08); font-size: 12px; color: #8A9BB0; line-height: 1.7; display: none; }
+    .fdp-section-body.open { display: block; }
+
+    /* ── Submission history row ── */
+    .sub-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+    .sub-row:last-child { border-bottom: none; }
+
+    @media (max-width: 768px) {
+      #sidebar { width: 56px; }
+      #sidebar .nav-section-label, #sidebar .nav-item span, #sidebar .nav-badge { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ DEMO BANNER ═══ -->
+<div id="demo-banner">
+  <div class="flex items-center gap-3">
+    <div class="dot dot-y dot-pulse"></div>
+    <span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#D4AE50;">
+      Live Demo Mode — Seplat Energy Plc · OML 4, OML 38 · Pro Tier
+    </span>
+  </div>
+  <div class="flex items-center gap-4">
+    <a href="../demo.html" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#D4AE50;text-decoration:none;">Book Real Demo →</a>
+    <button onclick="document.getElementById('demo-banner').style.display='none'" style="color:#4A5568;background:none;border:none;cursor:pointer;font-size:16px;line-height:1;">×</button>
+  </div>
+</div>
+
+<!-- ═══ APP SHELL ═══ -->
+<div id="app-shell">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div class="nav-logo">
+      <a href="../index.html" class="flex items-center gap-2" style="text-decoration:none;">
+        <svg width="28" height="28" viewBox="0 0 56 56" fill="none">
+          <circle cx="28" cy="28" r="18" stroke="#4CAF6F" stroke-width="1.5" fill="none"/>
+          <circle cx="28" cy="28" r="3" fill="#4CAF6F"/>
+          <path d="M28 10 C34 14,44 20,44 28 C44 28,36 22,28 10Z" fill="#2E7D45" opacity=".8"/>
+          <line x1="38" y1="8" x2="42" y2="14" stroke="#B8962E" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:18px;">
+          <span style="color:#FDFCF9;">Verde</span><span style="color:#D4AE50;">Scope</span>
+        </span>
+      </a>
+    </div>
+    <div style="padding:10px 14px;border-bottom:1px solid rgba(46,125,69,.12);">
+      <div class="flex items-center gap-2" style="padding:4px 10px;background:rgba(46,125,69,.1);border:1px solid rgba(46,125,69,.25);">
+        <i data-lucide="building-2" style="width:12px;height:12px;color:#4CAF6F;flex-shrink:0;"></i>
+        <span style="font-family:'DM Mono',monospace;font-size:10px;color:#D4DCE8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">Seplat Energy Plc</span>
+      </div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding-bottom:12px;">
+      <div class="nav-section-label">Core</div>
+      <a class="nav-item" href="dashboard.html"><i data-lucide="layout-dashboard" class="nav-icon"></i><span>Dashboard</span></a>
+      <a class="nav-item" href="emissions.html"><i data-lucide="calculator" class="nav-icon"></i><span>Emissions</span></a>
+      <a class="nav-item" href="ldar.html"><i data-lucide="search" class="nav-icon"></i><span>LDAR Manager</span><span class="nav-badge">3</span></a>
+      <a class="nav-item" href="equipment.html"><i data-lucide="settings" class="nav-icon"></i><span>Equipment</span><span class="nav-badge">1</span></a>
+      <a class="nav-item active" href="updt.html"><i data-lucide="shield-check" class="nav-icon"></i><span>UPDT Compliance</span></a>
+      <div class="nav-section-label">Revenue</div>
+      <a class="nav-item" href="carbon-market.html"><i data-lucide="trending-up" class="nav-icon"></i><span>Carbon Market</span><span class="nav-badge gold">$</span></a>
+      <div class="nav-section-label">Reports</div>
+      <a class="nav-item" href="reports.html"><i data-lucide="file-text" class="nav-icon"></i><span>Reports</span></a>
+      <a class="nav-item" href="#"><i data-lucide="brain" class="nav-icon"></i><span>Verde Intelligence</span></a>
+      <div class="nav-section-label">Account</div>
+      <a class="nav-item" href="../resources.html" target="_blank"><i data-lucide="book-open" class="nav-icon"></i><span>Academy</span></a>
+      <a class="nav-item" href="settings.html"><i data-lucide="settings-2" class="nav-icon"></i><span>Settings</span></a>
+    </div>
+    <div style="padding:10px 14px;border-top:1px solid rgba(46,125,69,.12);">
+      <button onclick="toggleSidebar()" style="background:none;border:none;cursor:pointer;color:#4A5568;display:flex;align-items:center;gap:6px;">
+        <i data-lucide="panel-left-close" style="width:16px;height:16px;" id="collapse-icon"></i>
+        <span id="collapse-label" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;">Collapse</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div id="main-area">
+
+    <!-- TOPBAR -->
+    <div id="topbar">
+      <div style="flex:1;">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8A9BB0;">UPDT Compliance</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:11px;color:#4A5568;">Upstream Petroleum Decarbonisation Template · Mandatory from January 2025 · PIA 2021 §96–97</div>
+      </div>
+      <!-- Score chip -->
+      <div style="display:flex;align-items:center;gap:6px;padding:5px 14px;background:rgba(46,125,69,.1);border:1px solid rgba(46,125,69,.3);">
+        <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#4A5568;">Readiness Score</span>
+        <span style="font-family:'DM Mono',monospace;font-size:16px;font-weight:300;color:#4CAF6F;" id="topbar-score">78</span>
+        <span style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">/ 100</span>
+      </div>
+      <button onclick="openModal('export-modal')" style="display:flex;align-items:center;gap:5px;background:rgba(46,125,69,.1);border:1px solid rgba(46,125,69,.2);color:#4CAF6F;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;cursor:pointer;">
+        <i data-lucide="download" style="width:12px;height:12px;"></i> Export
+      </button>
+      <button onclick="openModal('submit-modal')" style="display:flex;align-items:center;gap:5px;background:#B8962E;border:none;color:#0D1A12;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;cursor:pointer;font-weight:700;">
+        <i data-lucide="send" style="width:12px;height:12px;"></i> Submit to NUPRC
+      </button>
+      <div style="position:relative;">
+        <button style="background:none;border:none;cursor:pointer;color:#8A9BB0;padding:4px;position:relative;">
+          <i data-lucide="bell" style="width:18px;height:18px;"></i>
+          <span class="notif-badge">4</span>
+        </button>
+      </div>
+    </div>
+
+    <!--
+      FIX 1: module-header is a direct flex child of #main-area, placed BEFORE
+      #content. It is flex-shrink:0 so it never scrolls away — the tab bar
+      remains visible regardless of how tall the content below becomes.
+    -->
+    <div class="module-header">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:16px;gap:16px;">
+        <div>
+          <h1 style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:#FDFCF9;line-height:1.2;">Upstream Petroleum Decarbonisation Template</h1>
+          <p style="font-family:'Outfit',sans-serif;font-size:12px;color:#8A9BB0;margin-top:4px;">Five mandatory obligations · Compliance score exported with every FDP, licence &amp; permit application · Enforced under PIA 2021 §96–97</p>
+        </div>
+        <div class="flex items-center gap-2" style="flex-shrink:0;">
+          <span class="tag tag-g">Mandatory Jan 2025</span>
+          <span class="tag tag-n">5 Obligations</span>
+        </div>
+      </div>
+      <!--
+        FIX 2: Each tab button gets a stable ID (tab-btn-<name>) so we can
+        navigate to any tab by name without relying on fragile numeric indices.
+        Tab index map: [0]overview [1]obl1 [2]obl2 [3]obl3 [4]obl4 [5]obl5 [6]fdp-chapter [7]submissions
+      -->
+      <div class="flex" style="overflow-x:auto;">
+        <div class="mod-tab active" id="tab-btn-overview"    onclick="switchTab('overview',this)">Overview &amp; Score</div>
+        <div class="mod-tab"        id="tab-btn-obl1"        onclick="switchTab('obl1',this)">Obl. 1 · FDP Strategy</div>
+        <div class="mod-tab"        id="tab-btn-obl2"        onclick="switchTab('obl2',this)">Obl. 2 · GHG Targets</div>
+        <div class="mod-tab"        id="tab-btn-obl3"        onclick="switchTab('obl3',this)">Obl. 3 · Flaring</div>
+        <div class="mod-tab"        id="tab-btn-obl4"        onclick="switchTab('obl4',this)">Obl. 4 · Methane</div>
+        <div class="mod-tab"        id="tab-btn-obl5"        onclick="switchTab('obl5',this)">Obl. 5 · CCS / NBS</div>
+        <div class="mod-tab"        id="tab-btn-fdp-chapter" onclick="switchTab('fdp-chapter',this)">FDP Chapter</div>
+        <div class="mod-tab"        id="tab-btn-submissions" onclick="switchTab('submissions',this)">Submissions</div>
+      </div>
+    </div>
+
+    <!-- CONTENT — only the tab panels scroll here -->
+    <div id="content">
+
+
+      <!-- ════ TAB: OVERVIEW & SCORE ════ -->
+      <div class="tab-panel active" id="tab-overview" style="padding:20px 24px;">
+
+        <div style="display:grid;grid-template-columns:280px 1fr;gap:20px;margin-bottom:20px;">
+
+          <!-- Score ring -->
+          <div class="panel" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 20px;">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#4A5568;margin-bottom:16px;">UPDT Readiness Score</div>
+            <div class="score-ring-wrap">
+              <canvas id="score-ring-chart" width="180" height="180"></canvas>
+              <div class="score-ring-label">
+                <div id="ring-score-label" style="font-family:'DM Mono',monospace;font-size:42px;font-weight:300;color:#4CAF6F;line-height:1;">78</div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;">/ 100</div>
+              </div>
+            </div>
+            <div style="margin-top:16px;text-align:center;">
+              <span class="tag tag-y" style="font-size:10px;">Good Standing</span>
+              <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:8px;letter-spacing:.06em;">22 points to full compliance</div>
+            </div>
+            <div style="margin-top:16px;width:100%;">
+              <button class="btn-gold" style="width:100%;justify-content:center;" onclick="openModal('export-modal')">
+                <i data-lucide="file-down" style="width:13px;height:13px;"></i> Export Score PDF
+              </button>
+            </div>
+            <!-- Regulatory context -->
+            <div style="margin-top:14px;background:rgba(231,76,60,.05);border:1px solid rgba(231,76,60,.15);padding:10px 12px;width:100%;">
+              <div style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:#E74C3C;margin-bottom:4px;">Enforcement</div>
+              <div style="font-size:11px;color:#8A9BB0;line-height:1.5;">Non-compliance triggers licence revocation under <strong style="color:#D4DCE8;">PIA 2021 §96–97</strong></div>
+            </div>
+          </div>
+
+          <!-- Obligation breakdown -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">Five Obligation Scores · Weighted Average</span>
+              <span class="tag tag-b" style="font-size:8px;">UPDT · Eff. Jan 2025</span>
+            </div>
+            <div class="panel-body" id="obl-score-breakdown">
+              <!-- JS populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom row: NDC trajectory + regulatory links -->
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;">
+          <!-- NDC alignment chart -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">NDC 3.0 Trajectory Alignment · Seplat Energy Plc</span>
+              <span class="tag tag-n">Nigeria NDC 3.0 · Sep 2025</span>
+            </div>
+            <div class="panel-body">
+              <div style="font-size:11px;color:#8A9BB0;margin-bottom:12px;">Nigeria NDC 3.0 targets: zero routine flaring by 2030 · 60% CH₄ reduction by 2035 · 32.2% economy-wide GHG reduction by 2035 vs 2018 baseline</div>
+              <canvas id="ndc-chart" height="130"></canvas>
+            </div>
+          </div>
+
+          <!-- Regulatory instruments panel -->
+          <div class="panel">
+            <div class="panel-head"><span class="panel-title">Regulatory Basis</span></div>
+            <div class="panel-body" style="padding:0;">
+              <div style="padding:10px 14px;border-bottom:1px solid rgba(46,125,69,.08);">
+                <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#D4AE50;margin-bottom:3px;">UPDT · Jan 2025</div>
+                <div style="font-size:11px;color:#D4DCE8;line-height:1.5;">All 5 obligations mandatory. Score submitted with FDP, licence &amp; permit applications to NUPRC.</div>
+              </div>
+              <div style="padding:10px 14px;border-bottom:1px solid rgba(46,125,69,.08);">
+                <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#E74C3C;margin-bottom:3px;">PIA 2021 §96–97</div>
+                <div style="font-size:11px;color:#D4DCE8;line-height:1.5;">Enforcement: NUPRC may revoke licences for non-compliance with decarbonisation obligations.</div>
+              </div>
+              <div style="padding:10px 14px;border-bottom:1px solid rgba(46,125,69,.08);">
+                <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#4CAF6F;margin-bottom:3px;">Climate Change Act 2021 §24</div>
+                <div style="font-size:11px;color:#D4DCE8;line-height:1.5;">Entities with 50+ employees must meet annual carbon reduction targets under the NCCAP.</div>
+              </div>
+              <div style="padding:10px 14px;">
+                <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#5DADE2;margin-bottom:3px;">Nigeria Carbon Market Framework · Oct 2025</div>
+                <div style="font-size:11px;color:#D4DCE8;line-height:1.5;">UPDT compliance data feeds directly into VCM &amp; Article 6.4 carbon credit origination pipeline.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /overview -->
+
+
+      <!-- ════ TAB: OBLIGATION 1 — FDP Strategy ════ -->
+      <div class="tab-panel" id="tab-obl1" style="padding:20px 24px;">
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;">
+          <div>
+            <!-- Obligation header -->
+            <div style="background:rgba(46,125,69,.06);border:1px solid rgba(46,125,69,.15);padding:16px 18px;margin-bottom:16px;">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+                <div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#4CAF6F;margin-bottom:4px;">Obligation 1 of 5</div>
+                  <h2 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:#FDFCF9;">Decarbonisation Strategy in FDP</h2>
+                  <p style="font-size:12px;color:#8A9BB0;margin-top:4px;line-height:1.5;">Integrate a documented GHG decarbonisation plan into the economics &amp; technical sections of every Field Development Plan submitted to NUPRC.</p>
+                </div>
+                <div style="text-align:right;flex-shrink:0;">
+                  <div style="font-family:'DM Mono',monospace;font-size:32px;font-weight:300;color:#4CAF6F;">82<span style="font-size:14px;color:#4A5568;">%</span></div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#4A5568;">Completion</div>
+                </div>
+              </div>
+              <div class="prog-track thick" style="margin-top:10px;">
+                <div class="prog-fill" style="width:82%;background:linear-gradient(90deg,#235930,#4CAF6F);"></div>
+              </div>
+            </div>
+
+            <!-- Task checklist -->
+            <div class="panel" style="margin-bottom:16px;">
+              <div class="panel-head"><span class="panel-title">Task Checklist</span><span style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;">9 / 11 Complete</span></div>
+              <div class="panel-body" style="padding:0 16px;">
+                <div id="obl1-tasks"></div>
+              </div>
+            </div>
+
+            <!-- Evidence uploads -->
+            <div class="panel">
+              <div class="panel-head"><span class="panel-title">Evidence Documents</span><span class="tag tag-n">3 Uploaded · 1 Required</span></div>
+              <div class="panel-body">
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                  <div class="ev-slot has-file">
+                    <i data-lucide="file-check" style="width:14px;height:14px;color:#4CAF6F;flex-shrink:0;"></i>
+                    <div style="flex:1;"><div style="font-size:12px;color:#D4DCE8;">FDP_OML4_GHG_Chapter_v2.pdf</div><div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:1px;">Uploaded 14 May 2026 · 2.4 MB</div></div>
+                    <span class="tag tag-g" style="font-size:8px;">Certified</span>
+                  </div>
+                  <div class="ev-slot has-file">
+                    <i data-lucide="file-check" style="width:14px;height:14px;color:#4CAF6F;flex-shrink:0;"></i>
+                    <div style="flex:1;"><div style="font-size:12px;color:#D4DCE8;">Seplat_Decarb_Strategy_2025.pdf</div><div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:1px;">Uploaded 02 Mar 2026 · 1.1 MB</div></div>
+                    <span class="tag tag-g" style="font-size:8px;">Certified</span>
+                  </div>
+                  <div class="ev-slot has-file">
+                    <i data-lucide="file-check" style="width:14px;height:14px;color:#4CAF6F;flex-shrink:0;"></i>
+                    <div style="flex:1;"><div style="font-size:12px;color:#D4DCE8;">Board_Resolution_Net_Zero_2050.pdf</div><div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:1px;">Uploaded 18 Jan 2026 · 0.6 MB</div></div>
+                    <span class="tag tag-g" style="font-size:8px;">Certified</span>
+                  </div>
+                  <div class="ev-slot" onclick="this.querySelector('input').click()">
+                    <input type="file" style="display:none;" />
+                    <i data-lucide="upload" style="width:14px;height:14px;color:#4A5568;flex-shrink:0;"></i>
+                    <div style="flex:1;"><div style="font-size:12px;color:#4A5568;">FDP_OML38_GHG_Chapter_Draft.pdf — Upload required</div><div style="font-family:'DM Mono',monospace;font-size:9px;color:#E74C3C;margin-top:1px;">⚠ Missing — Required for full compliance</div></div>
+                    <span class="tag tag-r" style="font-size:8px;">Required</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sidebar: guidance -->
+          <div>
+            <div class="panel" style="margin-bottom:12px;">
+              <div class="panel-head"><span class="panel-title">NUPRC Requirement</span></div>
+              <div class="panel-body" style="font-size:12px;color:#D4DCE8;line-height:1.7;">
+                Every Field Development Plan submitted to NUPRC must include a GHG decarbonisation chapter demonstrating:
+                <ul style="margin-top:8px;padding-left:16px;color:#8A9BB0;font-size:11px;">
+                  <li>Baseline GHG inventory for the project</li>
+                  <li>Quantified reduction targets and timelines</li>
+                  <li>Technology selection rationale</li>
+                  <li>Carbon cost integration into project economics</li>
+                  <li>Net Zero pathway alignment to 2050</li>
+                </ul>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><span class="panel-title">FDP Quick Actions</span></div>
+              <div class="panel-body" style="display:flex;flex-direction:column;gap:8px;">
+                <!-- FIX 3: use switchTabById — no fragile numeric index needed -->
+                <button class="btn-primary" onclick="switchTabById('fdp-chapter')" style="width:100%;justify-content:center;">
+                  <i data-lucide="file-text" style="width:12px;height:12px;"></i> Open FDP Chapter Builder
+                </button>
+                <button class="btn-outline" style="width:100%;justify-content:center;">
+                  <i data-lucide="download" style="width:12px;height:12px;"></i> Download NUPRC Template
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /obl1 -->
+
+
+      <!-- ════ TAB: OBLIGATION 2 — GHG Targets ════ -->
+      <div class="tab-panel" id="tab-obl2" style="padding:20px 24px;">
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;">
+          <div>
+            <div style="background:rgba(212,174,80,.05);border:1px solid rgba(212,174,80,.18);padding:16px 18px;margin-bottom:16px;">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+                <div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#D4AE50;margin-bottom:4px;">Obligation 2 of 5</div>
+                  <h2 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:#FDFCF9;">Time-Bound GHG Reduction Goals</h2>
+                  <p style="font-size:12px;color:#8A9BB0;margin-top:4px;line-height:1.5;">Annual GHG reduction targets, linked to the Nigeria NDC 3.0 trajectory and the National Climate Change Action Plan.</p>
+                </div>
+                <div style="text-align:right;flex-shrink:0;">
+                  <div style="font-family:'DM Mono',monospace;font-size:32px;font-weight:300;color:#D4AE50;">71<span style="font-size:14px;color:#4A5568;">%</span></div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#4A5568;">Completion</div>
+                </div>
+              </div>
+              <div class="prog-track thick" style="margin-top:10px;">
+                <div class="prog-fill" style="width:71%;background:linear-gradient(90deg,#B8962E,#D4AE50);"></div>
+              </div>
+            </div>
+
+            <!-- Target-setting wizard -->
+            <div class="panel" style="margin-bottom:16px;">
+              <div class="panel-head">
+                <span class="panel-title">Annual Reduction Target Wizard</span>
+                <span class="tag tag-b">Linked to NDC 3.0</span>
+              </div>
+              <div class="panel-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+                  <div>
+                    <label class="field-label">Base Year</label>
+                    <select class="field-input field-select" style="font-size:12px;padding:9px 12px;">
+                      <option>2020 (NUPRC reference)</option><option>2019</option><option>2018 (NDC 3.0 baseline)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="field-label">Base Year Emissions (tCO₂e)</label>
+                    <input class="field-input" value="48,240" style="font-size:12px;padding:9px 12px;" />
+                  </div>
+                  <div>
+                    <label class="field-label">Annual Reduction Target (%)</label>
+                    <input class="field-input" value="2.5" type="number" step="0.5" style="font-size:12px;padding:9px 12px;" />
+                  </div>
+                  <div>
+                    <label class="field-label">Net Zero Target Year</label>
+                    <select class="field-input field-select" style="font-size:12px;padding:9px 12px;">
+                      <option>2050</option><option>2045</option><option>2040</option>
+                    </select>
+                  </div>
+                </div>
+                <!-- Target trajectory table -->
+                <div style="overflow-x:auto;">
+                  <table class="data-table">
+                    <thead><tr><th>Year</th><th>Target (tCO₂e)</th><th>Actual (tCO₂e)</th><th>Variance</th><th>Status</th></tr></thead>
+                    <tbody id="target-table-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Task checklist -->
+            <div class="panel">
+              <div class="panel-head"><span class="panel-title">Task Checklist</span><span style="font-family:'DM Mono',monospace;font-size:9px;color:#D4AE50;">7 / 10 Complete</span></div>
+              <div class="panel-body" style="padding:0 16px;">
+                <div id="obl2-tasks"></div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="panel" style="margin-bottom:12px;">
+              <div class="panel-head"><span class="panel-title">NDC 3.0 Sector Targets</span></div>
+              <div class="panel-body" style="padding:0;">
+                <div style="padding:10px 14px;border-bottom:1px solid rgba(46,125,69,.08);">
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#D4AE50;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">Zero Routine Flaring</div>
+                  <div style="font-size:11px;color:#D4DCE8;">By <strong>2030</strong></div>
+                  <div class="prog-track" style="margin-top:6px;"><div class="prog-fill" style="width:42%;background:#D4AE50;"></div></div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:3px;">42% progress toward target</div>
+                </div>
+                <div style="padding:10px 14px;border-bottom:1px solid rgba(46,125,69,.08);">
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">Methane Reduction</div>
+                  <div style="font-size:11px;color:#D4DCE8;"><strong>60%</strong> reduction by 2035</div>
+                  <div class="prog-track" style="margin-top:6px;"><div class="prog-fill" style="width:28%;background:#4CAF6F;"></div></div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:3px;">28% progress toward target</div>
+                </div>
+                <div style="padding:10px 14px;">
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#5DADE2;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">Economy-Wide GHG</div>
+                  <div style="font-size:11px;color:#D4DCE8;"><strong>32.2%</strong> reduction by 2035 vs 2018</div>
+                  <div class="prog-track" style="margin-top:6px;"><div class="prog-fill" style="width:35%;background:#5DADE2;"></div></div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:3px;">35% progress toward target</div>
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><span class="panel-title">Climate Change Act §24</span></div>
+              <div class="panel-body" style="font-size:12px;color:#8A9BB0;line-height:1.6;">
+                Seplat Energy (50+ employees) must meet annual carbon reduction targets under the National Climate Change Action Plan. UPDT Obligation 2 satisfies this requirement when fully completed.
+                <div style="margin-top:10px;"><span class="tag tag-g" style="font-size:8px;">✓ NCCAP Alignment Confirmed</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /obl2 -->
+
+
+      <!-- ════ TAB: OBLIGATION 3 — Flaring ════ -->
+      <div class="tab-panel" id="tab-obl3" style="padding:20px 24px;">
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;">
+          <div>
+            <div style="background:rgba(231,76,60,.05);border:1px solid rgba(231,76,60,.18);padding:16px 18px;margin-bottom:16px;">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+                <div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#E74C3C;margin-bottom:4px;">Obligation 3 of 5</div>
+                  <h2 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:#FDFCF9;">Gas Flaring &amp; Venting Compliance</h2>
+                  <p style="font-size:12px;color:#8A9BB0;margin-top:4px;line-height:1.5;">Zero routine flaring mandate by 2030. All associated gas must be captured and utilised. Cold venting prohibited under waiver regime.</p>
+                </div>
+                <div style="text-align:right;flex-shrink:0;">
+                  <div style="font-family:'DM Mono',monospace;font-size:32px;font-weight:300;color:#4CAF6F;">88<span style="font-size:14px;color:#4A5568;">%</span></div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#4A5568;">Completion</div>
+                </div>
+              </div>
+              <div class="prog-track thick" style="margin-top:10px;">
+                <div class="prog-fill" style="width:88%;background:linear-gradient(90deg,#7B2D20,#E74C3C);"></div>
+              </div>
+            </div>
+
+            <!-- Flaring register summary -->
+            <div class="panel" style="margin-bottom:16px;">
+              <div class="panel-head"><span class="panel-title">Flaring &amp; Venting Register · Q2 2026</span><a href="emissions.html" style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;text-decoration:none;letter-spacing:.1em;text-transform:uppercase;">View Full → Emissions Module</a></div>
+              <div class="panel-body" style="padding:0;">
+                <table class="data-table">
+                  <thead><tr><th>Facility</th><th>Flare Vol (MMscfd)</th><th>DRE (%)</th><th>CO₂e (tCO₂e/qtr)</th><th>2030 Trajectory</th><th>Status</th></tr></thead>
+                  <tbody>
+                    <tr><td class="mono">OML4-GCS-02</td><td class="mono">0.12</td><td class="mono" style="color:#4CAF6F;">98.2%</td><td class="mono">184</td><td><div class="prog-track" style="width:80px;"><div class="prog-fill" style="width:38%;background:#D4AE50;"></div></div></td><td><span class="tag tag-g" style="font-size:8px;">Compliant</span></td></tr>
+                    <tr><td class="mono">OML4-GCS-03</td><td class="mono">0.08</td><td class="mono" style="color:#4CAF6F;">98.6%</td><td class="mono">124</td><td><div class="prog-track" style="width:80px;"><div class="prog-fill" style="width:52%;background:#4CAF6F;"></div></div></td><td><span class="tag tag-g" style="font-size:8px;">Compliant</span></td></tr>
+                    <tr><td class="mono">OML38-GPS-01</td><td class="mono">0.21</td><td class="mono" style="color:#D4AE50;">97.4%</td><td class="mono">312</td><td><div class="prog-track" style="width:80px;"><div class="prog-fill" style="width:28%;background:#D4AE50;"></div></div></td><td><span class="tag tag-y" style="font-size:8px;">DRE Below 98%</span></td></tr>
+                    <tr><td class="mono">OML38-EXP-01</td><td class="mono">0.04</td><td class="mono" style="color:#4CAF6F;">99.1%</td><td class="mono">62</td><td><div class="prog-track" style="width:80px;"><div class="prog-fill" style="width:65%;background:#4CAF6F;"></div></div></td><td><span class="tag tag-g" style="font-size:8px;">Compliant</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Task checklist -->
+            <div class="panel">
+              <div class="panel-head"><span class="panel-title">Task Checklist</span><span style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;">8 / 9 Complete</span></div>
+              <div class="panel-body" style="padding:0 16px;"><div id="obl3-tasks"></div></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="panel" style="margin-bottom:12px;">
+              <div class="panel-head"><span class="panel-title">Regulatory Reference</span></div>
+              <div class="panel-body" style="padding:0;">
+                <div style="padding:10px 14px;border-bottom:1px solid rgba(46,125,69,.08);">
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#D4AE50;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">Gas Flaring Regulations 2023</div>
+                  <div style="font-size:11px;color:#D4DCE8;line-height:1.5;">Zero routine flaring by 2030. All associated gas to be captured and utilised. Quarterly reporting of flare volumes.</div>
+                </div>
+                <div style="padding:10px 14px;">
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#E74C3C;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">DRE Requirement</div>
+                  <div style="font-size:11px;color:#D4DCE8;line-height:1.5;"><strong>98% Destruction &amp; Removal Efficiency</strong> required. Auto-igniter test annually. Unlit flare: 48-hour reignition deadline.</div>
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><span class="panel-title">Venting Status</span></div>
+              <div class="panel-body">
+                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(46,125,69,.08);">
+                  <span style="font-size:12px;color:#8A9BB0;">Cold venting incidents (QTD)</span>
+                  <span class="mono" style="color:#4CAF6F;">0</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(46,125,69,.08);">
+                  <span style="font-size:12px;color:#8A9BB0;">Waiver-approved venting</span>
+                  <span class="mono" style="color:#D4AE50;">1 active</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:6px 0;">
+                  <span style="font-size:12px;color:#8A9BB0;">CO₂e from venting (QTD)</span>
+                  <span class="mono" style="color:#8A9BB0;">14 tCO₂e</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /obl3 -->
+
+
+      <!-- ════ TAB: OBLIGATION 4 — Methane ════ -->
+      <div class="tab-panel" id="tab-obl4" style="padding:20px 24px;">
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;">
+          <div>
+            <div style="background:rgba(46,125,69,.06);border:1px solid rgba(46,125,69,.15);padding:16px 18px;margin-bottom:16px;">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+                <div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#4CAF6F;margin-bottom:4px;">Obligation 4 of 5</div>
+                  <h2 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:#FDFCF9;">Methane Management Programme</h2>
+                  <p style="font-size:12px;color:#8A9BB0;margin-top:4px;line-height:1.5;">Aggregates LDAR programme data and equipment compliance tracker into a formal methane management programme statement for NUPRC.</p>
+                </div>
+                <div style="text-align:right;flex-shrink:0;">
+                  <div style="font-family:'DM Mono',monospace;font-size:32px;font-weight:300;color:#4CAF6F;">76<span style="font-size:14px;color:#4A5568;">%</span></div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#4A5568;">Completion</div>
+                </div>
+              </div>
+              <div class="prog-track thick" style="margin-top:10px;">
+                <div class="prog-fill" style="width:76%;background:linear-gradient(90deg,#235930,#4CAF6F);"></div>
+              </div>
+            </div>
+
+            <!-- Auto-aggregated data from LDAR + Equipment -->
+            <div class="panel" style="margin-bottom:16px;">
+              <div class="panel-head">
+                <span class="panel-title">Auto-Aggregated from LDAR &amp; Equipment Modules</span>
+                <span class="tag tag-g" style="font-size:8px;">Live Data</span>
+              </div>
+              <div class="panel-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                  <div style="background:rgba(255,255,255,.02);border:1px solid rgba(46,125,69,.1);padding:12px 14px;">
+                    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#4A5568;margin-bottom:6px;">LDAR Programme</div>
+                    <div style="font-size:12px;color:#D4DCE8;line-height:1.6;">
+                      <div>6 facilities · 18 inspections (YTD)</div>
+                      <div>47 leaks detected · 41 repaired</div>
+                      <div style="color:#E74C3C;">3 overdue SLA items</div>
+                      <div style="color:#4CAF6F;margin-top:4px;">94% compliance score</div>
+                    </div>
+                    <a href="ldar.html" style="display:inline-flex;align-items:center;gap:4px;margin-top:8px;font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;text-decoration:none;letter-spacing:.1em;text-transform:uppercase;">View LDAR →</a>
+                  </div>
+                  <div style="background:rgba(255,255,255,.02);border:1px solid rgba(46,125,69,.1);padding:12px 14px;">
+                    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#4A5568;margin-bottom:6px;">Equipment Compliance</div>
+                    <div style="font-size:12px;color:#D4DCE8;line-height:1.6;">
+                      <div>72 pneumatic controllers</div>
+                      <div>65% zero-bleed (Year 2 target ✓)</div>
+                      <div style="color:#E74C3C;">1 rod packing overdue</div>
+                      <div style="color:#D4AE50;margin-top:4px;">91% overall compliance</div>
+                    </div>
+                    <a href="equipment.html" style="display:inline-flex;align-items:center;gap:4px;margin-top:8px;font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;text-decoration:none;letter-spacing:.1em;text-transform:uppercase;">View Equipment →</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Programme statement tasks -->
+            <div class="panel">
+              <div class="panel-head"><span class="panel-title">Programme Statement Tasks</span><span style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;">8 / 11 Complete</span></div>
+              <div class="panel-body" style="padding:0 16px;"><div id="obl4-tasks"></div></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="panel" style="margin-bottom:12px;">
+              <div class="panel-head"><span class="panel-title">CH₄ Emission Summary</span></div>
+              <div class="panel-body" style="padding:0;">
+                <div style="padding:10px 14px;border-bottom:1px solid rgba(46,125,69,.08);">
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">Total CH₄ (Scope 1 · YTD)</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:20px;font-weight:300;color:#D4DCE8;">12.4 <span style="font-size:11px;color:#4A5568;">tCH₄</span></div>
+                </div>
+                <div style="padding:10px 14px;border-bottom:1px solid rgba(46,125,69,.08);">
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">CO₂e (AR6 · 100-yr GWP 27.9)</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:20px;font-weight:300;color:#D4DCE8;">346 <span style="font-size:11px;color:#4A5568;">tCO₂e</span></div>
+                </div>
+                <div style="padding:10px 14px;">
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">Energy Intensity CH₄ (AR6 20-yr × 82.5)</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:20px;font-weight:300;color:#D4AE50;">1,023 <span style="font-size:11px;color:#4A5568;">tCO₂e energy</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><span class="panel-title">NDC 3.0 Methane Target</span></div>
+              <div class="panel-body">
+                <div style="font-size:12px;color:#D4DCE8;margin-bottom:10px;line-height:1.5;"><strong>60% methane reduction by 2035</strong> vs 2018 baseline (Nigeria NDC 3.0, Sep 2025)</div>
+                <div class="prog-track thick"><div class="prog-fill" style="width:28%;background:linear-gradient(90deg,#235930,#4CAF6F);"></div></div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:4px;">28% progress toward 2035 target</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /obl4 -->
+
+
+      <!-- ════ TAB: OBLIGATION 5 — CCS / NBS ════ -->
+      <div class="tab-panel" id="tab-obl5" style="padding:20px 24px;">
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;">
+          <div>
+            <div style="background:rgba(93,173,226,.05);border:1px solid rgba(93,173,226,.18);padding:16px 18px;margin-bottom:16px;">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+                <div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#5DADE2;margin-bottom:4px;">Obligation 5 of 5</div>
+                  <h2 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:#FDFCF9;">CCS / NBS / Offset Initiative Plan</h2>
+                  <p style="font-size:12px;color:#8A9BB0;margin-top:4px;line-height:1.5;">Carbon capture, nature-based solutions, and carbon market offset readiness assessment and project pipeline planner.</p>
+                </div>
+                <div style="text-align:right;flex-shrink:0;">
+                  <div style="font-family:'DM Mono',monospace;font-size:32px;font-weight:300;color:#D4AE50;">65<span style="font-size:14px;color:#4A5568;">%</span></div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#4A5568;">Completion</div>
+                </div>
+              </div>
+              <div class="prog-track thick" style="margin-top:10px;">
+                <div class="prog-fill" style="width:65%;background:linear-gradient(90deg,#1A5276,#5DADE2);"></div>
+              </div>
+            </div>
+
+            <!-- Carbon market readiness -->
+            <div class="panel" style="margin-bottom:16px;">
+              <div class="panel-head">
+                <span class="panel-title">Carbon Market Readiness Assessment</span>
+                <a href="carbon-market.html" style="font-family:'DM Mono',monospace;font-size:9px;color:#D4AE50;text-decoration:none;letter-spacing:.1em;text-transform:uppercase;">Carbon Market Module →</a>
+              </div>
+              <div class="panel-body" style="padding:0;">
+                <table class="data-table">
+                  <thead><tr><th>Project Type</th><th>Methodology</th><th>Reduction Potential</th><th>Status</th><th>Registry</th></tr></thead>
+                  <tbody>
+                    <tr>
+                      <td>Methane Abatement</td>
+                      <td><span class="tag tag-g" style="font-size:8px;">VCS VM0039</span></td>
+                      <td class="mono">346 tCO₂e/yr</td>
+                      <td><span class="tag tag-y" style="font-size:8px;">Scoping</span></td>
+                      <td style="font-size:11px;">Verra / NCMF</td>
+                    </tr>
+                    <tr>
+                      <td>Flare Elimination</td>
+                      <td><span class="tag tag-b" style="font-size:8px;">Art. 6.4 PACM</span></td>
+                      <td class="mono">682 tCO₂e/yr</td>
+                      <td><span class="tag tag-n" style="font-size:8px;">Planned</span></td>
+                      <td style="font-size:11px;">Nigeria NCR</td>
+                    </tr>
+                    <tr>
+                      <td>Turbine Conversion</td>
+                      <td><span class="tag tag-b" style="font-size:8px;">VCS VM0039</span></td>
+                      <td class="mono">226 tCO₂e/yr</td>
+                      <td><span class="tag tag-n" style="font-size:8px;">Planned</span></td>
+                      <td style="font-size:11px;">Verra</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Task checklist -->
+            <div class="panel">
+              <div class="panel-head"><span class="panel-title">Task Checklist</span><span style="font-family:'DM Mono',monospace;font-size:9px;color:#D4AE50;">6 / 9 Complete</span></div>
+              <div class="panel-body" style="padding:0 16px;"><div id="obl5-tasks"></div></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="panel" style="margin-bottom:12px;">
+              <div class="panel-head"><span class="panel-title">Nigeria Carbon Market Framework</span></div>
+              <div class="panel-body" style="font-size:12px;color:#8A9BB0;line-height:1.6;">
+                <div style="margin-bottom:8px;color:#D4DCE8;">October 2025 Framework establishes:</div>
+                <div style="padding:4px 0;border-bottom:1px solid rgba(46,125,69,.08);">VCM participation rules (Article 6.2/6.4/6.8)</div>
+                <div style="padding:4px 0;border-bottom:1px solid rgba(46,125,69,.08);">ITMO authorisation by NCCC (DNA)</div>
+                <div style="padding:4px 0;border-bottom:1px solid rgba(46,125,69,.08);">National Carbon Registry (forthcoming)</div>
+                <div style="padding:4px 0;">IFRS S2 climate disclosure alignment</div>
+                <div style="margin-top:10px;"><span class="tag tag-gold" style="font-size:8px;">UPDT §5 satisfies §40 of Framework</span></div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><span class="panel-title">ITMO Status</span></div>
+              <div class="panel-body" style="padding:0;">
+                <div style="padding:10px 14px;border-bottom:1px solid rgba(46,125,69,.08);display:flex;justify-content:space-between;">
+                  <span style="font-size:12px;color:#8A9BB0;">Article 6.4 Letter of Authorisation</span>
+                  <span class="tag tag-y" style="font-size:8px;">Pending</span>
+                </div>
+                <div style="padding:10px 14px;display:flex;justify-content:space-between;">
+                  <span style="font-size:12px;color:#8A9BB0;">Corresponding Adjustment</span>
+                  <span class="tag tag-n" style="font-size:8px;">Not yet applied</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /obl5 -->
+
+
+      <!-- ════ TAB: FDP CHAPTER ════ -->
+      <div class="tab-panel" id="tab-fdp-chapter" style="padding:20px 24px;">
+        <div style="display:grid;grid-template-columns:1fr 300px;gap:16px;">
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+              <div>
+                <h2 style="font-family:'Cormorant Garamond',serif;font-size:18px;color:#FDFCF9;">FDP Decarbonisation Chapter Builder</h2>
+                <p style="font-size:12px;color:#8A9BB0;margin-top:2px;">FR-5.3 · Auto-generates a standardised GHG chapter for inclusion in Field Development Plans, formatted to NUPRC template requirements</p>
+              </div>
+              <div class="flex items-center gap-3">
+                <button class="btn-gold">
+                  <i data-lucide="file-down" style="width:12px;height:12px;"></i> Generate FDP Chapter PDF
+                </button>
+              </div>
+            </div>
+
+            <!-- FDP operator + project selector -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+              <div>
+                <label class="field-label">FDP Project Reference</label>
+                <select class="field-input field-select" style="font-size:12px;padding:9px 12px;">
+                  <option>OML 4 — Phase 3 FDP (Active)</option>
+                  <option>OML 38 — Phase 2 FDP (Draft)</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label">GHG Reporting Year</label>
+                <select class="field-input field-select" style="font-size:12px;padding:9px 12px;">
+                  <option>2026</option><option>2025</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Chapter sections accordion -->
+            <div id="fdp-sections"></div>
+          </div>
+
+          <div>
+            <div class="panel" style="margin-bottom:12px;">
+              <div class="panel-head"><span class="panel-title">Chapter Completeness</span></div>
+              <div class="panel-body">
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#8A9BB0;">Auto-filled from VerdeScope</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:11px;color:#4CAF6F;">84%</span>
+                </div>
+                <div class="prog-track thick"><div class="prog-fill" style="width:84%;background:linear-gradient(90deg,#235930,#4CAF6F);"></div></div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:6px;">2 sections require manual input</div>
+                <div style="margin-top:14px;display:flex;flex-direction:column;gap:6px;" id="fdp-checklist-sidebar"></div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><span class="panel-title">NUPRC Template Standard</span></div>
+              <div class="panel-body" style="font-size:12px;color:#8A9BB0;line-height:1.6;">The generated chapter meets NUPRC's required structure for FDP GHG chapters, including all five UPDT obligation references and ISO 14064-1 inventory methodology disclosure.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /fdp-chapter -->
+
+
+      <!-- ════ TAB: SUBMISSIONS ════ -->
+      <div class="tab-panel" id="tab-submissions" style="padding:20px 24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div>
+            <h2 style="font-family:'Cormorant Garamond',serif;font-size:18px;color:#FDFCF9;">Submission History &amp; Packages</h2>
+            <p style="font-size:12px;color:#8A9BB0;margin-top:2px;">All UPDT score packages submitted with FDP, licence, and permit applications</p>
+          </div>
+          <button class="btn-primary" onclick="openModal('submit-modal')">
+            <i data-lucide="send" style="width:12px;height:12px;"></i> Prepare New Submission
+          </button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <!-- Pending submission -->
+          <div style="background:rgba(212,174,80,.06);border:1px solid rgba(212,174,80,.2);padding:16px 18px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#D4AE50;">Draft — Q2 2026 UPDT Package</div>
+              <span class="tag tag-y">In Preparation</span>
+            </div>
+            <div style="font-size:12px;color:#D4DCE8;margin-bottom:10px;">OML 4 Phase 3 FDP Renewal · Licence Application · NUPRC ref: TBD</div>
+            <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+              <span class="tag tag-g" style="font-size:8px;">Obl. 1 ✓</span>
+              <span class="tag tag-g" style="font-size:8px;">Obl. 2 ✓</span>
+              <span class="tag tag-g" style="font-size:8px;">Obl. 3 ✓</span>
+              <span class="tag tag-y" style="font-size:8px;">Obl. 4 — 76%</span>
+              <span class="tag tag-y" style="font-size:8px;">Obl. 5 — 65%</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px;">
+              <span style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">Score:</span>
+              <span style="font-family:'DM Mono',monospace;font-size:16px;font-weight:300;color:#D4AE50;">78 / 100</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <button class="btn-gold" onclick="openModal('submit-modal')">
+                <i data-lucide="send" style="width:12px;height:12px;"></i> Submit to NUPRC
+              </button>
+              <button class="btn-outline" style="padding:8px 12px;">
+                <i data-lucide="file-down" style="width:11px;height:11px;"></i> Preview PDF
+              </button>
+            </div>
+          </div>
+
+          <!-- Score summary card -->
+          <div class="panel">
+            <div class="panel-head"><span class="panel-title">Score Certificate Preview</span></div>
+            <div class="panel-body" style="font-size:12px;">
+              <div style="border:1px solid rgba(46,125,69,.2);padding:14px;background:rgba(9,20,16,.6);">
+                <div style="font-family:'Cormorant Garamond',serif;font-size:15px;color:#FDFCF9;margin-bottom:2px;">VerdeScope UPDT Compliance Certificate</div>
+                <div style="font-family:'DM Mono',monospace;font-size:8px;color:#4A5568;letter-spacing:.1em;margin-bottom:12px;">VS-UPDT-CERT-2026-0047</div>
+                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(46,125,69,.08);"><span style="color:#8A9BB0;">Operator</span><span style="color:#D4DCE8;">Seplat Energy Plc</span></div>
+                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(46,125,69,.08);"><span style="color:#8A9BB0;">Concessions</span><span style="color:#D4DCE8;">OML 4 · OML 38</span></div>
+                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(46,125,69,.08);"><span style="color:#8A9BB0;">Period</span><span style="color:#D4DCE8;">Q2 2026</span></div>
+                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(46,125,69,.08);"><span style="color:#8A9BB0;">Generated by</span><span style="color:#D4DCE8;">VerdeScope Platform v2.1</span></div>
+                <div style="display:flex;justify-content:space-between;padding:6px 0;margin-top:2px;background:rgba(46,125,69,.06);padding:8px;"><span style="color:#8A9BB0;font-weight:600;">UPDT Readiness Score</span><span style="font-family:'DM Mono',monospace;font-size:18px;font-weight:300;color:#4CAF6F;">78 / 100</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submission history -->
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">Submission History</span></div>
+          <div class="panel-body" style="padding:0 16px;">
+            <div class="sub-row">
+              <i data-lucide="check-circle" style="width:14px;height:14px;color:#4CAF6F;flex-shrink:0;"></i>
+              <div style="flex:1;">
+                <div style="font-size:12px;font-weight:500;color:#FDFCF9;">OML 4 FDP Phase 2 Renewal · Licence Application</div>
+                <div style="font-size:11px;color:#4A5568;margin-top:1px;">Submitted 28 Mar 2026 · NUPRC ref: NUPRC/OML4/2026/034 · Score: 74/100</div>
+              </div>
+              <span class="tag tag-g" style="font-size:8px;">Accepted</span>
+              <button class="btn-outline" style="padding:4px 10px;font-size:9px;">PDF</button>
+            </div>
+            <div class="sub-row">
+              <i data-lucide="check-circle" style="width:14px;height:14px;color:#4CAF6F;flex-shrink:0;"></i>
+              <div style="flex:1;">
+                <div style="font-size:12px;font-weight:500;color:#FDFCF9;">OML 38 Production Permit Renewal</div>
+                <div style="font-size:11px;color:#4A5568;margin-top:1px;">Submitted 15 Jan 2026 · NUPRC ref: NUPRC/OML38/2026/007 · Score: 69/100</div>
+              </div>
+              <span class="tag tag-g" style="font-size:8px;">Accepted</span>
+              <button class="btn-outline" style="padding:4px 10px;font-size:9px;">PDF</button>
+            </div>
+            <div class="sub-row">
+              <i data-lucide="check-circle" style="width:14px;height:14px;color:#4CAF6F;flex-shrink:0;"></i>
+              <div style="flex:1;">
+                <div style="font-size:12px;font-weight:500;color:#FDFCF9;">Annual UPDT Compliance Statement 2025</div>
+                <div style="font-size:11px;color:#4A5568;margin-top:1px;">Submitted 31 Mar 2025 · NUPRC ref: NUPRC/UPDT/2025/0112 · Score: 61/100</div>
+              </div>
+              <span class="tag tag-g" style="font-size:8px;">Accepted</span>
+              <button class="btn-outline" style="padding:4px 10px;font-size:9px;">PDF</button>
+            </div>
+            <div class="sub-row" style="border-bottom:none;">
+              <i data-lucide="check-circle" style="width:14px;height:14px;color:#4CAF6F;flex-shrink:0;"></i>
+              <div style="flex:1;">
+                <div style="font-size:12px;font-weight:500;color:#FDFCF9;">Initial UPDT Registration · Jan 2025</div>
+                <div style="font-size:11px;color:#4A5568;margin-top:1px;">First submission · Score: 48/100 (Year 1 baseline) · NUPRC ref: NUPRC/UPDT/2025/0003</div>
+              </div>
+              <span class="tag tag-g" style="font-size:8px;">Accepted</span>
+              <button class="btn-outline" style="padding:4px 10px;font-size:9px;">PDF</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /submissions -->
+
+    </div>
+    <!-- /content -->
+  </div>
+</div>
+<!-- /app-shell -->
+
+
+<!-- ════ MODALS ════ -->
+
+<!-- Export Modal -->
+<div class="modal-overlay" id="export-modal">
+  <div class="modal-box" style="width:440px;">
+    <div class="modal-head">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#4CAF6F;">Export UPDT Package</div>
+      <button onclick="closeModal('export-modal')" style="background:none;border:none;cursor:pointer;color:#4A5568;font-size:20px;line-height:1;">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button class="btn-gold" style="width:100%;justify-content:center;padding:12px;">
+          <i data-lucide="file-down" style="width:14px;height:14px;"></i> UPDT Compliance Score PDF (One-Page)
+        </button>
+        <button class="btn-outline" style="width:100%;justify-content:center;">
+          <i data-lucide="file-text" style="width:13px;height:13px;"></i> Full UPDT Evidence Package (ZIP)
+        </button>
+        <button class="btn-outline" style="width:100%;justify-content:center;">
+          <i data-lucide="book-open" style="width:13px;height:13px;"></i> FDP Decarbonisation Chapter (PDF)
+        </button>
+        <button class="btn-outline" style="width:100%;justify-content:center;">
+          <i data-lucide="code" style="width:13px;height:13px;"></i> Machine-Readable Export (JSON)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Submit Modal -->
+<div class="modal-overlay" id="submit-modal">
+  <div class="modal-box" style="width:560px;">
+    <div class="modal-head">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#D4AE50;">Prepare NUPRC Submission</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:11px;color:#4A5568;margin-top:2px;">UPDT Compliance Package · Score: 78 / 100</div>
+      </div>
+      <button onclick="closeModal('submit-modal')" style="background:none;border:none;cursor:pointer;color:#4A5568;font-size:20px;line-height:1;">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:rgba(212,174,80,.06);border:1px solid rgba(212,174,80,.2);padding:10px 14px;margin-bottom:16px;font-size:12px;color:#D4AE50;">
+        Current score of <strong>78/100</strong> is eligible for submission. Completing Obligations 4 &amp; 5 would raise score to ~93/100 before submission.
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <label class="field-label">Submission Type</label>
+          <select class="field-input field-select" style="font-size:12px;padding:9px 12px;">
+            <option>FDP Application</option>
+            <option>Licence Renewal</option>
+            <option>Production Permit</option>
+            <option>Annual UPDT Statement</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Concession Reference</label>
+          <select class="field-input field-select" style="font-size:12px;padding:9px 12px;">
+            <option>OML 4</option><option>OML 38</option><option>OML 4 + OML 38 (combined)</option>
+          </select>
+        </div>
+        <div style="grid-column:1/-1;">
+          <label class="field-label">NUPRC Application Reference (if known)</label>
+          <input class="field-input" placeholder="e.g. NUPRC/OML4/2026/..." style="font-size:12px;padding:9px 12px;" />
+        </div>
+        <div style="grid-column:1/-1;">
+          <label class="field-label">Certifying Officer</label>
+          <input class="field-input" placeholder="Full name of responsible official" style="font-size:12px;padding:9px 12px;" />
+        </div>
+      </div>
+      <div class="flex items-center gap-3" style="margin-top:18px;">
+        <button class="btn-gold">
+          <i data-lucide="send" style="width:12px;height:12px;"></i> Generate &amp; Submit Package
+        </button>
+        <button onclick="closeModal('submit-modal')" class="btn-red" style="margin-left:auto;">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  lucide.createIcons();
+
+  // ── Sidebar ──
+  function toggleSidebar() {
+    const sb = document.getElementById('sidebar');
+    sb.classList.toggle('collapsed');
+    document.getElementById('collapse-icon').setAttribute('data-lucide', sb.classList.contains('collapsed') ? 'panel-left-open' : 'panel-left-close');
+    document.getElementById('collapse-label').style.display = sb.classList.contains('collapsed') ? 'none' : '';
+    lucide.createIcons();
+  }
+
+  // ── Tab switching ──
+  // FIX: scroll content to top on tab switch; only re-init charts when landing on overview
+  function switchTab(name, el) {
+    document.querySelectorAll('.mod-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+    document.getElementById('content').scrollTop = 0;
+    if (name === 'overview') setTimeout(initOverviewCharts, 50);
+    lucide.createIcons();
+  }
+
+  // FIX: navigate to tab by stable string ID — never relies on numeric querySelector index
+  function switchTabById(name) {
+    const btn = document.getElementById('tab-btn-' + name);
+    if (btn) switchTab(name, btn);
+  }
+
+  // ── Modals ──
+  function openModal(id)  { document.getElementById(id).classList.add('open'); lucide.createIcons(); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+
+  // ════ OBLIGATION DATA ════
+  // weights: Obl1=20%, Obl2=20%, Obl3=25%, Obl4=20%, Obl5=15%
+  const obligations = [
+    { key:'obl1', num:1, title:'Decarbonisation Strategy in FDP',   score:82, weight:.20, color:'#4CAF6F' },
+    { key:'obl2', num:2, title:'Time-Bound GHG Reduction Goals',    score:71, weight:.20, color:'#D4AE50' },
+    { key:'obl3', num:3, title:'Gas Flaring / Venting Compliance',  score:88, weight:.25, color:'#E67E22' },
+    { key:'obl4', num:4, title:'Methane Management Programme',      score:76, weight:.20, color:'#4CAF6F' },
+    { key:'obl5', num:5, title:'CCS / NBS / Offset Initiative Plan',score:65, weight:.15, color:'#5DADE2' },
+  ];
+
+  function calcTotal() {
+    return Math.round(obligations.reduce((acc, o) => acc + o.score * o.weight, 0));
+  }
+
+  function renderOblScoreBreakdown() {
+    const el = document.getElementById('obl-score-breakdown');
+    if (!el) return;
+    // FIX: use switchTabById so links work regardless of DOM order
+    el.innerHTML = obligations.map(o => {
+      const tagCls = o.score >= 80 ? 'tag-g' : o.score >= 65 ? 'tag-y' : 'tag-r';
+      return `<div style="margin-bottom:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#4A5568;">Obl. ${o.num}</span>
+            <span style="font-size:12px;font-weight:500;color:#D4DCE8;cursor:pointer;text-decoration:underline;text-decoration-color:rgba(76,175,111,.3);"
+                  onclick="switchTabById('${o.key}')">${o.title}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+            <span style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">×${Math.round(o.weight*100)}%</span>
+            <span class="tag ${tagCls}" style="font-size:8px;">${o.score}%</span>
+          </div>
+        </div>
+        <div class="prog-track thick">
+          <div class="prog-fill" style="width:${o.score}%;background:${o.color};opacity:.8;"></div>
+        </div>
+      </div>`;
+    }).join('') + `
+      <div style="border-top:1px solid rgba(46,125,69,.15);padding-top:12px;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8A9BB0;">Weighted UPDT Score</span>
+        <span style="font-family:'DM Mono',monospace;font-size:24px;font-weight:300;color:#4CAF6F;">${calcTotal()} <span style="font-size:12px;color:#4A5568;">/ 100</span></span>
+      </div>`;
+  }
+
+  // ════ TASK CHECKLISTS ════
+  const taskData = {
+    obl1: [
+      { done:true,  text:'Establish GHG baseline inventory for all OML 4 &amp; OML 38 facilities' },
+      { done:true,  text:'Document decarbonisation technology options assessment (turbines, flare elimination, CCUS)' },
+      { done:true,  text:'Integrate GHG cost projections into OML 4 Phase 3 FDP economics model' },
+      { done:true,  text:'Board-level net zero commitment documented and signed' },
+      { done:true,  text:'Define reduction milestones: 2025, 2028, 2030, 2035, 2050' },
+      { done:true,  text:'Obtain independent verification of GHG baseline (ISO 14064-3 assurance)' },
+      { done:true,  text:'Align FDP strategy with Nigeria NDC 3.0 sector pathways' },
+      { done:true,  text:'Submit FDP GHG chapter for OML 4 Phase 3 to NUPRC' },
+      { done:true,  text:'Carbon cost sensitivity analysis integrated into project NPV model' },
+      { done:false, text:'Prepare and submit FDP GHG chapter for OML 38 Phase 2 (pending draft)' },
+      { done:false, text:'Third-party technical review of OML 38 decarbonisation chapter' },
+    ],
+    obl2: [
+      { done:true,  text:'Set 2020 base year emissions: 48,240 tCO₂e (NUPRC reference year)' },
+      { done:true,  text:'Register annual −2.5% reduction target with NUPRC per UPDT requirement' },
+      { done:true,  text:'Link targets to Nigeria NDC 3.0 oil &amp; gas sector pathway' },
+      { done:true,  text:'Document target-setting methodology (GHG Protocol + IPCC AR6 GWPs)' },
+      { done:true,  text:'2025 target: 47,040 tCO₂e — Actual: 46,820 tCO₂e ✓ Achieved' },
+      { done:true,  text:'Align with Nigeria Climate Change Act 2021 §24 annual reduction targets' },
+      { done:true,  text:'Internal board review and sign-off on 2026–2030 trajectory' },
+      { done:false, text:'Set specific CH₄ intensity reduction target aligned to NDC 3.0 60% by 2035' },
+      { done:false, text:'Scenario analysis: cost-optimised vs speed-optimised decarbonisation pathways' },
+      { done:false, text:'Submit updated targets to NUPRC following Q2 2026 emissions data finalisation' },
+    ],
+    obl3: [
+      { done:true,  text:'Maintain flaring &amp; venting register per facility (all 6 facilities active)' },
+      { done:true,  text:'Quarterly flare volume measurement and CO₂e calculation (IPCC 2006/2019 Tier 2)' },
+      { done:true,  text:'98% DRE compliance confirmed for OML4-GCS-02, OML4-GCS-03, OML38-EXP-01' },
+      { done:true,  text:'Annual auto-igniter test conducted and logged for all flares' },
+      { done:true,  text:'Zero cold venting events (waiver-compliant venting tracked separately)' },
+      { done:true,  text:'Waiver documentation for approved venting: OML38-WPF-01 (1 active)' },
+      { done:true,  text:'Q1 2026 flaring report submitted to NUPRC on schedule' },
+      { done:true,  text:'2030 zero routine flaring roadmap: associated gas utilisation plan documented' },
+      { done:false, text:'Remediate OML38-GPS-01 flare to achieve 98% DRE (currently 97.4%)' },
+    ],
+    obl4: [
+      { done:true,  text:'LDAR programme operational for all 6 facilities (NUPRC Guide 0024-2022)' },
+      { done:true,  text:'Q1 &amp; Q2 2026 LDAR inspections completed for 5/6 facilities' },
+      { done:true,  text:'Methane Management Programme statement drafted and approved' },
+      { done:true,  text:'Pneumatic controller phase-in: Year 2 target (65%) achieved' },
+      { done:true,  text:'LDAR repair rate: 87% YTD (41/47 detected leaks repaired)' },
+      { done:true,  text:'CH₄ fugitive emissions quantified: 12.4 tCH₄/yr (IPCC Tier 2/3)' },
+      { done:true,  text:'Energy intensity target (−2.5%/yr) tracked and reported' },
+      { done:true,  text:'Annual methane report format aligned to NUPRC Appendix A' },
+      { done:false, text:'Resolve 3 overdue LDAR SLA items (RC-OML4-004, LK-2026-047, LK-2026-051)' },
+      { done:false, text:'Schedule rod packing replacement for RC-OML4-004 (28,140 hrs overdue)' },
+      { done:false, text:'Submit Q2 2026 Methane Management Programme update to NUPRC' },
+    ],
+    obl5: [
+      { done:true,  text:'Carbon market readiness assessment completed (VerdeScope Carbon Market Module)' },
+      { done:true,  text:'Methane abatement project scoped: VCS VM0039 methodology (346 tCO₂e/yr)' },
+      { done:true,  text:'Engage Verra-accredited VVB (Verification &amp; Validation Body) for project review' },
+      { done:true,  text:'NCMF (Nigeria Carbon Market Framework) Article 6.4 registration process initiated' },
+      { done:true,  text:'MRV data package prepared from VerdeScope LDAR &amp; emissions data' },
+      { done:true,  text:'Board approval obtained for carbon market participation strategy' },
+      { done:false, text:'Flare elimination project PDD (Project Design Document) — first draft' },
+      { done:false, text:'Turbine conversion project scoped for VCS VM0039 registration (226 tCO₂e/yr)' },
+      { done:false, text:'Letter of Authorisation application submitted to NCCC (DNA) for Article 6.4 ITMOs' },
+    ],
+  };
+
+  function renderTaskList(oblKey, containerId) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    el.innerHTML = taskData[oblKey].map((t, i) => `
+      <div class="task-row">
+        <div class="task-check ${t.done ? 'done' : 'todo'}" onclick="toggleTask('${oblKey}',${i},this)">
+          ${t.done ? `<i data-lucide="check" style="width:10px;height:10px;color:#4CAF6F;"></i>` : ''}
+        </div>
+        <span class="task-text ${t.done ? 'done-text' : 'todo-text'}" id="task-text-${oblKey}-${i}">${t.text}</span>
+        ${!t.done ? '<span class="tag tag-r" style="font-size:8px;flex-shrink:0;margin-left:auto;">To Do</span>' : ''}
+      </div>`
+    ).join('');
+  }
+
+  function toggleTask(oblKey, idx, el) {
+    taskData[oblKey][idx].done = !taskData[oblKey][idx].done;
+    const done = taskData[oblKey][idx].done;
+    el.className = 'task-check ' + (done ? 'done' : 'todo');
+    el.innerHTML = done ? `<i data-lucide="check" style="width:10px;height:10px;color:#4CAF6F;"></i>` : '';
+    const textEl = document.getElementById(`task-text-${oblKey}-${idx}`);
+    if (textEl) { textEl.className = 'task-text ' + (done ? 'done-text' : 'todo-text'); }
+    lucide.createIcons();
+    updateScore();
+  }
+
+  function updateScore() {
+    const keys = ['obl1','obl2','obl3','obl4','obl5'];
+    const weights = [0.2, 0.2, 0.25, 0.2, 0.15];
+    keys.forEach((k, i) => {
+      const tasks = taskData[k];
+      const pct = Math.round((tasks.filter(t => t.done).length / tasks.length) * 100);
+      obligations[i].score = pct;
+    });
+    const total = calcTotal();
+    // Update topbar score chip
+    document.getElementById('topbar-score').textContent = total;
+    // FIX: update ring chart data live
+    if (scoreChartInstance) {
+      scoreChartInstance.data.datasets[0].data = [total, 100 - total];
+      scoreChartInstance.update();
+    }
+    // FIX: update the ring label text
+    const ringLabel = document.getElementById('ring-score-label');
+    if (ringLabel) ringLabel.textContent = total;
+    // Rebuild the score breakdown panel
+    renderOblScoreBreakdown();
+    lucide.createIcons();
+  }
+
+  // ════ TARGET TABLE ════
+  function renderTargetTable() {
+    const tb = document.getElementById('target-table-body');
+    if (!tb) return;
+    const base = 48240;
+    const rows = [
+      { year:2020, target: base,                         actual: base,   status:'base' },
+      { year:2021, target: Math.round(base*0.975),       actual: 47100,  status:'done' },
+      { year:2022, target: Math.round(base*0.975**2),    actual: 46010,  status:'done' },
+      { year:2023, target: Math.round(base*0.975**3),    actual: 44980,  status:'done' },
+      { year:2024, target: Math.round(base*0.975**4),    actual: 44200,  status:'done' },
+      { year:2025, target: Math.round(base*0.975**5),    actual: 46820,  status:'miss' },
+      { year:2026, target: Math.round(base*0.975**6),    actual: null,   status:'curr' },
+      { year:2027, target: Math.round(base*0.975**7),    actual: null,   status:'fut' },
+      { year:2028, target: Math.round(base*0.975**8),    actual: null,   status:'fut' },
+      { year:2030, target: Math.round(base*0.975**10),   actual: null,   status:'fut' },
+    ];
+    tb.innerHTML = rows.map(r => {
+      const var_ = r.actual != null && r.status !== 'base' ? r.actual - r.target : null;
+      const varStr = var_ != null ? (var_ > 0 ? `<span style="color:#E74C3C;">+${var_.toLocaleString()}</span>` : `<span style="color:#4CAF6F;">${var_.toLocaleString()}</span>`) : '<span style="color:#4A5568;">—</span>';
+      const stTag = {base:'<span class="tag tag-n" style="font-size:8px;">Base Year</span>', done:'<span class="tag tag-g" style="font-size:8px;">On Track</span>', miss:'<span class="tag tag-y" style="font-size:8px;">Slight Miss</span>', curr:'<span class="tag tag-b" style="font-size:8px;">Current</span>', fut:'<span class="tag tag-n" style="font-size:8px;">Projected</span>'}[r.status];
+      return `<tr>
+        <td class="mono">${r.year}</td>
+        <td class="mono">${r.target.toLocaleString()}</td>
+        <td class="mono">${r.actual != null ? r.actual.toLocaleString() : '—'}</td>
+        <td>${varStr}</td>
+        <td>${stTag}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ════ FDP CHAPTER SECTIONS ════
+  const fdpSections = [
+    { title:'1. Organisational Boundary & Scope', auto:true,  content:'Boundary: Operational Control. Scope 1 (direct combustion, flaring, fugitive emissions). Scope 2 (grid electricity, location-based method). GHG Protocol Corporate Standard alignment. OML 4 &amp; OML 38, 6 production facilities.' },
+    { title:'2. GHG Baseline Inventory (2020)', auto:true,  content:'Base year 2020: 48,240 tCO₂e. Verified by [VVB Name] under ISO 14064-3 limited assurance. Emission sources: stationary combustion 62%, gas flaring 24%, fugitive emissions 14%.' },
+    { title:'3. Emission Reduction Targets & Trajectory', auto:true,  content:'Annual target: −2.5% from 2020 baseline. 2030 target: 42,800 tCO₂e. Aligned to Nigeria NDC 3.0 oil &amp; gas pathway. Zero routine flaring by 2030. 60% CH₄ reduction by 2035.' },
+    { title:'4. Decarbonisation Technology Plan', auto:false, content:'[Manual input required] Specify planned technology interventions: turbine upgrades, vapour recovery units, CCUS feasibility study, electrification roadmap.' },
+    { title:'5. Carbon Cost Integration', auto:true,  content:'Carbon price assumption: $12–18/tCO₂e (VCM spot, 2026). NPV impact of carbon cost: −$0.58M at $15/tCO₂e base case. Carbon revenue from credit origination: +$0.83M/yr at full programme.' },
+    { title:'6. Monitoring & Reporting Commitment', auto:true,  content:'Annual NUPRC GHG report per NUPRC Guide 0024-2022. Quarterly UPDT score update. ISO 14064-3 third-party verification biennial from 2026. Data managed by VerdeScope Platform.' },
+    { title:'7. Responsible Official Certification', auto:false, content:'[Manual input required] Insert name, title, and certification statement of responsible official per UPDT requirements.' },
+  ];
+
+  function renderFdpSections() {
+    const container = document.getElementById('fdp-sections');
+    if (!container) return;
+    container.innerHTML = fdpSections.map((s, i) => `
+      <div class="fdp-section">
+        <div class="fdp-section-head" onclick="toggleFdpSection(${i})">
+          <i data-lucide="${s.auto ? 'check-circle' : 'edit'}" style="width:13px;height:13px;color:${s.auto ? '#4CAF6F' : '#D4AE50'};flex-shrink:0;"></i>
+          <span style="font-size:12px;font-weight:500;color:#D4DCE8;flex:1;">${s.title}</span>
+          <span class="tag ${s.auto ? 'tag-g' : 'tag-y'}" style="font-size:8px;">${s.auto ? 'Auto-filled' : 'Manual Input'}</span>
+          <i data-lucide="chevron-down" style="width:12px;height:12px;color:#4A5568;flex-shrink:0;margin-left:8px;" id="fdp-chevron-${i}"></i>
+        </div>
+        <div class="fdp-section-body" id="fdp-body-${i}">
+          ${s.auto
+            ? `<p style="color:#8A9BB0;">${s.content}</p>`
+            : `<textarea class="field-input" rows="3" placeholder="${s.content}" style="font-size:12px;padding:9px 12px;resize:vertical;"></textarea>`
+          }
+        </div>
+      </div>`
+    ).join('');
+    renderFdpChecklistSidebar();
+  }
+
+  function toggleFdpSection(i) {
+    const body = document.getElementById(`fdp-body-${i}`);
+    const icon = document.getElementById(`fdp-chevron-${i}`);
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    icon.setAttribute('data-lucide', isOpen ? 'chevron-down' : 'chevron-up');
+    lucide.createIcons();
+  }
+
+  function renderFdpChecklistSidebar() {
+    const el = document.getElementById('fdp-checklist-sidebar');
+    if (!el) return;
+    el.innerHTML = fdpSections.map(s => `
+      <div style="display:flex;align-items:center;gap:6px;padding:3px 0;">
+        <i data-lucide="${s.auto ? 'check' : 'circle'}" style="width:11px;height:11px;color:${s.auto ? '#4CAF6F' : '#4A5568'};flex-shrink:0;"></i>
+        <span style="font-size:11px;color:${s.auto ? '#8A9BB0' : '#4A5568'};">${s.title.replace(/^\d+\. /,'')}</span>
+      </div>`
+    ).join('');
+  }
+
+  // ════ CHARTS ════
+  // FIX: per-instance references so charts can be destroyed & recreated on tab revisit
+  let scoreChartInstance = null;
+  let ndcChartInstance   = null;
+
+  function initOverviewCharts() {
+    // Score ring — destroy existing before recreating (handles tab revisit)
+    const rCtx = document.getElementById('score-ring-chart');
+    if (rCtx) {
+      if (scoreChartInstance) { scoreChartInstance.destroy(); scoreChartInstance = null; }
+      const total = calcTotal();
+      scoreChartInstance = new Chart(rCtx, {
+        type: 'doughnut',
+        data: {
+          datasets: [{
+            // FIX: use live calcTotal() — not hardcoded 78
+            data: [total, 100 - total],
+            backgroundColor: ['#4CAF6F', 'rgba(46,125,69,.08)'],
+            borderColor:     ['#4CAF6F', 'rgba(46,125,69,.06)'],
+            borderWidth: 1,
+          }]
+        },
+        options: {
+          responsive: false, cutout: '76%',
+          plugins: { legend: { display: false }, tooltip: { enabled: false } },
+          animation: { duration: 1400, easing: 'easeInOutQuart' },
+        }
+      });
+    }
+
+    // NDC alignment chart — destroy existing before recreating
+    const nCtx = document.getElementById('ndc-chart');
+    if (nCtx) {
+      if (ndcChartInstance) { ndcChartInstance.destroy(); ndcChartInstance = null; }
+      ndcChartInstance = new Chart(nCtx, {
+        type: 'line',
+        data: {
+          labels: ['2018','2020','2022','2024','2026','2028','2030','2032','2035'],
+          datasets: [
+            {
+              label: 'Operator Trajectory (actual/forecast)',
+              data: [52100, 48240, 46010, 44200, 43400, 42100, 40800, 39200, 36600],
+              borderColor: '#4CAF6F', backgroundColor: 'rgba(46,125,69,.08)',
+              borderWidth: 2, tension: 0.35, fill: true, pointRadius: 3,
+            },
+            {
+              label: 'Nigeria NDC 3.0 Pathway',
+              data: [52100, 49800, 47200, 44800, 42600, 40600, 38800, 37200, 35300],
+              borderColor: '#D4AE50', borderDash: [5,4],
+              borderWidth: 1.5, tension: 0.3, fill: false, pointRadius: 2,
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color:'#8A9BB0', font:{ family:'DM Mono', size:9 }, padding:12 } },
+            tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString() + ' tCO₂e' } }
+          },
+          scales: {
+            x: { ticks:{ color:'#4A5568', font:{ family:'DM Mono', size:9 } }, grid:{ color:'rgba(46,125,69,.05)' } },
+            y: { ticks:{ color:'#4A5568', font:{ family:'DM Mono', size:9 }, callback: v => (v/1000).toFixed(0)+'k' }, grid:{ color:'rgba(46,125,69,.05)' } }
+          }
+        }
+      });
+    }
+    lucide.createIcons();
+  }
+
+  // ════ INIT ════
+  renderOblScoreBreakdown();
+  renderTaskList('obl1', 'obl1-tasks');
+  renderTaskList('obl2', 'obl2-tasks');
+  renderTaskList('obl3', 'obl3-tasks');
+  renderTaskList('obl4', 'obl4-tasks');
+  renderTaskList('obl5', 'obl5-tasks');
+  renderTargetTable();
+  renderFdpSections();
+  initOverviewCharts();
+  lucide.createIcons();
+</script>
+
+</body>
+</html>

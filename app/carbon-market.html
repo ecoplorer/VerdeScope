@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Carbon Market — VerdeScope</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            obsidian:'#0D1A12', forest:'#1A3D24', pine:'#235930',
+            verde:'#2E7D45', sage:'#4CAF6F', mist:'#A8D5B5',
+            ivory:'#FDFCF9', gold:'#B8962E', goldlight:'#D4AE50',
+            slate:'#2A3040', steel:'#4A5568', ash:'#8A9BB0', cloud:'#D4DCE8',
+          },
+          fontFamily: {
+            display:['Cormorant Garamond','serif'],
+            sans:['Outfit','sans-serif'],
+            mono:['DM Mono','monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;overflow:hidden}
+    body{font-family:'Outfit',sans-serif;background:#0D1A12;color:#FDFCF9;display:flex;flex-direction:column}
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-track{background:#0D1A12}
+    ::-webkit-scrollbar-thumb{background:#235930;border-radius:2px}
+    #app-shell{display:flex;flex:1;overflow:hidden}
+    #sidebar{width:220px;flex-shrink:0;background:#091410;border-right:1px solid rgba(46,125,69,.18);display:flex;flex-direction:column;transition:width .25s;overflow:hidden}
+    #sidebar.collapsed{width:56px}
+    #main-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    #topbar{height:52px;flex-shrink:0;background:rgba(13,26,18,.95);border-bottom:1px solid rgba(46,125,69,.18);display:flex;align-items:center;padding:0 20px;gap:16px;backdrop-filter:blur(8px)}
+    #content{flex:1;overflow-y:auto;padding:24px}
+    .nav-item{display:flex;align-items:center;gap:12px;padding:9px 16px;border-radius:6px;cursor:pointer;transition:background .15s;white-space:nowrap;font-size:13px;color:rgba(253,252,249,.6);text-decoration:none}
+    .nav-item:hover{background:rgba(46,125,69,.15);color:#FDFCF9}
+    .nav-item.active{background:rgba(46,125,69,.22);color:#FDFCF9;font-weight:500}
+    .nav-item svg{flex-shrink:0}
+    .nav-label{opacity:1;transition:opacity .2s}
+    #sidebar.collapsed .nav-label{opacity:0;pointer-events:none}
+    .card{background:rgba(26,61,36,.35);border:1px solid rgba(46,125,69,.2);border-radius:10px;padding:20px}
+    .card-sm{background:rgba(26,61,36,.25);border:1px solid rgba(46,125,69,.15);border-radius:8px;padding:14px}
+    .btn-primary{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:linear-gradient(135deg,#2E7D45,#235930);color:#FDFCF9;border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s;font-family:'Outfit',sans-serif}
+    .btn-primary:hover{opacity:.88}
+    .btn-ghost{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:transparent;color:rgba(253,252,249,.7);border:1px solid rgba(46,125,69,.3);border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s;font-family:'Outfit',sans-serif}
+    .btn-ghost:hover{border-color:rgba(46,125,69,.6);color:#FDFCF9}
+    .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;font-family:'DM Mono',monospace}
+    .badge-green{background:rgba(76,175,111,.15);color:#4CAF6F;border:1px solid rgba(76,175,111,.25)}
+    .badge-gold{background:rgba(184,150,46,.15);color:#D4AE50;border:1px solid rgba(184,150,46,.25)}
+    .badge-blue{background:rgba(99,179,237,.12);color:#90CDF4;border:1px solid rgba(99,179,237,.2)}
+    .badge-red{background:rgba(252,129,74,.12);color:#FC814A;border:1px solid rgba(252,129,74,.2)}
+    .badge-ash{background:rgba(138,155,176,.1);color:#8A9BB0;border:1px solid rgba(138,155,176,.2)}
+    .tab-btn{padding:8px 16px;font-size:13px;border-radius:6px;cursor:pointer;transition:all .15s;background:transparent;color:rgba(253,252,249,.5);border:1px solid transparent;font-family:'Outfit',sans-serif}
+    .tab-btn.active{background:rgba(46,125,69,.2);color:#FDFCF9;border-color:rgba(46,125,69,.3)}
+    .tab-btn:hover:not(.active){color:rgba(253,252,249,.8)}
+    .demo-banner{background:linear-gradient(90deg,rgba(184,150,46,.18),rgba(184,150,46,.1));border-bottom:1px solid rgba(184,150,46,.25);padding:6px 20px;font-size:11.5px;color:#D4AE50;text-align:center;letter-spacing:.03em}
+    .metric-value{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;color:#FDFCF9}
+    .metric-label{font-size:11px;color:rgba(253,252,249,.5);letter-spacing:.04em;text-transform:uppercase;margin-top:2px}
+    .table-row{display:grid;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(46,125,69,.08);transition:background .12s;font-size:13px}
+    .table-row:hover{background:rgba(46,125,69,.08)}
+    .table-header{display:grid;align-items:center;padding:8px 14px;font-size:11px;color:rgba(253,252,249,.4);letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid rgba(46,125,69,.15)}
+    .progress-bar{height:6px;background:rgba(46,125,69,.2);border-radius:3px;overflow:hidden}
+    .progress-fill{height:100%;border-radius:3px;transition:width .5s ease}
+    .step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+    .step-dot.done{background:rgba(76,175,111,.2);border:1.5px solid #4CAF6F;color:#4CAF6F}
+    .step-dot.active{background:rgba(184,150,46,.2);border:1.5px solid #D4AE50;color:#D4AE50}
+    .step-dot.pending{background:rgba(46,125,69,.1);border:1.5px solid rgba(46,125,69,.3);color:rgba(253,252,249,.3)}
+    .step-line{width:2px;height:28px;background:rgba(46,125,69,.2);margin:4px auto}
+    .itmo-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;background:rgba(144,205,244,.1);border:1px solid rgba(144,205,244,.2);color:#90CDF4}
+  </style>
+</head>
+<body>
+
+<!-- DEMO BANNER -->
+<div class="demo-banner">
+  VerdeScope Platform — Investor Demo Build &nbsp;|&nbsp; Carbon Market Module &nbsp;|&nbsp; Data: Illustrative
+</div>
+
+<!-- APP SHELL -->
+<div id="app-shell">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div style="padding:16px;border-bottom:1px solid rgba(46,125,69,.15);display:flex;align-items:center;gap:10px;min-height:60px">
+      <div style="width:28px;height:28px;background:linear-gradient(135deg,#2E7D45,#1A3D24);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A8D5B5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      </div>
+      <span class="nav-label" style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:500;color:#FDFCF9;letter-spacing:.02em">VerdeScope</span>
+    </div>
+
+    <div style="padding:10px 8px;flex:1;overflow-y:auto">
+      <!-- Licence selector -->
+      <div class="nav-label" style="padding:6px 10px;margin-bottom:4px">
+        <div style="background:rgba(46,125,69,.15);border:1px solid rgba(46,125,69,.25);border-radius:6px;padding:7px 10px;font-size:12px;color:rgba(253,252,249,.7)">
+          <div style="font-size:10px;color:rgba(253,252,249,.4);letter-spacing:.04em;margin-bottom:2px">ACTIVE LICENCE</div>
+          <div style="font-weight:500;color:#FDFCF9">OML 18</div>
+          <div style="font-size:11px;color:#4CAF6F;margin-top:1px">NNPC / Eroton JVC</div>
+        </div>
+      </div>
+
+      <div style="height:1px;background:rgba(46,125,69,.12);margin:8px 0"></div>
+
+      <a href="dashboard.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="nav-label">Dashboard</span></a>
+      <a href="emissions.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20M6 20V10l6-6 6 6v10"/></svg><span class="nav-label">Emissions</span></a>
+      <a href="ldar.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span class="nav-label">LDAR</span></a>
+      <a href="equipment.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg><span class="nav-label">Equipment</span></a>
+      <a href="updt.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span class="nav-label">UPDT</span></a>
+      <a href="carbon-market.html" class="nav-item active"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg><span class="nav-label">Carbon Market</span></a>
+      <a href="reports.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span class="nav-label">Reports</span></a>
+      <a href="verde-intel.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg><span class="nav-label">Verde Intel</span></a>
+    </div>
+
+    <div style="padding:10px 8px;border-top:1px solid rgba(46,125,69,.12)">
+      <a href="#" class="nav-item" style="font-size:12px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg><span class="nav-label">S. Muazu, PhD</span></a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div id="main-area">
+    <!-- TOPBAR -->
+    <div id="topbar">
+      <button onclick="document.getElementById('sidebar').classList.toggle('collapsed')" style="background:none;border:none;color:rgba(253,252,249,.5);cursor:pointer;padding:4px;border-radius:4px;display:flex;align-items:center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <span style="font-family:'Cormorant Garamond',serif;font-size:16px;color:rgba(253,252,249,.6)">Carbon Market</span>
+      <div style="flex:1"></div>
+      <span class="badge badge-gold" style="font-size:10.5px">Nigeria CMF — Oct 2025</span>
+      <span class="badge badge-blue" style="font-size:10.5px">Article 6.4 Active</span>
+      <button class="btn-primary" style="font-size:12px;padding:6px 12px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export MRV Package
+      </button>
+    </div>
+
+    <!-- CONTENT -->
+    <div id="content">
+
+      <!-- PAGE HEADER -->
+      <div style="margin-bottom:22px">
+        <h1 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;color:#FDFCF9">Carbon Market Services</h1>
+        <p style="font-size:13px;color:rgba(253,252,249,.5);margin-top:4px">MRV data packages · credit origination · ITMO tracking · Nigeria Carbon Market Framework</p>
+      </div>
+
+      <!-- SUMMARY KPI ROW -->
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:22px">
+        <div class="card-sm" style="text-align:center">
+          <div class="metric-value" style="color:#4CAF6F">48,200</div>
+          <div class="metric-label">Verified tCO₂e</div>
+          <div style="font-size:10px;color:#4CAF6F;margin-top:4px">▲ CY 2025</div>
+        </div>
+        <div class="card-sm" style="text-align:center">
+          <div class="metric-value" style="color:#D4AE50">$12.4/t</div>
+          <div class="metric-label">VCM Spot Price</div>
+          <div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:4px">Methane Abatement</div>
+        </div>
+        <div class="card-sm" style="text-align:center">
+          <div class="metric-value">3</div>
+          <div class="metric-label">Active Projects</div>
+          <div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:4px">VCS + Article 6.4</div>
+        </div>
+        <div class="card-sm" style="text-align:center">
+          <div class="metric-value" style="color:#90CDF4">$597K</div>
+          <div class="metric-label">Revenue Pipeline</div>
+          <div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:4px">3-yr projection</div>
+        </div>
+        <div class="card-sm" style="text-align:center">
+          <div class="metric-value">2</div>
+          <div class="metric-label">ITMO Authorised</div>
+          <div style="font-size:10px;color:#4CAF6F;margin-top:4px">NCCC confirmed</div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div style="display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap">
+        <button class="tab-btn active" onclick="switchTab(this,'tab-projects')">Carbon Projects</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-mrv')">MRV Data Packages</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-itmo')">ITMO Tracker</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-pipeline')">Revenue Pipeline</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-registry')">Registry Status</button>
+      </div>
+
+      <!-- ═══════ TAB: CARBON PROJECTS ═══════ -->
+      <div id="tab-projects">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
+
+          <!-- PROJECT CARD 1 -->
+          <div class="card" style="position:relative;overflow:hidden">
+            <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,#4CAF6F,#2E7D45)"></div>
+            <div style="padding-left:10px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+                <div>
+                  <div style="font-weight:600;font-size:14px;margin-bottom:4px">OML 18 LDAR Methane Abatement</div>
+                  <div style="font-size:12px;color:rgba(253,252,249,.5)">VCS VM0039 · Article 6.4 co-registered</div>
+                </div>
+                <span class="badge badge-green">Active</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+                <div><div style="font-size:11px;color:rgba(253,252,249,.4);margin-bottom:2px">Verified Reductions</div><div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:#4CAF6F">31,450 tCO₂e</div></div>
+                <div><div style="font-size:11px;color:rgba(253,252,249,.4);margin-bottom:2px">Baseline Year</div><div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:500">2022</div></div>
+                <div><div style="font-size:11px;color:rgba(253,252,249,.4);margin-bottom:2px">Credits Issued</div><div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:#D4AE50">28,900</div></div>
+              </div>
+              <div style="margin-bottom:10px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(253,252,249,.4);margin-bottom:4px"><span>Verification Progress</span><span>CY 2025 — Q3 Review</span></div>
+                <div class="progress-bar"><div class="progress-fill" style="width:73%;background:linear-gradient(90deg,#4CAF6F,#2E7D45)"></div></div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span class="itmo-badge">ITMO Auth ✓</span>
+                <span class="badge badge-ash">VVB: Bureau Veritas</span>
+                <button class="btn-ghost" style="margin-left:auto;font-size:11px;padding:5px 10px">View MRV</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- PROJECT CARD 2 -->
+          <div class="card" style="position:relative;overflow:hidden">
+            <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,#D4AE50,#B8962E)"></div>
+            <div style="padding-left:10px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+                <div>
+                  <div style="font-weight:600;font-size:14px;margin-bottom:4px">Pneumatic Controller Replacement</div>
+                  <div style="font-size:12px;color:rgba(253,252,249,.5)">VCS VM0039 · Scope 1 abatement</div>
+                </div>
+                <span class="badge badge-gold">Registration</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+                <div><div style="font-size:11px;color:rgba(253,252,249,.4);margin-bottom:2px">Projected Reductions</div><div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:#D4AE50">11,800 tCO₂e</div></div>
+                <div><div style="font-size:11px;color:rgba(253,252,249,.4);margin-bottom:2px">Start Date</div><div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:500">Jan 2025</div></div>
+                <div><div style="font-size:11px;color:rgba(253,252,249,.4);margin-bottom:2px">First Issuance</div><div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:rgba(253,252,249,.4)">Q2 2026</div></div>
+              </div>
+              <div style="margin-bottom:10px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(253,252,249,.4);margin-bottom:4px"><span>PDD Preparation</span><span>78% complete</span></div>
+                <div class="progress-bar"><div class="progress-fill" style="width:78%;background:linear-gradient(90deg,#D4AE50,#B8962E)"></div></div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span class="badge badge-gold">NCCC Pending</span>
+                <span class="badge badge-ash">VVB: TÜV SÜD</span>
+                <button class="btn-ghost" style="margin-left:auto;font-size:11px;padding:5px 10px">Edit PDD</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- PROJECT CARD 3 -->
+          <div class="card" style="position:relative;overflow:hidden">
+            <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,#90CDF4,#4299e1)"></div>
+            <div style="padding-left:10px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+                <div>
+                  <div style="font-weight:600;font-size:14px;margin-bottom:4px">Flare Gas Recovery — Imo River</div>
+                  <div style="font-size:12px;color:rgba(253,252,249,.5)">Gold Standard · Article 6.2 candidate</div>
+                </div>
+                <span class="badge badge-blue">Scoping</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+                <div><div style="font-size:11px;color:rgba(253,252,249,.4);margin-bottom:2px">Potential Reductions</div><div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:#90CDF4">~4,900 tCO₂e</div></div>
+                <div><div style="font-size:11px;color:rgba(253,252,249,.4);margin-bottom:2px">Target Start</div><div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:500">Q3 2026</div></div>
+                <div><div style="font-size:11px;color:rgba(253,252,249,.4);margin-bottom:2px">Est. Revenue</div><div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:rgba(253,252,249,.4)">$58K/yr</div></div>
+              </div>
+              <div style="margin-bottom:10px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(253,252,249,.4);margin-bottom:4px"><span>Feasibility Assessment</span><span>35% complete</span></div>
+                <div class="progress-bar"><div class="progress-fill" style="width:35%;background:linear-gradient(90deg,#90CDF4,#4299e1)"></div></div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span class="badge badge-ash">Pre-validation</span>
+                <button class="btn-ghost" style="margin-left:auto;font-size:11px;padding:5px 10px">Open Scoping</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- NEW PROJECT -->
+          <div class="card" style="border-style:dashed;display:flex;align-items:center;justify-content:center;cursor:pointer;min-height:160px" onclick="alert('New project wizard — available in production')">
+            <div style="text-align:center;color:rgba(253,252,249,.3)">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 8px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              <div style="font-size:13px">Register New Project</div>
+              <div style="font-size:11px;margin-top:4px;color:rgba(253,252,249,.2)">VCS · Gold Standard · Article 6.4</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ TAB: MRV DATA PACKAGES ═══════ -->
+      <div id="tab-mrv" style="display:none">
+        <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px">
+          <!-- MRV BUILDER -->
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+              <div style="font-weight:600;font-size:14px">MRV Package Generator</div>
+              <span class="badge badge-green">ISO 14064-2 Compliant</span>
+            </div>
+
+            <div style="margin-bottom:14px">
+              <label style="font-size:12px;color:rgba(253,252,249,.5);display:block;margin-bottom:5px">Select Project</label>
+              <select style="width:100%;background:rgba(9,20,16,.8);border:1px solid rgba(46,125,69,.3);color:#FDFCF9;border-radius:6px;padding:8px 10px;font-size:13px;font-family:'Outfit',sans-serif">
+                <option>OML 18 LDAR Methane Abatement (VCS VM0039)</option>
+                <option>Pneumatic Controller Replacement (VCS VM0039)</option>
+                <option>Flare Gas Recovery — Imo River (Gold Standard)</option>
+              </select>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+              <div>
+                <label style="font-size:12px;color:rgba(253,252,249,.5);display:block;margin-bottom:5px">Monitoring Period Start</label>
+                <input type="text" value="01 Jan 2025" style="width:100%;background:rgba(9,20,16,.8);border:1px solid rgba(46,125,69,.3);color:#FDFCF9;border-radius:6px;padding:8px 10px;font-size:13px;font-family:'DM Mono',monospace"/>
+              </div>
+              <div>
+                <label style="font-size:12px;color:rgba(253,252,249,.5);display:block;margin-bottom:5px">Monitoring Period End</label>
+                <input type="text" value="31 Dec 2025" style="width:100%;background:rgba(9,20,16,.8);border:1px solid rgba(46,125,69,.3);color:#FDFCF9;border-radius:6px;padding:8px 10px;font-size:13px;font-family:'DM Mono',monospace"/>
+              </div>
+            </div>
+
+            <!-- DATA COMPONENTS -->
+            <div style="font-size:12px;color:rgba(253,252,249,.5);margin-bottom:8px">Data Components Included</div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(76,175,111,.08);border:1px solid rgba(76,175,111,.15);border-radius:6px">
+                <div style="display:flex;align-items:center;gap:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4CAF6F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:13px">LDAR Survey Records (4 campaigns)</span></div>
+                <span class="badge badge-green" style="font-size:10px">31,450 tCO₂e</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(76,175,111,.08);border:1px solid rgba(76,175,111,.15);border-radius:6px">
+                <div style="display:flex;align-items:center;gap:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4CAF6F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:13px">Baseline Emission Inventory</span></div>
+                <span class="badge badge-green" style="font-size:10px">ISO 14064-2</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(76,175,111,.08);border:1px solid rgba(76,175,111,.15);border-radius:6px">
+                <div style="display:flex;align-items:center;gap:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4CAF6F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:13px">Equipment Repair Verification Records</span></div>
+                <span class="badge badge-green" style="font-size:10px">Chain-of-custody</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(76,175,111,.08);border:1px solid rgba(76,175,111,.15);border-radius:6px">
+                <div style="display:flex;align-items:center;gap:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4CAF6F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:13px">GHG Reduction Calculation Workbook</span></div>
+                <span class="badge badge-green" style="font-size:10px">IPCC AR6 GWPs</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(184,150,46,.06);border:1px solid rgba(184,150,46,.15);border-radius:6px">
+                <div style="display:flex;align-items:center;gap:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AE50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span style="font-size:13px">VVB Audit Trail Export</span></div>
+                <span class="badge badge-gold" style="font-size:10px">Awaiting VVB</span>
+              </div>
+            </div>
+
+            <button class="btn-primary" style="width:100%;justify-content:center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Generate MRV Package (JSON-LD + PDF)
+            </button>
+          </div>
+
+          <!-- REDUCTION CHART -->
+          <div class="card">
+            <div style="font-weight:600;font-size:14px;margin-bottom:4px">Verified Reductions — CY 2025</div>
+            <div style="font-size:12px;color:rgba(253,252,249,.4);margin-bottom:16px">Monthly tCO₂e avoided vs. baseline</div>
+            <div style="height:220px"><canvas id="mrvChart"></canvas></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+              <div class="card-sm" style="text-align:center;padding:10px">
+                <div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:#4CAF6F">31,450 t</div>
+                <div style="font-size:11px;color:rgba(253,252,249,.4);margin-top:2px">Total Verified</div>
+              </div>
+              <div class="card-sm" style="text-align:center;padding:10px">
+                <div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:#D4AE50">2,621 t</div>
+                <div style="font-size:11px;color:rgba(253,252,249,.4);margin-top:2px">Monthly Avg.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ TAB: ITMO TRACKER ═══════ -->
+      <div id="tab-itmo" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:16px">
+          <!-- ITMO RECORDS -->
+          <div class="card">
+            <div style="font-weight:600;font-size:14px;margin-bottom:14px">ITMO Authorisation Records</div>
+
+            <!-- Record 1 -->
+            <div style="background:rgba(144,205,244,.06);border:1px solid rgba(144,205,244,.15);border-radius:8px;padding:12px;margin-bottom:10px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+                <div>
+                  <div style="font-size:13px;font-weight:600">ITMO-NG-OML18-001</div>
+                  <div style="font-size:11px;color:rgba(253,252,249,.4);margin-top:2px">OML 18 LDAR Abatement · Article 6.4</div>
+                </div>
+                <span class="badge badge-green">Authorised</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
+                <div><div style="font-size:10px;color:rgba(253,252,249,.4)">Volume</div><div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:#4CAF6F">18,200 t</div></div>
+                <div><div style="font-size:10px;color:rgba(253,252,249,.4)">Auth Date</div><div style="font-family:'DM Mono',monospace;font-size:13px">15 Oct 2025</div></div>
+                <div><div style="font-size:10px;color:rgba(253,252,249,.4)">NCCC Ref</div><div style="font-family:'DM Mono',monospace;font-size:13px">NCCC-25-0041</div></div>
+              </div>
+              <div style="display:flex;gap:6px">
+                <span class="badge badge-blue" style="font-size:10px">CA Applied</span>
+                <span class="badge badge-ash" style="font-size:10px">Verra Registry</span>
+              </div>
+            </div>
+
+            <!-- Record 2 -->
+            <div style="background:rgba(144,205,244,.06);border:1px solid rgba(144,205,244,.15);border-radius:8px;padding:12px;margin-bottom:10px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+                <div>
+                  <div style="font-size:13px;font-weight:600">ITMO-NG-OML18-002</div>
+                  <div style="font-size:11px;color:rgba(253,252,249,.4);margin-top:2px">OML 18 LDAR Abatement · Article 6.4</div>
+                </div>
+                <span class="badge badge-green">Authorised</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
+                <div><div style="font-size:10px;color:rgba(253,252,249,.4)">Volume</div><div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:#4CAF6F">10,700 t</div></div>
+                <div><div style="font-size:10px;color:rgba(253,252,249,.4)">Auth Date</div><div style="font-family:'DM Mono',monospace;font-size:13px">02 Feb 2026</div></div>
+                <div><div style="font-size:10px;color:rgba(253,252,249,.4)">NCCC Ref</div><div style="font-family:'DM Mono',monospace;font-size:13px">NCCC-26-0008</div></div>
+              </div>
+              <div style="display:flex;gap:6px">
+                <span class="badge badge-blue" style="font-size:10px">CA Applied</span>
+                <span class="badge badge-ash" style="font-size:10px">Gold Standard</span>
+              </div>
+            </div>
+
+            <!-- Pending -->
+            <div style="background:rgba(184,150,46,.06);border:1px solid rgba(184,150,46,.15);border-radius:8px;padding:12px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+                <div>
+                  <div style="font-size:13px;font-weight:600">ITMO-NG-PNEU-001</div>
+                  <div style="font-size:11px;color:rgba(253,252,249,.4);margin-top:2px">Pneumatic Replacement · Article 6.4</div>
+                </div>
+                <span class="badge badge-gold">Pending NCCC</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
+                <div><div style="font-size:10px;color:rgba(253,252,249,.4)">Est. Volume</div><div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:#D4AE50">~11,800 t</div></div>
+                <div><div style="font-size:10px;color:rgba(253,252,249,.4)">Submitted</div><div style="font-family:'DM Mono',monospace;font-size:13px">18 Mar 2026</div></div>
+                <div><div style="font-size:10px;color:rgba(253,252,249,.4)">NCCC Ref</div><div style="font-family:'DM Mono',monospace;font-size:13px;color:rgba(253,252,249,.3)">Awaiting</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CORRESPONDING ADJUSTMENT & NCCC -->
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div class="card">
+              <div style="font-weight:600;font-size:14px;margin-bottom:4px">Corresponding Adjustment Status</div>
+              <div style="font-size:12px;color:rgba(253,252,249,.4);margin-bottom:14px">NDC accounting integrity — Nigeria Carbon Market Framework §4.2</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(76,175,111,.07);border:1px solid rgba(76,175,111,.15);border-radius:6px">
+                  <div style="width:10px;height:10px;border-radius:50%;background:#4CAF6F;flex-shrink:0"></div>
+                  <div style="flex:1"><div style="font-size:13px">ITMO-NG-OML18-001</div><div style="font-size:11px;color:rgba(253,252,249,.4)">CA applied to Nigeria NDC 3.0 accounts · 18,200 t removed</div></div>
+                  <span class="badge badge-green" style="font-size:10px">Applied</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(76,175,111,.07);border:1px solid rgba(76,175,111,.15);border-radius:6px">
+                  <div style="width:10px;height:10px;border-radius:50%;background:#4CAF6F;flex-shrink:0"></div>
+                  <div style="flex:1"><div style="font-size:13px">ITMO-NG-OML18-002</div><div style="font-size:11px;color:rgba(253,252,249,.4)">CA applied to Nigeria NDC 3.0 accounts · 10,700 t removed</div></div>
+                  <span class="badge badge-green" style="font-size:10px">Applied</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(184,150,46,.06);border:1px solid rgba(184,150,46,.15);border-radius:6px">
+                  <div style="width:10px;height:10px;border-radius:50%;background:#D4AE50;flex-shrink:0"></div>
+                  <div style="flex:1"><div style="font-size:13px">ITMO-NG-PNEU-001</div><div style="font-size:11px;color:rgba(253,252,249,.4)">Awaiting NCCC authorisation before CA can be applied</div></div>
+                  <span class="badge badge-gold" style="font-size:10px">Pending</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- NCCC STATUS -->
+            <div class="card">
+              <div style="font-weight:600;font-size:14px;margin-bottom:4px">NCCC Authorisation Pipeline</div>
+              <div style="font-size:12px;color:rgba(253,252,249,.4);margin-bottom:14px">National Council on Climate Change — Designated National Authority</div>
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <div style="display:flex;align-items:flex-start;gap:10px">
+                  <div style="display:flex;flex-direction:column;align-items:center"><div class="step-dot done">✓</div><div class="step-line"></div></div>
+                  <div style="padding-top:4px"><div style="font-size:13px">Project Documentation Submitted</div><div style="font-size:11px;color:rgba(253,252,249,.4)">PDD + Monitoring Report · 18 Mar 2026</div></div>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:10px">
+                  <div style="display:flex;flex-direction:column;align-items:center"><div class="step-dot done">✓</div><div class="step-line"></div></div>
+                  <div style="padding-top:4px"><div style="font-size:13px">NCCC Secretariat Review</div><div style="font-size:11px;color:rgba(253,252,249,.4)">Completeness check passed · 25 Mar 2026</div></div>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:10px">
+                  <div style="display:flex;flex-direction:column;align-items:center"><div class="step-dot active">→</div><div class="step-line"></div></div>
+                  <div style="padding-top:4px"><div style="font-size:13px;color:#D4AE50">Technical Assessment</div><div style="font-size:11px;color:rgba(253,252,249,.4)">In progress — Est. completion 30 Apr 2026</div></div>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:10px">
+                  <div style="display:flex;flex-direction:column;align-items:center"><div class="step-dot pending">4</div><div class="step-line"></div></div>
+                  <div style="padding-top:4px"><div style="font-size:13px;color:rgba(253,252,249,.4)">Public Stakeholder Consultation</div><div style="font-size:11px;color:rgba(253,252,249,.3)">30-day notice period</div></div>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:10px">
+                  <div style="display:flex;flex-direction:column;align-items:center"><div class="step-dot pending">5</div></div>
+                  <div style="padding-top:4px"><div style="font-size:13px;color:rgba(253,252,249,.4)">Letter of Authorisation Issued</div><div style="font-size:11px;color:rgba(253,252,249,.3)">Est. June 2026</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ TAB: REVENUE PIPELINE ═══════ -->
+      <div id="tab-pipeline" style="display:none">
+        <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:16px">
+          <div class="card">
+            <div style="font-weight:600;font-size:14px;margin-bottom:4px">3-Year Carbon Revenue Projection</div>
+            <div style="font-size:12px;color:rgba(253,252,249,.4);margin-bottom:16px">Methane abatement credits at blended VCM price $12.40/tCO₂e</div>
+            <div style="height:240px"><canvas id="pipelineChart"></canvas></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="card-sm">
+              <div style="font-size:12px;color:rgba(253,252,249,.4);margin-bottom:8px">Price Sensitivity</div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px"><span style="color:rgba(253,252,249,.5)">Bear  ($8/t)</span><span style="font-family:'DM Mono',monospace;color:#FC814A">$386K / yr</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px"><span style="font-weight:500">Base  ($12.40/t)</span><span style="font-family:'DM Mono',monospace;color:#4CAF6F;font-weight:600">$597K / yr</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px"><span style="color:rgba(253,252,249,.5)">Bull  ($20/t)</span><span style="font-family:'DM Mono',monospace;color:#90CDF4">$962K / yr</span></div>
+              </div>
+            </div>
+            <div class="card-sm">
+              <div style="font-size:12px;color:rgba(253,252,249,.4);margin-bottom:8px">Credit Volume Forecast</div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:rgba(253,252,249,.5)">2025</span><span style="font-family:'DM Mono',monospace">28,900 t</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:rgba(253,252,249,.5)">2026</span><span style="font-family:'DM Mono',monospace">40,200 t</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:rgba(253,252,249,.5)">2027</span><span style="font-family:'DM Mono',monospace">48,100 t</span></div>
+              </div>
+            </div>
+            <div class="card-sm">
+              <div style="font-size:12px;color:rgba(253,252,249,.4);margin-bottom:6px">Methodology Coverage</div>
+              <div style="display:flex;flex-wrap:wrap;gap:5px">
+                <span class="badge badge-green">VCS VM0039</span>
+                <span class="badge badge-blue">Article 6.4</span>
+                <span class="badge badge-gold">Gold Standard</span>
+                <span class="badge badge-ash">ISO 14064-2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ TAB: REGISTRY ═══════ -->
+      <div id="tab-registry" style="display:none">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div style="font-weight:600;font-size:14px">Registry Submission Status</div>
+            <button class="btn-ghost" style="font-size:12px">Refresh Status</button>
+          </div>
+          <div style="margin-bottom:8px" class="table-header" style="grid-template-columns:2fr 1.2fr 1fr 1fr 1fr 80px">
+            <div>Project / ITMO</div><div>Registry</div><div>Credits Issued</div><div>Credits Retired</div><div>Credits Available</div><div style="text-align:right">Status</div>
+          </div>
+          <div>
+            <div class="table-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 1fr 80px">
+              <div><div style="font-size:13px;font-weight:500">ITMO-NG-OML18-001</div><div style="font-size:11px;color:rgba(253,252,249,.4)">OML 18 LDAR · Cycle 1</div></div>
+              <div style="font-size:13px">Verra (VCS)</div>
+              <div style="font-family:'DM Mono',monospace;font-size:13px;color:#4CAF6F">18,200</div>
+              <div style="font-family:'DM Mono',monospace;font-size:13px;color:rgba(253,252,249,.5)">14,500</div>
+              <div style="font-family:'DM Mono',monospace;font-size:13px;color:#D4AE50">3,700</div>
+              <div style="text-align:right"><span class="badge badge-green">Active</span></div>
+            </div>
+            <div class="table-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 1fr 80px">
+              <div><div style="font-size:13px;font-weight:500">ITMO-NG-OML18-002</div><div style="font-size:11px;color:rgba(253,252,249,.4)">OML 18 LDAR · Cycle 2</div></div>
+              <div style="font-size:13px">Gold Standard</div>
+              <div style="font-family:'DM Mono',monospace;font-size:13px;color:#4CAF6F">10,700</div>
+              <div style="font-family:'DM Mono',monospace;font-size:13px;color:rgba(253,252,249,.5)">4,200</div>
+              <div style="font-family:'DM Mono',monospace;font-size:13px;color:#D4AE50">6,500</div>
+              <div style="text-align:right"><span class="badge badge-green">Active</span></div>
+            </div>
+            <div class="table-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 1fr 80px">
+              <div><div style="font-size:13px;font-weight:500">ITMO-NG-PNEU-001</div><div style="font-size:11px;color:rgba(253,252,249,.4)">Pneumatic Replacement</div></div>
+              <div style="font-size:13px;color:rgba(253,252,249,.4)">Verra (VCS)</div>
+              <div style="font-family:'DM Mono',monospace;font-size:13px;color:rgba(253,252,249,.3)">Pending</div>
+              <div style="font-family:'DM Mono',monospace;font-size:13px;color:rgba(253,252,249,.3)">—</div>
+              <div style="font-family:'DM Mono',monospace;font-size:13px;color:rgba(253,252,249,.3)">—</div>
+              <div style="text-align:right"><span class="badge badge-gold">Pending</span></div>
+            </div>
+            <div class="table-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 1fr 80px">
+              <div><div style="font-size:13px;font-weight:500">Flare Gas Recovery</div><div style="font-size:11px;color:rgba(253,252,249,.4)">Imo River · Scoping</div></div>
+              <div style="font-size:13px;color:rgba(253,252,249,.4)">TBD</div>
+              <div style="font-family:'DM Mono',monospace;font-size:13px;color:rgba(253,252,249,.3)">Pre-reg.</div>
+              <div style="font-family:'DM Mono',monospace;font-size:13px;color:rgba(253,252,249,.3)">—</div>
+              <div style="font-family:'DM Mono',monospace;font-size:13px;color:rgba(253,252,249,.3)">—</div>
+              <div style="text-align:right"><span class="badge badge-blue">Scoping</span></div>
+            </div>
+          </div>
+          <!-- TOTALS -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid rgba(46,125,69,.15)">
+            <div class="card-sm" style="text-align:center;padding:10px"><div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:#4CAF6F">28,900</div><div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:2px">Total Issued</div></div>
+            <div class="card-sm" style="text-align:center;padding:10px"><div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:rgba(253,252,249,.6)">18,700</div><div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:2px">Total Retired</div></div>
+            <div class="card-sm" style="text-align:center;padding:10px"><div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:#D4AE50">10,200</div><div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:2px">Available</div></div>
+            <div class="card-sm" style="text-align:center;padding:10px"><div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:#90CDF4">$126K</div><div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:2px">Available Value</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main-area -->
+</div><!-- /app-shell -->
+
+<script>
+  function switchTab(btn, tabId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    ['tab-projects','tab-mrv','tab-itmo','tab-pipeline','tab-registry'].forEach(id => {
+      document.getElementById(id).style.display = id === tabId ? '' : 'none';
+    });
+    if (tabId === 'tab-mrv' && !window._mrvChart) initMrvChart();
+    if (tabId === 'tab-pipeline' && !window._pipelineChart) initPipelineChart();
+  }
+
+  function initMrvChart() {
+    const ctx = document.getElementById('mrvChart').getContext('2d');
+    window._mrvChart = new Chart(ctx, {
+      type:'bar',
+      data:{
+        labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+        datasets:[
+          {label:'Verified Reductions (tCO₂e)',data:[2100,2350,2600,2800,2450,2700,3100,2900,2600,2800,3200,2800],backgroundColor:'rgba(76,175,111,.55)',borderColor:'#4CAF6F',borderWidth:1,borderRadius:3},
+          {label:'Baseline Emissions',data:[3800,3800,3800,3800,3800,3800,3800,3800,3800,3800,3800,3800],type:'line',borderColor:'rgba(184,150,46,.4)',borderDash:[4,4],pointRadius:0,fill:false,borderWidth:1.5}
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'rgba(253,252,249,.5)',font:{size:11},boxWidth:12}},tooltip:{backgroundColor:'rgba(9,20,16,.9)',titleColor:'#FDFCF9',bodyColor:'rgba(253,252,249,.7)'}},scales:{x:{grid:{color:'rgba(46,125,69,.08)'},ticks:{color:'rgba(253,252,249,.4)',font:{size:10}}},y:{grid:{color:'rgba(46,125,69,.08)'},ticks:{color:'rgba(253,252,249,.4)',font:{size:10}},beginAtZero:true}}}
+    });
+  }
+
+  function initPipelineChart() {
+    const ctx = document.getElementById('pipelineChart').getContext('2d');
+    window._pipelineChart = new Chart(ctx, {
+      type:'bar',
+      data:{
+        labels:['2025','2026','2027'],
+        datasets:[
+          {label:'Bear ($8/t)',data:[231,322,385],backgroundColor:'rgba(252,129,74,.35)',borderColor:'rgba(252,129,74,.6)',borderWidth:1,borderRadius:4},
+          {label:'Base ($12.4/t)',data:[358,499,597],backgroundColor:'rgba(76,175,111,.45)',borderColor:'#4CAF6F',borderWidth:1,borderRadius:4},
+          {label:'Bull ($20/t)',data:[578,804,962],backgroundColor:'rgba(144,205,244,.3)',borderColor:'rgba(144,205,244,.6)',borderWidth:1,borderRadius:4}
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'rgba(253,252,249,.5)',font:{size:11},boxWidth:12}},tooltip:{callbacks:{label:c=>`$${c.raw}K`},backgroundColor:'rgba(9,20,16,.9)',titleColor:'#FDFCF9',bodyColor:'rgba(253,252,249,.7)'}},scales:{x:{grid:{color:'rgba(46,125,69,.08)'},ticks:{color:'rgba(253,252,249,.4)'}},y:{grid:{color:'rgba(46,125,69,.08)'},ticks:{color:'rgba(253,252,249,.4)',callback:v=>`$${v}K`},beginAtZero:true}}}
+    });
+  }
+
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+</script>
+</body>
+</html>

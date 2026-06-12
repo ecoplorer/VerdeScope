@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reports — VerdeScope</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme:{extend:{colors:{obsidian:'#0D1A12',forest:'#1A3D24',pine:'#235930',verde:'#2E7D45',sage:'#4CAF6F',mist:'#A8D5B5',ivory:'#FDFCF9',gold:'#B8962E',goldlight:'#D4AE50',slate:'#2A3040',steel:'#4A5568',ash:'#8A9BB0',cloud:'#D4DCE8'},fontFamily:{display:['Cormorant Garamond','serif'],sans:['Outfit','sans-serif'],mono:['DM Mono','monospace']}}}
+    }
+  </script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;overflow:hidden}
+    body{font-family:'Outfit',sans-serif;background:#0D1A12;color:#FDFCF9;display:flex;flex-direction:column}
+    ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:#0D1A12}::-webkit-scrollbar-thumb{background:#235930;border-radius:2px}
+    #app-shell{display:flex;flex:1;overflow:hidden}
+    #sidebar{width:220px;flex-shrink:0;background:#091410;border-right:1px solid rgba(46,125,69,.18);display:flex;flex-direction:column;transition:width .25s;overflow:hidden}
+    #sidebar.collapsed{width:56px}
+    #main-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    #topbar{height:52px;flex-shrink:0;background:rgba(13,26,18,.95);border-bottom:1px solid rgba(46,125,69,.18);display:flex;align-items:center;padding:0 20px;gap:16px;backdrop-filter:blur(8px)}
+    #content{flex:1;overflow-y:auto;padding:24px}
+    .nav-item{display:flex;align-items:center;gap:12px;padding:9px 16px;border-radius:6px;cursor:pointer;transition:background .15s;white-space:nowrap;font-size:13px;color:rgba(253,252,249,.6);text-decoration:none}
+    .nav-item:hover{background:rgba(46,125,69,.15);color:#FDFCF9}
+    .nav-item.active{background:rgba(46,125,69,.22);color:#FDFCF9;font-weight:500}
+    .nav-label{opacity:1;transition:opacity .2s}
+    #sidebar.collapsed .nav-label{opacity:0;pointer-events:none}
+    .card{background:rgba(26,61,36,.35);border:1px solid rgba(46,125,69,.2);border-radius:10px;padding:20px}
+    .card-sm{background:rgba(26,61,36,.25);border:1px solid rgba(46,125,69,.15);border-radius:8px;padding:14px}
+    .btn-primary{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:linear-gradient(135deg,#2E7D45,#235930);color:#FDFCF9;border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s;font-family:'Outfit',sans-serif}
+    .btn-primary:hover{opacity:.88}
+    .btn-ghost{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:transparent;color:rgba(253,252,249,.7);border:1px solid rgba(46,125,69,.3);border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s;font-family:'Outfit',sans-serif}
+    .btn-ghost:hover{border-color:rgba(46,125,69,.6);color:#FDFCF9}
+    .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;font-family:'DM Mono',monospace}
+    .badge-green{background:rgba(76,175,111,.15);color:#4CAF6F;border:1px solid rgba(76,175,111,.25)}
+    .badge-gold{background:rgba(184,150,46,.15);color:#D4AE50;border:1px solid rgba(184,150,46,.25)}
+    .badge-blue{background:rgba(99,179,237,.12);color:#90CDF4;border:1px solid rgba(99,179,237,.2)}
+    .badge-red{background:rgba(252,129,74,.12);color:#FC814A;border:1px solid rgba(252,129,74,.2)}
+    .badge-ash{background:rgba(138,155,176,.1);color:#8A9BB0;border:1px solid rgba(138,155,176,.2)}
+    .tab-btn{padding:8px 16px;font-size:13px;border-radius:6px;cursor:pointer;transition:all .15s;background:transparent;color:rgba(253,252,249,.5);border:1px solid transparent;font-family:'Outfit',sans-serif}
+    .tab-btn.active{background:rgba(46,125,69,.2);color:#FDFCF9;border-color:rgba(46,125,69,.3)}
+    .tab-btn:hover:not(.active){color:rgba(253,252,249,.8)}
+    .demo-banner{background:linear-gradient(90deg,rgba(184,150,46,.18),rgba(184,150,46,.1));border-bottom:1px solid rgba(184,150,46,.25);padding:6px 20px;font-size:11.5px;color:#D4AE50;text-align:center;letter-spacing:.03em}
+    .report-card{background:rgba(26,61,36,.28);border:1px solid rgba(46,125,69,.18);border-radius:8px;padding:14px 16px;display:flex;align-items:center;gap:14px;transition:all .15s;cursor:pointer}
+    .report-card:hover{background:rgba(46,125,69,.15);border-color:rgba(46,125,69,.35)}
+    .report-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .table-row{display:grid;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(46,125,69,.08);transition:background .12s;font-size:13px}
+    .table-row:hover{background:rgba(46,125,69,.08)}
+    .table-header{display:grid;align-items:center;padding:8px 14px;font-size:11px;color:rgba(253,252,249,.4);letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid rgba(46,125,69,.15)}
+    .progress-bar{height:5px;background:rgba(46,125,69,.2);border-radius:3px;overflow:hidden}
+    .progress-fill{height:100%;border-radius:3px;transition:width .5s ease}
+  </style>
+</head>
+<body>
+
+<div class="demo-banner">VerdeScope Platform — Investor Demo Build &nbsp;|&nbsp; Reports Module &nbsp;|&nbsp; Data: Illustrative</div>
+
+<div id="app-shell">
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div style="padding:16px;border-bottom:1px solid rgba(46,125,69,.15);display:flex;align-items:center;gap:10px;min-height:60px">
+      <div style="width:28px;height:28px;background:linear-gradient(135deg,#2E7D45,#1A3D24);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A8D5B5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      </div>
+      <span class="nav-label" style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:500;color:#FDFCF9;letter-spacing:.02em">VerdeScope</span>
+    </div>
+    <div style="padding:10px 8px;flex:1;overflow-y:auto">
+      <div class="nav-label" style="padding:6px 10px;margin-bottom:4px">
+        <div style="background:rgba(46,125,69,.15);border:1px solid rgba(46,125,69,.25);border-radius:6px;padding:7px 10px;font-size:12px">
+          <div style="font-size:10px;color:rgba(253,252,249,.4);letter-spacing:.04em;margin-bottom:2px">ACTIVE LICENCE</div>
+          <div style="font-weight:500;color:#FDFCF9">OML 18</div>
+          <div style="font-size:11px;color:#4CAF6F;margin-top:1px">NNPC / Eroton JVC</div>
+        </div>
+      </div>
+      <div style="height:1px;background:rgba(46,125,69,.12);margin:8px 0"></div>
+      <a href="dashboard.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="nav-label">Dashboard</span></a>
+      <a href="emissions.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20M6 20V10l6-6 6 6v10"/></svg><span class="nav-label">Emissions</span></a>
+      <a href="ldar.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span class="nav-label">LDAR</span></a>
+      <a href="equipment.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg><span class="nav-label">Equipment</span></a>
+      <a href="updt.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span class="nav-label">UPDT</span></a>
+      <a href="carbon-market.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg><span class="nav-label">Carbon Market</span></a>
+      <a href="reports.html" class="nav-item active"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span class="nav-label">Reports</span></a>
+      <a href="verde-intel.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg><span class="nav-label">Verde Intel</span></a>
+    </div>
+    <div style="padding:10px 8px;border-top:1px solid rgba(46,125,69,.12)">
+      <a href="#" class="nav-item" style="font-size:12px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg><span class="nav-label">S. Muazu, PhD</span></a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div id="main-area">
+    <div id="topbar">
+      <button onclick="document.getElementById('sidebar').classList.toggle('collapsed')" style="background:none;border:none;color:rgba(253,252,249,.5);cursor:pointer;padding:4px;border-radius:4px;display:flex;align-items:center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <span style="font-family:'Cormorant Garamond',serif;font-size:16px;color:rgba(253,252,249,.6)">Reports & Submissions</span>
+      <div style="flex:1"></div>
+      <span class="badge badge-gold" style="font-size:10.5px">Q1 2026 Due: 31 Mar</span>
+      <span class="badge badge-green" style="font-size:10.5px">2 Reports Submitted</span>
+      <button class="btn-primary" style="font-size:12px;padding:6px 12px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Generate Report
+      </button>
+    </div>
+
+    <div id="content">
+      <!-- HEADER -->
+      <div style="margin-bottom:22px">
+        <h1 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500">Reports & Submissions</h1>
+        <p style="font-size:13px;color:rgba(253,252,249,.5);margin-top:4px">NUPRC annual & quarterly reports · ISO 14064-1 inventory · UPDT submissions · VVB audit packages</p>
+      </div>
+
+      <!-- SUBMISSION STATUS BAR -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px">
+        <div class="card-sm" style="border-left:3px solid #4CAF6F">
+          <div style="font-size:11px;color:rgba(253,252,249,.4);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">NUPRC Annual Report</div>
+          <div style="font-size:13px;font-weight:500;color:#4CAF6F">Submitted</div>
+          <div style="font-size:11px;color:rgba(253,252,249,.4);margin-top:3px">Filed 14 Feb 2026 · Ref: NUPRC-OML18-2025</div>
+        </div>
+        <div class="card-sm" style="border-left:3px solid #4CAF6F">
+          <div style="font-size:11px;color:rgba(253,252,249,.4);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Q4 2025 GHG Report</div>
+          <div style="font-size:13px;font-weight:500;color:#4CAF6F">Submitted</div>
+          <div style="font-size:11px;color:rgba(253,252,249,.4);margin-top:3px">Filed 08 Jan 2026 · Ref: NUPRC-Q4-OML18</div>
+        </div>
+        <div class="card-sm" style="border-left:3px solid #D4AE50">
+          <div style="font-size:11px;color:rgba(253,252,249,.4);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Q1 2026 GHG Report</div>
+          <div style="font-size:13px;font-weight:500;color:#D4AE50">In Progress</div>
+          <div style="font-size:11px;color:rgba(253,252,249,.4);margin-top:3px">Due 31 Mar 2026 · 72% complete</div>
+        </div>
+        <div class="card-sm" style="border-left:3px solid rgba(138,155,176,.5)">
+          <div style="font-size:11px;color:rgba(253,252,249,.4);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">ISO 14064-1 Inventory</div>
+          <div style="font-size:13px;font-weight:500;color:rgba(253,252,249,.6)">Pending VVB</div>
+          <div style="font-size:11px;color:rgba(253,252,249,.4);margin-top:3px">Bureau Veritas review in progress</div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div style="display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap">
+        <button class="tab-btn active" onclick="switchTab(this,'tab-library')">Report Library</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-builder')">Report Builder</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-schedule')">Submission Schedule</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-vvb')">VVB Audit Portal</button>
+      </div>
+
+      <!-- ═══ TAB: LIBRARY ═══ -->
+      <div id="tab-library">
+        <!-- REPORT TYPE GROUPS -->
+        <div style="margin-bottom:20px">
+          <div style="font-size:12px;color:rgba(253,252,249,.4);letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px">NUPRC Mandatory Submissions</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+
+            <div class="report-card">
+              <div class="report-icon" style="background:rgba(76,175,111,.12);border:1px solid rgba(76,175,111,.2)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4CAF6F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600">NUPRC Annual GHG & LDAR Report — CY 2025</div>
+                <div style="font-size:11px;color:rgba(253,252,249,.4);margin-top:2px">Guide 0024-2022 Appendix A · Scope 1/2 inventory · LDAR statistics · Equipment compliance · Energy intensity</div>
+              </div>
+              <div style="text-align:right;flex-shrink:0;margin-left:12px">
+                <div class="badge badge-green">Submitted</div>
+                <div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:4px">14 Feb 2026 · PDF 4.2MB</div>
+              </div>
+              <button class="btn-ghost" style="flex-shrink:0;font-size:12px;padding:6px 10px">Download</button>
+            </div>
+
+            <div class="report-card">
+              <div class="report-icon" style="background:rgba(76,175,111,.12);border:1px solid rgba(76,175,111,.2)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4CAF6F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600">Q4 2025 Quarterly GHG Submission</div>
+                <div style="font-size:11px;color:rgba(253,252,249,.4);margin-top:2px">NUPRC Guide 0024-2022 §4.1(i) · CO₂/CH₄/N₂O quarterly totals · XML machine-readable + PDF</div>
+              </div>
+              <div style="text-align:right;flex-shrink:0;margin-left:12px">
+                <div class="badge badge-green">Submitted</div>
+                <div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:4px">08 Jan 2026 · NUPRC-Q4-OML18</div>
+              </div>
+              <button class="btn-ghost" style="flex-shrink:0;font-size:12px;padding:6px 10px">Download</button>
+            </div>
+
+            <div class="report-card" style="border-color:rgba(212,174,80,.25)">
+              <div class="report-icon" style="background:rgba(184,150,46,.1);border:1px solid rgba(184,150,46,.2)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AE50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600">Q1 2026 Quarterly GHG Submission</div>
+                <div style="font-size:11px;color:rgba(253,252,249,.4);margin-top:2px">NUPRC Guide 0024-2022 §4.1(i) · Period: 01 Jan – 31 Mar 2026</div>
+                <div style="margin-top:6px"><div class="progress-bar"><div class="progress-fill" style="width:72%;background:linear-gradient(90deg,#D4AE50,#B8962E)"></div></div></div>
+              </div>
+              <div style="text-align:right;flex-shrink:0;margin-left:12px">
+                <div class="badge badge-gold">In Progress</div>
+                <div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:4px">Due 31 Mar 2026</div>
+              </div>
+              <button class="btn-primary" style="flex-shrink:0;font-size:12px;padding:6px 10px">Continue</button>
+            </div>
+
+            <div class="report-card">
+              <div class="report-icon" style="background:rgba(46,125,69,.1);border:1px solid rgba(46,125,69,.2)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2E7D45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600">UPDT Compliance Submission — H2 2025</div>
+                <div style="font-size:11px;color:rgba(253,252,249,.4);margin-top:2px">All 5 UPDT obligations · Compliance Readiness Score 87/100 · FDP Chapter included</div>
+              </div>
+              <div style="text-align:right;flex-shrink:0;margin-left:12px">
+                <div class="badge badge-green">Submitted</div>
+                <div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:4px">22 Jan 2026 · Score: 87</div>
+              </div>
+              <button class="btn-ghost" style="flex-shrink:0;font-size:12px;padding:6px 10px">Download</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ISO REPORTS -->
+        <div style="margin-bottom:20px">
+          <div style="font-size:12px;color:rgba(253,252,249,.4);letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px">International Standards Reports</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+
+            <div class="report-card">
+              <div class="report-icon" style="background:rgba(144,205,244,.08);border:1px solid rgba(144,205,244,.18)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#90CDF4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600">ISO 14064-1 Organisational GHG Inventory — CY 2025</div>
+                <div style="font-size:11px;color:rgba(253,252,249,.4);margin-top:2px">Scope 1 + 2 + Scope 3 categories 1, 11 · Uncertainty assessment · Boundary documentation</div>
+              </div>
+              <div style="text-align:right;flex-shrink:0;margin-left:12px">
+                <div class="badge badge-blue">VVB Review</div>
+                <div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:4px">Bureau Veritas · Limited assurance</div>
+              </div>
+              <button class="btn-ghost" style="flex-shrink:0;font-size:12px;padding:6px 10px">View Draft</button>
+            </div>
+
+            <div class="report-card">
+              <div class="report-icon" style="background:rgba(144,205,244,.08);border:1px solid rgba(144,205,244,.18)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#90CDF4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600">IFRS S2 Climate Disclosure — FY 2025</div>
+                <div style="font-size:11px;color:rgba(253,252,249,.4);margin-top:2px">Cross-industry climate metrics · Scope 1/2/3 · Physical & transition risk assessment · TCFD alignment</div>
+              </div>
+              <div style="text-align:right;flex-shrink:0;margin-left:12px">
+                <div class="badge badge-ash">Draft</div>
+                <div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:4px">IOC parent company use</div>
+              </div>
+              <button class="btn-ghost" style="flex-shrink:0;font-size:12px;padding:6px 10px">Open Draft</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ TAB: BUILDER ═══ -->
+      <div id="tab-builder" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:16px">
+          <!-- WIZARD -->
+          <div class="card">
+            <div style="font-weight:600;font-size:14px;margin-bottom:16px">Report Builder Wizard</div>
+
+            <div style="margin-bottom:12px">
+              <label style="font-size:12px;color:rgba(253,252,249,.5);display:block;margin-bottom:5px">Report Type</label>
+              <select id="rptType" onchange="updatePreview()" style="width:100%;background:rgba(9,20,16,.8);border:1px solid rgba(46,125,69,.3);color:#FDFCF9;border-radius:6px;padding:8px 10px;font-size:13px;font-family:'Outfit',sans-serif">
+                <option value="nuprc-annual">NUPRC Annual GHG & LDAR Report</option>
+                <option value="nuprc-quarterly">NUPRC Quarterly GHG Submission</option>
+                <option value="updt">UPDT Compliance Package</option>
+                <option value="iso14064">ISO 14064-1 Inventory Statement</option>
+                <option value="vvb-export">VVB Audit Export (JSON-LD)</option>
+                <option value="ifrs-s2">IFRS S2 Climate Disclosure</option>
+              </select>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+              <div>
+                <label style="font-size:12px;color:rgba(253,252,249,.5);display:block;margin-bottom:5px">Period Start</label>
+                <input type="text" value="01 Jan 2025" style="width:100%;background:rgba(9,20,16,.8);border:1px solid rgba(46,125,69,.3);color:#FDFCF9;border-radius:6px;padding:8px 10px;font-size:13px;font-family:'DM Mono',monospace"/>
+              </div>
+              <div>
+                <label style="font-size:12px;color:rgba(253,252,249,.5);display:block;margin-bottom:5px">Period End</label>
+                <input type="text" value="31 Dec 2025" style="width:100%;background:rgba(9,20,16,.8);border:1px solid rgba(46,125,69,.3);color:#FDFCF9;border-radius:6px;padding:8px 10px;font-size:13px;font-family:'DM Mono',monospace"/>
+              </div>
+            </div>
+
+            <div style="margin-bottom:12px">
+              <label style="font-size:12px;color:rgba(253,252,249,.5);display:block;margin-bottom:5px">Output Format</label>
+              <div style="display:flex;gap:8px">
+                <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" checked style="accent-color:#2E7D45"/> PDF</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" checked style="accent-color:#2E7D45"/> XML / JSON</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" style="accent-color:#2E7D45"/> XLSX</label>
+              </div>
+            </div>
+
+            <div style="margin-bottom:16px">
+              <label style="font-size:12px;color:rgba(253,252,249,.5);display:block;margin-bottom:5px">Signatory (Responsible Official)</label>
+              <input type="text" value="Engr. Tunde Adeyemi — HSE Director" style="width:100%;background:rgba(9,20,16,.8);border:1px solid rgba(46,125,69,.3);color:#FDFCF9;border-radius:6px;padding:8px 10px;font-size:13px;font-family:'Outfit',sans-serif"/>
+            </div>
+
+            <div style="display:flex;gap:8px">
+              <button class="btn-ghost" style="flex:1;justify-content:center;font-size:12px">Preview</button>
+              <button class="btn-primary" style="flex:1;justify-content:center;font-size:12px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Generate
+              </button>
+            </div>
+          </div>
+
+          <!-- PREVIEW PANEL -->
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+              <div style="font-weight:600;font-size:14px">Report Preview</div>
+              <span id="previewBadge" class="badge badge-blue">NUPRC Annual Report</span>
+            </div>
+
+            <!-- Mock report preview -->
+            <div style="background:rgba(9,20,16,.6);border:1px solid rgba(46,125,69,.15);border-radius:8px;padding:16px;font-family:'DM Mono',monospace;font-size:11px;color:rgba(253,252,249,.7);line-height:1.8;max-height:320px;overflow-y:auto">
+              <div style="color:#4CAF6F;margin-bottom:8px">// NUPRC GHG & LDAR ANNUAL REPORT — CY 2025</div>
+              <div style="color:rgba(253,252,249,.4)">// NUPRC Guide 0024-2022 Appendix A Compliant</div>
+              <div style="margin-top:8px">Operator: NNPC Ltd / Eroton E&P Ltd</div>
+              <div>Licence: OML 18 (JVC) · Niger Delta Onshore</div>
+              <div>Period: 01 Jan 2025 – 31 Dec 2025</div>
+              <div style="margin-top:8px;color:#D4AE50">── SECTION 1: GHG INVENTORY ──────────────</div>
+              <div>Total Scope 1 Emissions: 118,450 tCO₂e</div>
+              <div style="padding-left:16px;color:rgba(253,252,249,.6)">Gas Flaring:        52,300 tCO₂e</div>
+              <div style="padding-left:16px;color:rgba(253,252,249,.6)">Fugitive CH₄:       28,900 tCO₂e</div>
+              <div style="padding-left:16px;color:rgba(253,252,249,.6)">Combustion:         31,200 tCO₂e</div>
+              <div style="padding-left:16px;color:rgba(253,252,249,.6)">Venting:             6,050 tCO₂e</div>
+              <div>Total Scope 2 Emissions: 4,120 tCO₂e</div>
+              <div>Energy Intensity: 12.4 tCO₂e/MBOE (Target: 11.8)</div>
+              <div style="margin-top:8px;color:#D4AE50">── SECTION 2: LDAR PROGRAMME ─────────────</div>
+              <div>Facilities Inspected: 3 / 3 (100%)</div>
+              <div>Total Surveys Conducted: 12</div>
+              <div>Leaks Identified: 47</div>
+              <div>Leaks Repaired: 44 (93.6%)</div>
+              <div>Delayed Repairs: 3 (approved delays)</div>
+              <div style="margin-top:8px;color:#D4AE50">── SECTION 3: EQUIPMENT COMPLIANCE ───────</div>
+              <div>Pneumatic Controllers: 78% zero-bleed (Target Y3: 75%) ✓</div>
+              <div>Rod Packing Hours: Max 21,400 hrs (Limit: 26,000) ✓</div>
+              <div>Storage Tanks VOC: 100% compliant (>12 tpy tier) ✓</div>
+              <div style="margin-top:8px;color:#4CAF6F">CERTIFICATION: Truth, accuracy and veracity</div>
+              <div>Signatory: Engr. Tunde Adeyemi — HSE Director</div>
+              <div>Date: 14 February 2026</div>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button class="btn-ghost" style="font-size:12px;gap:5px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download PDF
+              </button>
+              <button class="btn-ghost" style="font-size:12px;gap:5px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                Download XML
+              </button>
+              <button class="btn-primary" style="margin-left:auto;font-size:12px">Submit to NUPRC</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ TAB: SCHEDULE ═══ -->
+      <div id="tab-schedule" style="display:none">
+        <div class="card">
+          <div style="font-weight:600;font-size:14px;margin-bottom:16px">2026 Submission Calendar — OML 18</div>
+          <div class="table-header" style="grid-template-columns:2.5fr 1.5fr 1fr 1fr 100px">
+            <div>Report / Submission</div><div>Regulatory Basis</div><div>Due Date</div><div>Days Remaining</div><div style="text-align:right">Status</div>
+          </div>
+          <div>
+            <div class="table-row" style="grid-template-columns:2.5fr 1.5fr 1fr 1fr 100px">
+              <div><div style="font-size:13px;font-weight:500">Q4 2025 Quarterly GHG Report</div><div style="font-size:11px;color:rgba(253,252,249,.4)">NUPRC Guide 0024-2022 §4.1</div></div>
+              <div style="font-size:12px;color:rgba(253,252,249,.5)">Guide 0024-2022</div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px">08 Jan 2026</div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px;color:#4CAF6F">Filed</div>
+              <div style="text-align:right"><span class="badge badge-green">Done</span></div>
+            </div>
+            <div class="table-row" style="grid-template-columns:2.5fr 1.5fr 1fr 1fr 100px">
+              <div><div style="font-size:13px;font-weight:500">NUPRC Annual Report CY 2025</div><div style="font-size:11px;color:rgba(253,252,249,.4)">Appendix A — full programme report</div></div>
+              <div style="font-size:12px;color:rgba(253,252,249,.5)">Guide 0024-2022</div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px">Q1 2026</div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px;color:#4CAF6F">Filed 14 Feb</div>
+              <div style="text-align:right"><span class="badge badge-green">Done</span></div>
+            </div>
+            <div class="table-row" style="grid-template-columns:2.5fr 1.5fr 1fr 1fr 100px" style="background:rgba(184,150,46,.04)">
+              <div><div style="font-size:13px;font-weight:500;color:#D4AE50">Q1 2026 Quarterly GHG Report ⚑</div><div style="font-size:11px;color:rgba(253,252,249,.4)">CO₂/CH₄/N₂O Jan–Mar 2026 totals</div></div>
+              <div style="font-size:12px;color:rgba(253,252,249,.5)">Guide 0024-2022</div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px;color:#D4AE50">31 Mar 2026</div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px;color:#D4AE50">20 days</div>
+              <div style="text-align:right"><span class="badge badge-gold">In Progress</span></div>
+            </div>
+            <div class="table-row" style="grid-template-columns:2.5fr 1.5fr 1fr 1fr 100px">
+              <div><div style="font-size:13px;font-weight:500">Q2 2026 Quarterly GHG Report</div><div style="font-size:11px;color:rgba(253,252,249,.4)">CO₂/CH₄/N₂O Apr–Jun 2026 totals</div></div>
+              <div style="font-size:12px;color:rgba(253,252,249,.5)">Guide 0024-2022</div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px">30 Jun 2026</div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px;color:rgba(253,252,249,.4)">111 days</div>
+              <div style="text-align:right"><span class="badge badge-ash">Upcoming</span></div>
+            </div>
+            <div class="table-row" style="grid-template-columns:2.5fr 1.5fr 1fr 1fr 100px">
+              <div><div style="font-size:13px;font-weight:500">LDAR H1 2026 Survey Campaign</div><div style="font-size:11px;color:rgba(253,252,249,.4)">Facility 1 (Olo) + Facility 2 (Asasa)</div></div>
+              <div style="font-size:12px;color:rgba(253,252,249,.5)">Guide 0024-2022 §3.2.2</div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px">30 Apr 2026</div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px;color:rgba(253,252,249,.4)">51 days</div>
+              <div style="text-align:right"><span class="badge badge-ash">Upcoming</span></div>
+            </div>
+            <div class="table-row" style="grid-template-columns:2.5fr 1.5fr 1fr 1fr 100px">
+              <div><div style="font-size:13px;font-weight:500">ISO 14064-1 VVB Verification</div><div style="font-size:11px;color:rgba(253,252,249,.4)">Bureau Veritas limited assurance</div></div>
+              <div style="font-size:12px;color:rgba(253,252,249,.5)">ISO 14064-3</div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px">30 May 2026</div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px;color:rgba(253,252,249,.4)">81 days</div>
+              <div style="text-align:right"><span class="badge badge-blue">VVB Active</span></div>
+            </div>
+            <div class="table-row" style="grid-template-columns:2.5fr 1.5fr 1fr 1fr 100px">
+              <div><div style="font-size:13px;font-weight:500">Q3 2026 Quarterly GHG Report</div><div style="font-size:11px;color:rgba(253,252,249,.4)">Jul–Sep 2026</div></div>
+              <div style="font-size:12px;color:rgba(253,252,249,.5)">Guide 0024-2022</div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px">30 Sep 2026</div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px;color:rgba(253,252,249,.4)">203 days</div>
+              <div style="text-align:right"><span class="badge badge-ash">Upcoming</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ TAB: VVB PORTAL ═══ -->
+      <div id="tab-vvb" style="display:none">
+        <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px">
+          <div class="card">
+            <div style="font-weight:600;font-size:14px;margin-bottom:4px">VVB Audit Portal — Bureau Veritas</div>
+            <div style="font-size:12px;color:rgba(253,252,249,.4);margin-bottom:14px">ISO 14064-3 limited assurance engagement · CY 2025 inventory</div>
+
+            <!-- VVB ACCESS STATUS -->
+            <div style="background:rgba(144,205,244,.06);border:1px solid rgba(144,205,244,.15);border-radius:8px;padding:12px;margin-bottom:14px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <div style="font-size:13px;font-weight:500">Bureau Veritas — Active Session</div>
+                <span class="badge badge-green" style="font-size:10px">Connected</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:11px">
+                <div><div style="color:rgba(253,252,249,.4)">Lead Verifier</div><div>Dr. A. Okafor</div></div>
+                <div><div style="color:rgba(253,252,249,.4)">Accreditation</div><div>ISO 14065 · ANAB</div></div>
+                <div><div style="color:rgba(253,252,249,.4)">Access Level</div><div style="color:#90CDF4">Read-only</div></div>
+              </div>
+            </div>
+
+            <!-- DATA PACKAGES SHARED -->
+            <div style="font-size:12px;color:rgba(253,252,249,.4);margin-bottom:8px">Data Packages Shared with VVB</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(76,175,111,.07);border:1px solid rgba(76,175,111,.12);border-radius:6px">
+                <span style="font-size:12px">GHG Inventory Workbook (JSON-LD)</span>
+                <div style="display:flex;align-items:center;gap:6px"><span class="badge badge-green" style="font-size:10px">Accessed</span><span style="font-size:10px;color:rgba(253,252,249,.4)">28 Jan</span></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(76,175,111,.07);border:1px solid rgba(76,175,111,.12);border-radius:6px">
+                <span style="font-size:12px">LDAR Inspection Records (all campaigns)</span>
+                <div style="display:flex;align-items:center;gap:6px"><span class="badge badge-green" style="font-size:10px">Accessed</span><span style="font-size:10px;color:rgba(253,252,249,.4)">02 Feb</span></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(76,175,111,.07);border:1px solid rgba(76,175,111,.12);border-radius:6px">
+                <span style="font-size:12px">Emission Factor Reference Table</span>
+                <div style="display:flex;align-items:center;gap:6px"><span class="badge badge-green" style="font-size:10px">Accessed</span><span style="font-size:10px;color:rgba(253,252,249,.4)">02 Feb</span></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(76,175,111,.07);border:1px solid rgba(76,175,111,.12);border-radius:6px">
+                <span style="font-size:12px">Immutable Audit Log (all changes)</span>
+                <div style="display:flex;align-items:center;gap:6px"><span class="badge badge-green" style="font-size:10px">Accessed</span><span style="font-size:10px;color:rgba(253,252,249,.4)">08 Feb</span></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(184,150,46,.06);border:1px solid rgba(184,150,46,.12);border-radius:6px">
+                <span style="font-size:12px">Equipment Compliance Certificates</span>
+                <div style="display:flex;align-items:center;gap:6px"><span class="badge badge-gold" style="font-size:10px">Requested</span><span style="font-size:10px;color:rgba(253,252,249,.4)">15 Mar</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- VVB QUERIES & PROGRESS -->
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="card">
+              <div style="font-weight:600;font-size:14px;margin-bottom:12px">VVB Queries</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="background:rgba(76,175,111,.07);border:1px solid rgba(76,175,111,.15);border-radius:6px;padding:10px">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;font-weight:500">Query BV-001</span><span class="badge badge-green" style="font-size:10px">Resolved</span></div>
+                  <div style="font-size:11px;color:rgba(253,252,249,.5)">Clarify Tier 2 emission factor source for pneumatic controllers</div>
+                </div>
+                <div style="background:rgba(76,175,111,.07);border:1px solid rgba(76,175,111,.15);border-radius:6px;padding:10px">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;font-weight:500">Query BV-002</span><span class="badge badge-green" style="font-size:10px">Resolved</span></div>
+                  <div style="font-size:11px;color:rgba(253,252,249,.5)">Confirm GWP₂₀ vs GWP₁₀₀ basis for energy intensity metric</div>
+                </div>
+                <div style="background:rgba(184,150,46,.06);border:1px solid rgba(184,150,46,.15);border-radius:6px;padding:10px">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;font-weight:500">Query BV-003</span><span class="badge badge-gold" style="font-size:10px">Pending</span></div>
+                  <div style="font-size:11px;color:rgba(253,252,249,.5)">Provide calibration certificates for Hi-Flow sampler unit HS-003</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div style="font-weight:600;font-size:14px;margin-bottom:10px">Verification Progress</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:rgba(253,252,249,.6)">Document Review</span><span style="color:#4CAF6F">Complete</span></div><div class="progress-bar"><div class="progress-fill" style="width:100%;background:#4CAF6F"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:rgba(253,252,249,.6)">Calculation Checks</span><span style="color:#4CAF6F">Complete</span></div><div class="progress-bar"><div class="progress-fill" style="width:100%;background:#4CAF6F"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:rgba(253,252,249,.6)">Site Visit (virtual)</span><span style="color:#D4AE50">In Progress</span></div><div class="progress-bar"><div class="progress-fill" style="width:60%;background:#D4AE50"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:rgba(253,252,249,.6)">Query Resolution</span><span style="color:#D4AE50">2 / 3</span></div><div class="progress-bar"><div class="progress-fill" style="width:66%;background:#D4AE50"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:rgba(253,252,249,.6)">Verification Statement</span><span style="color:rgba(253,252,249,.3)">Pending</span></div><div class="progress-bar"><div class="progress-fill" style="width:0%;background:#4CAF6F"></div></div></div>
+              </div>
+              <div style="margin-top:12px;font-size:12px;color:rgba(253,252,249,.4)">Est. statement issue: <span style="color:#FDFCF9">30 May 2026</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function switchTab(btn, tabId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    ['tab-library','tab-builder','tab-schedule','tab-vvb'].forEach(id => {
+      document.getElementById(id).style.display = id === tabId ? '' : 'none';
+    });
+  }
+
+  const previewLabels = {
+    'nuprc-annual':'NUPRC Annual Report',
+    'nuprc-quarterly':'NUPRC Quarterly GHG',
+    'updt':'UPDT Package',
+    'iso14064':'ISO 14064-1 Inventory',
+    'vvb-export':'VVB JSON-LD Export',
+    'ifrs-s2':'IFRS S2 Disclosure'
+  };
+
+  function updatePreview() {
+    const v = document.getElementById('rptType').value;
+    document.getElementById('previewBadge').textContent = previewLabels[v] || v;
+  }
+
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+</script>
+</body>
+</html>

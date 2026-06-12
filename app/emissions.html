@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GHG Emissions Calculator — VerdeScope</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#0D1A12', forest: '#1A3D24', pine: '#235930',
+            verde:    '#2E7D45', sage:   '#4CAF6F', mist: '#A8D5B5',
+            ivory:    '#FDFCF9', gold:   '#B8962E', goldlight: '#D4AE50',
+            slate:    '#2A3040', steel:  '#4A5568', ash: '#8A9BB0', cloud: '#D4DCE8',
+          },
+          fontFamily: {
+            display: ['Cormorant Garamond','serif'],
+            sans:    ['Outfit','sans-serif'],
+            mono:    ['DM Mono','monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: 'Outfit', sans-serif; background: #0D1A12; color: #FDFCF9; display: flex; flex-direction: column; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: #0D1A12; }
+    ::-webkit-scrollbar-thumb { background: #235930; border-radius: 2px; }
+
+    /* ── Layout ── */
+    #app-shell { display: flex; flex: 1; overflow: hidden; }
+    #sidebar { width: 220px; flex-shrink: 0; background: #091410; border-right: 1px solid rgba(46,125,69,.18); display: flex; flex-direction: column; transition: width .25s; overflow: hidden; }
+    #sidebar.collapsed { width: 56px; }
+    #main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    #topbar { height: 52px; flex-shrink: 0; background: rgba(13,26,18,.95); border-bottom: 1px solid rgba(46,125,69,.18); display: flex; align-items: center; padding: 0 20px; gap: 16px; }
+    #content { flex: 1; overflow-y: auto; background: #0D1A12; }
+
+    /* ── Grid bg ── */
+    #content {
+      background-image: linear-gradient(rgba(46,125,69,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(46,125,69,.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    /* ── Sidebar ── */
+    .nav-logo { padding: 14px 14px 10px; border-bottom: 1px solid rgba(46,125,69,.15); flex-shrink: 0; }
+    .nav-section-label { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: #4A5568; padding: 14px 14px 6px; white-space: nowrap; overflow: hidden; }
+    #sidebar.collapsed .nav-section-label { opacity: 0; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; cursor: pointer; font-family: 'Outfit',sans-serif; font-size: 13px; font-weight: 500; color: #8A9BB0; transition: all .18s; white-space: nowrap; overflow: hidden; border-left: 2px solid transparent; text-decoration: none; }
+    .nav-item:hover { color: #FDFCF9; background: rgba(46,125,69,.08); }
+    .nav-item.active { color: #4CAF6F; background: rgba(46,125,69,.12); border-left-color: #4CAF6F; }
+    .nav-item .nav-icon { flex-shrink: 0; width: 16px; height: 16px; }
+    .nav-item .nav-badge { margin-left: auto; background: #E74C3C; color: #fff; font-family: 'DM Mono',monospace; font-size: 9px; padding: 1px 5px; border-radius: 8px; flex-shrink: 0; }
+    .nav-item .nav-badge.gold { background: rgba(184,150,46,.3); color: #D4AE50; }
+    #sidebar.collapsed .nav-item span, #sidebar.collapsed .nav-badge { display: none; }
+
+    /* ── Demo banner ── */
+    #demo-banner { background: rgba(184,150,46,.12); border-bottom: 1px solid rgba(212,174,80,.25); padding: 6px 20px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.5);} }
+    .dot-pulse { animation: pulse-dot 2s ease infinite; }
+
+    /* ── Module header ── */
+    .module-header { padding: 20px 24px 0; border-bottom: 1px solid rgba(46,125,69,.12); }
+
+    /* ── Source tabs ── */
+    .src-tab { font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; padding: 10px 16px; cursor: pointer; color: #4A5568; border-bottom: 2px solid transparent; transition: all .18s; white-space: nowrap; }
+    .src-tab:hover { color: #8A9BB0; }
+    .src-tab.active { color: #4CAF6F; border-bottom-color: #4CAF6F; }
+    .src-panel { display: none; }
+    .src-panel.active { display: block; }
+
+    /* ── Form elements ── */
+    .field-label { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: #8A9BB0; display: block; margin-bottom: 6px; }
+    .field-input { width: 100%; background: rgba(26,61,36,.45); border: 1px solid rgba(46,125,69,.25); color: #FDFCF9; font-family: 'DM Mono',monospace; font-size: 13px; padding: 10px 12px; transition: border-color .2s, background .2s; }
+    .field-input:focus { outline: none; border-color: #4CAF6F; background: rgba(26,61,36,.65); }
+    .field-input::placeholder { color: #4A5568; }
+    .field-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234A5568' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+    .field-select option { background: #1A3D24; }
+    .field-help { font-family: 'DM Mono',monospace; font-size: 9px; color: #4A5568; margin-top: 4px; letter-spacing: .06em; }
+
+    /* ── Tags ── */
+    .tag { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; padding: 2px 8px; display: inline-block; }
+    .tag-g { background: rgba(46,125,69,.15); color: #4CAF6F; border: 1px solid rgba(46,125,69,.3); }
+    .tag-y { background: rgba(212,174,80,.12); color: #D4AE50; border: 1px solid rgba(212,174,80,.25); }
+    .tag-r { background: rgba(231,76,60,.12); color: #E74C3C; border: 1px solid rgba(231,76,60,.25); }
+    .tag-n { background: rgba(255,255,255,.04); color: #8A9BB0; border: 1px solid rgba(255,255,255,.1); }
+    .tag-b { background: rgba(93,173,226,.1); color: #5DADE2; border: 1px solid rgba(93,173,226,.2); }
+
+    /* ── Cards / panels ── */
+    .card { background: rgba(255,255,255,.02); border: 1px solid rgba(46,125,69,.12); }
+    .card-head { padding: 10px 14px; border-bottom: 1px solid rgba(46,125,69,.1); background: rgba(26,61,36,.2); display: flex; align-items: center; justify-content: space-between; }
+    .card-title { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: #8A9BB0; }
+    .card-body { padding: 14px; }
+
+    /* ── Result boxes ── */
+    .result-box { background: rgba(46,125,69,.08); border: 1px solid rgba(46,125,69,.2); padding: 14px 16px; }
+    .result-value { font-family: 'DM Mono',monospace; font-size: 28px; font-weight: 300; color: #4CAF6F; line-height: 1; }
+    .result-unit { font-family: 'DM Mono',monospace; font-size: 10px; color: #4A5568; letter-spacing: .14em; text-transform: uppercase; margin-top: 3px; }
+    .result-box.gold { background: rgba(184,150,46,.08); border-color: rgba(212,174,80,.25); }
+    .result-box.gold .result-value { color: #D4AE50; }
+
+    /* ── Progress bar ── */
+    .prog-track { height: 5px; background: rgba(46,125,69,.12); border-radius: 1px; overflow: hidden; }
+    .prog-fill { height: 100%; border-radius: 1px; transition: width 1s cubic-bezier(.22,1,.36,1); }
+
+    /* ── Data table ── */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .data-table th { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: #4A5568; padding: 8px 10px; text-align: left; border-bottom: 1px solid rgba(46,125,69,.12); background: rgba(26,61,36,.2); }
+    .data-table td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.03); color: #D4DCE8; vertical-align: middle; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(46,125,69,.04); }
+    .mono { font-family: 'DM Mono',monospace; font-size: 11px; }
+
+    /* ── Tier badge ── */
+    .tier-badge { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; }
+    .tier1 { background: rgba(93,173,226,.1); color: #5DADE2; border: 1px solid rgba(93,173,226,.25); }
+    .tier2 { background: rgba(46,125,69,.15); color: #4CAF6F; border: 1px solid rgba(46,125,69,.3); }
+    .tier3 { background: rgba(212,174,80,.12); color: #D4AE50; border: 1px solid rgba(212,174,80,.25); }
+
+    /* ── Button ── */
+    .btn-primary { background: #2E7D45; color: #FDFCF9; font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; padding: 10px 18px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background .2s; }
+    .btn-primary:hover { background: #235930; }
+    .btn-outline { background: transparent; color: #4CAF6F; border: 1px solid rgba(46,125,69,.35); font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; padding: 9px 16px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all .2s; }
+    .btn-outline:hover { background: rgba(46,125,69,.1); border-color: #4CAF6F; }
+    .btn-gold { background: #B8962E; color: #0D1A12; font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; padding: 10px 18px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background .2s; font-weight: 700; }
+    .btn-gold:hover { background: #D4AE50; }
+
+    /* ── Inventory table row highlight ── */
+    .inv-row-highlight { background: rgba(46,125,69,.07) !important; }
+
+    /* ── Tooltip ── */
+    [data-tip] { position: relative; cursor: help; }
+    [data-tip]:hover::after { content: attr(data-tip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #1A3D24; border: 1px solid rgba(46,125,69,.35); font-family: 'DM Mono',monospace; font-size: 9px; color: #A8D5B5; padding: 5px 10px; white-space: nowrap; z-index: 200; margin-bottom: 4px; pointer-events: none; max-width: 280px; white-space: normal; text-align: center; }
+
+    /* ── GWP selector ── */
+    .gwp-pill { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 4px 10px; cursor: pointer; border: 1px solid rgba(46,125,69,.2); color: #4A5568; transition: all .15s; }
+    .gwp-pill.active { background: rgba(46,125,69,.15); border-color: rgba(46,125,69,.4); color: #4CAF6F; }
+
+    /* ── Stacked bar visual ── */
+    .stack-segment { height: 20px; display: inline-block; transition: width 1s cubic-bezier(.22,1,.36,1); vertical-align: top; }
+
+    /* ── Donut chart wrapper ── */
+    .chart-ring { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+    .chart-ring-label { position: absolute; text-align: center; }
+
+    /* ── Add source row ── */
+    @keyframes slide-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+    .source-row-new { animation: slide-in .25s ease both; }
+
+    /* ── Sidebar collapse ── */
+    @media (max-width: 768px) {
+      #sidebar { width: 56px; }
+      #sidebar .nav-section-label, #sidebar .nav-item span, #sidebar .nav-badge { display: none; }
+    }
+
+    /* ── Notification badge ── */
+    .notif-badge { position: absolute; top: -3px; right: -3px; width: 14px; height: 14px; background: #E74C3C; border-radius: 50%; font-family: 'DM Mono',monospace; font-size: 8px; color: #fff; display: flex; align-items: center; justify-content: center; }
+
+    /* ── Dropdown ── */
+    .dropdown-menu { position: absolute; top: 100%; right: 0; background: #1A3D24; border: 1px solid rgba(46,125,69,.3); min-width: 180px; z-index: 100; display: none; }
+    .dropdown-menu.open { display: block; }
+    .dropdown-item { display: block; padding: 8px 14px; font-family: 'Outfit',sans-serif; font-size: 12px; color: #D4DCE8; transition: background .15s; cursor: pointer; }
+    .dropdown-item:hover { background: rgba(46,125,69,.12); color: #FDFCF9; }
+
+    /* ── Summary breakdown bar ── */
+    .breakdown-track { height: 8px; background: rgba(46,125,69,.1); border-radius: 1px; overflow: hidden; display: flex; }
+
+    /* Source colour palette */
+    .c-flare    { background: #E74C3C; }
+    .c-fugitive { background: #E67E22; }
+    .c-combust  { background: #D4AE50; }
+    .c-pneum    { background: #9B59B6; }
+    .c-venting  { background: #E91E63; }
+    .c-scope2   { background: #4A5568; }
+    .c-scope3   { background: #2A3040; }
+
+    .dot-sm { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  </style>
+</head>
+
+<body>
+
+<!-- ═══ DEMO BANNER ═══ -->
+<div id="demo-banner">
+  <div class="flex items-center gap-3">
+    <div class="w-2 h-2 rounded-full bg-yellow-400 dot-pulse"></div>
+    <span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#D4AE50;">
+      Demo Mode — Seplat Energy Plc · OML 4, OML 38 · Pro Tier
+    </span>
+  </div>
+  <div class="flex items-center gap-4">
+    <a href="../demo.html" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#D4AE50;text-decoration:none;">Book Real Demo →</a>
+    <button onclick="document.getElementById('demo-banner').style.display='none'" style="color:#4A5568;background:none;border:none;cursor:pointer;font-size:16px;">×</button>
+  </div>
+</div>
+
+<!-- ═══ APP SHELL ═══ -->
+<div id="app-shell">
+
+  <!-- ════ SIDEBAR ════ -->
+  <nav id="sidebar">
+    <div class="nav-logo">
+      <a href="../index.html" class="flex items-center gap-2" style="text-decoration:none;">
+        <svg width="28" height="28" viewBox="0 0 56 56" fill="none">
+          <circle cx="28" cy="28" r="18" stroke="#4CAF6F" stroke-width="1.5" fill="none"/>
+          <circle cx="28" cy="28" r="3" fill="#4CAF6F"/>
+          <path d="M28 10 C34 14,44 20,44 28 C44 28,36 22,28 10Z" fill="#2E7D45" opacity=".8"/>
+          <line x1="38" y1="8" x2="42" y2="14" stroke="#B8962E" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:18px;"><span style="color:#FDFCF9;">Verde</span><span style="color:#D4AE50;">Scope</span></span>
+      </a>
+    </div>
+
+    <div style="padding:10px 14px;border-bottom:1px solid rgba(46,125,69,.12);">
+      <div style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(46,125,69,.1);border:1px solid rgba(46,125,69,.25);">
+        <i data-lucide="building-2" style="width:12px;height:12px;color:#4CAF6F;flex-shrink:0;"></i>
+        <span style="font-family:'DM Mono',monospace;font-size:10px;color:#D4DCE8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Seplat Energy Plc</span>
+      </div>
+    </div>
+
+    <div style="flex:1;overflow-y:auto;padding-bottom:12px;">
+      <div class="nav-section-label">Core</div>
+      <a class="nav-item" href="dashboard.html"><i data-lucide="layout-dashboard" class="nav-icon"></i><span>Dashboard</span></a>
+      <a class="nav-item active" href="emissions.html"><i data-lucide="calculator" class="nav-icon"></i><span>Emissions</span></a>
+      <a class="nav-item" href="ldar.html"><i data-lucide="search" class="nav-icon"></i><span>LDAR Manager</span><span class="nav-badge">3</span></a>
+      <a class="nav-item" href="equipment.html"><i data-lucide="settings" class="nav-icon"></i><span>Equipment</span><span class="nav-badge">1</span></a>
+      <a class="nav-item" href="updt.html"><i data-lucide="shield-check" class="nav-icon"></i><span>UPDT Compliance</span></a>
+      <div class="nav-section-label">Revenue</div>
+      <a class="nav-item" href="carbon-market.html"><i data-lucide="trending-up" class="nav-icon"></i><span>Carbon Market</span><span class="nav-badge gold">$</span></a>
+      <div class="nav-section-label">Reports</div>
+      <a class="nav-item" href="reports.html"><i data-lucide="file-text" class="nav-icon"></i><span>Reports</span></a>
+      <a class="nav-item" href="verde-intel.html"><i data-lucide="brain" class="nav-icon"></i><span>Verde Intelligence</span></a>
+      <div class="nav-section-label">Account</div>
+      <a class="nav-item" href="../resources.html" target="_blank"><i data-lucide="book-open" class="nav-icon"></i><span>Academy</span></a>
+      <a class="nav-item" href="#"><i data-lucide="settings-2" class="nav-icon"></i><span>Settings</span></a>
+    </div>
+
+    <div style="padding:10px 14px;border-top:1px solid rgba(46,125,69,.12);">
+      <button onclick="toggleSidebar()" style="background:none;border:none;cursor:pointer;color:#4A5568;display:flex;align-items:center;gap:6px;">
+        <i data-lucide="panel-left-close" style="width:16px;height:16px;" id="collapse-icon"></i>
+        <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;" id="collapse-label">Collapse</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ════ MAIN ════ -->
+  <div id="main-area">
+
+    <!-- TOPBAR -->
+    <div id="topbar">
+      <div style="flex:1;">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8A9BB0;">GHG Emissions Calculator</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:11px;color:#4A5568;">IPCC Tier 1 / 2 / 3 · GHG Protocol · ISO 14064-1 · Q2 2026</div>
+      </div>
+
+      <!-- Facility selector -->
+      <div style="position:relative;">
+        <button onclick="toggleDropdown('fac-dd')" style="display:flex;align-items:center;gap:5px;background:rgba(46,125,69,.1);border:1px solid rgba(46,125,69,.2);color:#D4DCE8;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;cursor:pointer;">
+          <i data-lucide="factory" style="width:12px;height:12px;"></i>
+          <span id="active-facility-label">All Facilities</span>
+          <i data-lucide="chevron-down" style="width:10px;height:10px;"></i>
+        </button>
+        <div class="dropdown-menu" id="fac-dd">
+          <div class="dropdown-item" onclick="selectFacility('All Facilities','all')">All Facilities</div>
+          <div class="dropdown-item" onclick="selectFacility('GCS-7 — OML 4','gcs7')">GCS-7 — OML 4</div>
+          <div class="dropdown-item" onclick="selectFacility('WPP-12 — OML 4','wpp12')">WPP-12 — OML 4</div>
+          <div class="dropdown-item" onclick="selectFacility('GCS-3 — OML 38','gcs3')">GCS-3 — OML 38</div>
+          <div class="dropdown-item" onclick="selectFacility('GPP-5 — OML 38','gpp5')">GPP-5 — OML 38</div>
+        </div>
+      </div>
+
+      <!-- Period selector -->
+      <div style="position:relative;">
+        <button onclick="toggleDropdown('period-dd')" style="display:flex;align-items:center;gap:5px;background:rgba(46,125,69,.1);border:1px solid rgba(46,125,69,.2);color:#D4DCE8;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;cursor:pointer;">
+          Q2 2026 <i data-lucide="chevron-down" style="width:10px;height:10px;"></i>
+        </button>
+        <div class="dropdown-menu" id="period-dd">
+          <div class="dropdown-item">Q1 2026</div>
+          <div class="dropdown-item">Q2 2026 (current)</div>
+          <div class="dropdown-item">Q4 2025</div>
+          <div class="dropdown-item">Full Year 2025</div>
+        </div>
+      </div>
+
+      <!-- Export -->
+      <button style="display:flex;align-items:center;gap:5px;background:rgba(46,125,69,.1);border:1px solid rgba(46,125,69,.2);color:#4CAF6F;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;cursor:pointer;">
+        <i data-lucide="download" style="width:12px;height:12px;"></i> Export
+      </button>
+
+      <!-- Notifications -->
+      <div style="position:relative;">
+        <button onclick="toggleDropdown('notif-dd')" style="background:none;border:none;cursor:pointer;color:#8A9BB0;position:relative;padding:4px;">
+          <i data-lucide="bell" style="width:18px;height:18px;"></i>
+          <span class="notif-badge">4</span>
+        </button>
+        <div class="dropdown-menu" id="notif-dd" style="min-width:260px;">
+          <div style="padding:8px 14px;border-bottom:1px solid rgba(46,125,69,.15);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;">Notifications</div>
+          <div class="dropdown-item" style="font-size:11px;">LDAR: 3 leaks overdue · OML 4</div>
+          <div class="dropdown-item" style="font-size:11px;">UPDT Q2 report due in 18 days</div>
+          <div class="dropdown-item" style="font-size:11px;">Anomaly: GCS-3 CH₄ spike 3.1σ</div>
+          <div class="dropdown-item" style="font-size:11px;">VCS credits verified — OML 38</div>
+        </div>
+      </div>
+
+      <!-- User -->
+      <div style="display:flex;align-items:center;gap:8px;padding-left:8px;border-left:1px solid rgba(46,125,69,.15);">
+        <div style="width:30px;height:30px;background:rgba(46,125,69,.2);border:1px solid rgba(46,125,69,.35);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:13px;color:#4CAF6F;">AO</div>
+      </div>
+    </div>
+
+    <!-- ═══ CONTENT ═══ -->
+    <div id="content">
+
+      <!-- ── Module Header ── -->
+      <div class="module-header">
+        <div class="flex items-center justify-between pb-3">
+          <div class="flex items-center gap-4">
+            <div>
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#4CAF6F;margin-bottom:2px;">Module 01 · Emissions Engine</div>
+              <h1 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:#FDFCF9;line-height:1.1;">GHG Emissions Calculator</h1>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="tag tag-g">IPCC 2019</span>
+              <span class="tag tag-g">GHG Protocol</span>
+              <span class="tag tag-b">ISO 14064-1</span>
+              <span class="tag tag-n">NUPRC 0024-2022</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <!-- GWP toggle -->
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;letter-spacing:.1em;text-transform:uppercase;margin-right:4px;">GWP Basis:</div>
+            <div class="gwp-pill active" id="gwp-100" onclick="setGWP(100,this)">AR6 100yr</div>
+            <div class="gwp-pill" id="gwp-20" onclick="setGWP(20,this)">AR6 20yr</div>
+          </div>
+        </div>
+
+        <!-- Source category tabs -->
+        <div class="flex overflow-x-auto" id="src-tabs" style="margin: 0 -24px; padding: 0 24px;">
+          <button class="src-tab active" onclick="showSource('inventory',this)">Inventory Summary</button>
+          <button class="src-tab" onclick="showSource('flaring',this)">Gas Flaring</button>
+          <button class="src-tab" onclick="showSource('fugitive',this)">Fugitive Emissions</button>
+          <button class="src-tab" onclick="showSource('combustion',this)">Combustion</button>
+          <button class="src-tab" onclick="showSource('pneumatics',this)">Pneumatics</button>
+          <button class="src-tab" onclick="showSource('venting',this)">Venting</button>
+          <button class="src-tab" onclick="showSource('scope2',this)">Scope 2 — Energy</button>
+          <button class="src-tab" onclick="showSource('scope3',this)">Scope 3</button>
+          <button class="src-tab" onclick="showSource('calculator',this)">⚡ Live Calculator</button>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- PANEL: INVENTORY SUMMARY                   -->
+      <!-- ══════════════════════════════════════════ -->
+      <div class="src-panel active" id="panel-inventory" style="padding:20px 24px;">
+
+        <!-- KPI strip -->
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px;">
+
+          <div style="background:rgba(255,255,255,.02);border:1px solid rgba(46,125,69,.15);padding:14px 16px;border-top:2px solid #4CAF6F;">
+            <div style="font-family:'DM Mono',monospace;font-size:24px;font-weight:300;color:#4CAF6F;">47,832</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;letter-spacing:.14em;text-transform:uppercase;margin-top:3px;">Total tCO₂e</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:11px;color:#8A9BB0;margin-top:4px;">Q2 2026 · Scope 1+2</div>
+          </div>
+
+          <div style="background:rgba(255,255,255,.02);border:1px solid rgba(46,125,69,.15);padding:14px 16px;border-top:2px solid #E74C3C;">
+            <div style="font-family:'DM Mono',monospace;font-size:24px;font-weight:300;color:#E74C3C;">31,240</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;letter-spacing:.14em;text-transform:uppercase;margin-top:3px;">Flaring tCO₂e</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:11px;color:#8A9BB0;margin-top:4px;">65.3% of Scope 1</div>
+          </div>
+
+          <div style="background:rgba(255,255,255,.02);border:1px solid rgba(46,125,69,.15);padding:14px 16px;border-top:2px solid #E67E22;">
+            <div style="font-family:'DM Mono',monospace;font-size:24px;font-weight:300;color:#E67E22;">8,140</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;letter-spacing:.14em;text-transform:uppercase;margin-top:3px;">Fugitive tCO₂e</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:11px;color:#8A9BB0;margin-top:4px;">17.0% · Tier 2 active</div>
+          </div>
+
+          <div style="background:rgba(255,255,255,.02);border:1px solid rgba(46,125,69,.15);padding:14px 16px;border-top:2px solid #D4AE50;">
+            <div style="font-family:'DM Mono',monospace;font-size:24px;font-weight:300;color:#D4AE50;">4,972</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;letter-spacing:.14em;text-transform:uppercase;margin-top:3px;">Combustion tCO₂e</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:11px;color:#8A9BB0;margin-top:4px;">10.4% · Diesel + gas</div>
+          </div>
+
+          <div style="background:rgba(255,255,255,.02);border:1px solid rgba(46,125,69,.15);padding:14px 16px;border-top:2px solid #4A5568;">
+            <div style="font-family:'DM Mono',monospace;font-size:24px;font-weight:300;color:#8A9BB0;">3,480</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;letter-spacing:.14em;text-transform:uppercase;margin-top:3px;">Scope 2 tCO₂e</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:11px;color:#8A9BB0;margin-top:4px;">Grid electricity</div>
+          </div>
+        </div>
+
+        <!-- Stacked visual bar + chart row -->
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:14px;margin-bottom:14px;">
+
+          <!-- Left: source breakdown visual -->
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">Scope 1 Source Breakdown — Q2 2026</span>
+              <span class="tag tag-g">Tier 2 Active</span>
+            </div>
+            <div class="card-body">
+              <!-- Stacked visual bar -->
+              <div style="display:flex;height:28px;border-radius:2px;overflow:hidden;margin-bottom:12px;gap:1px;" id="stack-bar">
+                <div class="stack-segment c-flare" style="width:65.3%;" title="Flaring 65.3%"></div>
+                <div class="stack-segment c-fugitive" style="width:17.0%;" title="Fugitive 17.0%"></div>
+                <div class="stack-segment c-combust" style="width:10.4%;" title="Combustion 10.4%"></div>
+                <div class="stack-segment c-pneum" style="width:4.5%;" title="Pneumatics 4.5%"></div>
+                <div class="stack-segment c-venting" style="width:2.8%;" title="Venting 2.8%"></div>
+              </div>
+
+              <!-- Legend + values -->
+              <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;">
+                <div>
+                  <div class="flex items-center gap-1.5 mb-1"><div class="dot-sm c-flare"></div><span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">Flaring</span></div>
+                  <div style="font-family:'DM Mono',monospace;font-size:14px;color:#E74C3C;">31,240</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">65.3%</div>
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5 mb-1"><div class="dot-sm c-fugitive"></div><span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">Fugitive</span></div>
+                  <div style="font-family:'DM Mono',monospace;font-size:14px;color:#E67E22;">8,140</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">17.0%</div>
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5 mb-1"><div class="dot-sm c-combust"></div><span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">Combustion</span></div>
+                  <div style="font-family:'DM Mono',monospace;font-size:14px;color:#D4AE50;">4,972</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">10.4%</div>
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5 mb-1"><div class="dot-sm c-pneum"></div><span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">Pneumatics</span></div>
+                  <div style="font-family:'DM Mono',monospace;font-size:14px;color:#9B59B6;">2,155</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">4.5%</div>
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5 mb-1"><div class="dot-sm c-venting"></div><span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">Venting</span></div>
+                  <div style="font-family:'DM Mono',monospace;font-size:14px;color:#E91E63;">1,845</div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">2.8%</div>
+                </div>
+              </div>
+
+              <!-- Per-facility table -->
+              <div style="border-top:1px solid rgba(46,125,69,.1);padding-top:12px;">
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;text-transform:uppercase;letter-spacing:.14em;margin-bottom:8px;">By Facility</div>
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Facility</th>
+                      <th>Concession</th>
+                      <th>Tier</th>
+                      <th>Scope 1 (tCO₂e)</th>
+                      <th>Scope 2</th>
+                      <th>Total</th>
+                      <th>YoY Δ</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="font-weight:500;color:#FDFCF9;">GCS-7 Onshore</td>
+                      <td class="mono" style="color:#8A9BB0;">OML 4</td>
+                      <td><span class="tier-badge tier2">T2</span></td>
+                      <td class="mono" style="color:#4CAF6F;">18,420</td>
+                      <td class="mono" style="color:#8A9BB0;">1,240</td>
+                      <td class="mono" style="color:#FDFCF9;font-weight:600;">19,660</td>
+                      <td class="mono" style="color:#4CAF6F;">▼ 6.2%</td>
+                    </tr>
+                    <tr>
+                      <td style="font-weight:500;color:#FDFCF9;">WPP-12 Onshore</td>
+                      <td class="mono" style="color:#8A9BB0;">OML 4</td>
+                      <td><span class="tier-badge tier2">T2</span></td>
+                      <td class="mono" style="color:#4CAF6F;">9,810</td>
+                      <td class="mono" style="color:#8A9BB0;">640</td>
+                      <td class="mono" style="color:#FDFCF9;font-weight:600;">10,450</td>
+                      <td class="mono" style="color:#E74C3C;">▲ 2.1%</td>
+                    </tr>
+                    <tr style="background:rgba(231,76,60,.04);">
+                      <td style="font-weight:500;color:#FDFCF9;">GCS-3 Onshore</td>
+                      <td class="mono" style="color:#8A9BB0;">OML 38</td>
+                      <td><span class="tier-badge tier1">T1</span></td>
+                      <td class="mono" style="color:#E74C3C;">12,640</td>
+                      <td class="mono" style="color:#8A9BB0;">920</td>
+                      <td class="mono" style="color:#E74C3C;font-weight:600;">13,560</td>
+                      <td class="mono" style="color:#E74C3C;">▲ 11.4% ⚠</td>
+                    </tr>
+                    <tr>
+                      <td style="font-weight:500;color:#FDFCF9;">GPP-5 Onshore</td>
+                      <td class="mono" style="color:#8A9BB0;">OML 38</td>
+                      <td><span class="tier-badge tier2">T2</span></td>
+                      <td class="mono" style="color:#4CAF6F;">2,280</td>
+                      <td class="mono" style="color:#8A9BB0;">680</td>
+                      <td class="mono" style="color:#FDFCF9;font-weight:600;">2,960</td>
+                      <td class="mono" style="color:#4CAF6F;">▼ 4.8%</td>
+                    </tr>
+                    <tr style="background:rgba(26,61,36,.3);">
+                      <td style="font-weight:700;color:#FDFCF9;">Total Portfolio</td>
+                      <td class="mono" style="color:#8A9BB0;"></td>
+                      <td></td>
+                      <td class="mono" style="color:#4CAF6F;font-weight:700;">43,150</td>
+                      <td class="mono" style="color:#8A9BB0;font-weight:700;">3,480</td>
+                      <td class="mono" style="color:#FDFCF9;font-weight:700;">46,630</td>
+                      <td class="mono" style="color:#4CAF6F;">▼ 3.7%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: donut chart + energy intensity -->
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="card" style="flex:1;">
+              <div class="card-head"><span class="card-title">Scope Distribution</span></div>
+              <div class="card-body" style="display:flex;flex-direction:column;align-items:center;padding:12px;">
+                <div style="position:relative;width:130px;height:130px;margin-bottom:10px;">
+                  <canvas id="donutChart" width="130" height="130"></canvas>
+                  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                    <div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:300;color:#4CAF6F;">47.8k</div>
+                    <div style="font-family:'DM Mono',monospace;font-size:8px;color:#4A5568;letter-spacing:.1em;">tCO₂e</div>
+                  </div>
+                </div>
+                <div style="width:100%;space-y:4px;">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                    <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">Scope 1 — Direct</span>
+                    <span style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;">90.3%</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                    <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">Scope 2 — Energy</span>
+                    <span style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">7.3%</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;">
+                    <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">Scope 3 — Value Chain</span>
+                    <span style="font-family:'DM Mono',monospace;font-size:9px;color:#2A3040;">2.4%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><span class="card-title">Energy Intensity</span><span class="tag tag-g">On Track</span></div>
+              <div class="card-body">
+                <div style="font-family:'DM Mono',monospace;font-size:20px;font-weight:300;color:#4CAF6F;margin-bottom:2px;">0.184</div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">tCO₂e / BOE · Q2 2026</div>
+                <div class="prog-track" style="margin-bottom:6px;"><div class="prog-fill" style="width:78%;background:#4CAF6F;"></div></div>
+                <div style="display:flex;justify-content:space-between;">
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">Target: ≤0.196</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;">−5.9% YoY ✓</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><span class="card-title">Methodology Status</span></div>
+              <div class="card-body" style="padding:10px 12px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">GCS-7 OML 4</span>
+                  <span class="tier-badge tier2">Tier 2</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">WPP-12 OML 4</span>
+                  <span class="tier-badge tier2">Tier 2</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#E74C3C;">GCS-3 OML 38</span>
+                  <span class="tier-badge tier1">Tier 1 ↑ upgrade needed</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;">
+                  <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">GPP-5 OML 38</span>
+                  <span class="tier-badge tier2">Tier 2</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 12-month trend chart -->
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">12-Month Emissions Trend — All Facilities (tCO₂e)</span>
+            <div style="display:flex;gap:6px;">
+              <span style="display:flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;"><span style="width:10px;height:2px;background:#4CAF6F;display:inline-block;"></span>Scope 1</span>
+              <span style="display:flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;"><span style="width:10px;height:2px;background:#4A5568;display:inline-block;"></span>Scope 2</span>
+            </div>
+          </div>
+          <div class="card-body" style="height:140px;">
+            <canvas id="trendChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- PANEL: GAS FLARING                         -->
+      <!-- ══════════════════════════════════════════ -->
+      <div class="src-panel" id="panel-flaring" style="padding:20px 24px;">
+        <div style="display:grid;grid-template-columns:1fr 320px;gap:14px;">
+          <!-- Input form -->
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">Gas Flaring Emissions — IPCC 2006 Vol.2 Ch.4 / Tier 2</span>
+              <span class="tag tag-r">65.3% of Scope 1</span>
+            </div>
+            <div class="card-body">
+              <div style="background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.2);padding:10px 12px;margin-bottom:14px;font-family:'DM Mono',monospace;font-size:9px;color:#E74C3C;letter-spacing:.1em;">
+                ⚠ NUPRC Gas Flaring Regulations 2023: Zero routine flaring by 2030 · 98% DRE required · Quarterly volume reporting mandatory
+              </div>
+
+              <!-- Flare source table -->
+              <table class="data-table" style="margin-bottom:14px;">
+                <thead>
+                  <tr>
+                    <th>Flare Stack</th>
+                    <th>Facility</th>
+                    <th>Gas Volume (MMscf/day)</th>
+                    <th>DRE (%)</th>
+                    <th>EF CO₂ (kg/m³)</th>
+                    <th>tCO₂e/yr (est.)</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="color:#FDFCF9;font-weight:500;">FL-01 Main</td>
+                    <td class="mono" style="color:#8A9BB0;">GCS-7</td>
+                    <td><input type="number" class="field-input mono" value="4.8" style="width:90px;padding:4px 8px;" oninput="updateFlareCalc()" /></td>
+                    <td><input type="number" class="field-input mono" value="98.5" style="width:70px;padding:4px 8px;" oninput="updateFlareCalc()" /></td>
+                    <td class="mono" style="color:#8A9BB0;">2.693</td>
+                    <td class="mono" style="color:#E74C3C;" id="flare-fl01">14,820</td>
+                    <td><span class="tag tag-g">Active</span></td>
+                  </tr>
+                  <tr>
+                    <td style="color:#FDFCF9;font-weight:500;">FL-02 Emergency</td>
+                    <td class="mono" style="color:#8A9BB0;">GCS-7</td>
+                    <td><input type="number" class="field-input mono" value="0.6" style="width:90px;padding:4px 8px;" oninput="updateFlareCalc()" /></td>
+                    <td><input type="number" class="field-input mono" value="97.2" style="width:70px;padding:4px 8px;" oninput="updateFlareCalc()" /></td>
+                    <td class="mono" style="color:#8A9BB0;">2.693</td>
+                    <td class="mono" style="color:#E74C3C;" id="flare-fl02">1,852</td>
+                    <td><span class="tag tag-g">Active</span></td>
+                  </tr>
+                  <tr style="background:rgba(231,76,60,.04);">
+                    <td style="color:#FDFCF9;font-weight:500;">FL-03 Process</td>
+                    <td class="mono" style="color:#8A9BB0;">GCS-3</td>
+                    <td><input type="number" class="field-input mono" value="3.2" style="width:90px;padding:4px 8px;" oninput="updateFlareCalc()" /></td>
+                    <td><input type="number" class="field-input mono" value="96.4" style="width:70px;padding:4px 8px;" oninput="updateFlareCalc()" /></td>
+                    <td class="mono" style="color:#8A9BB0;">2.693</td>
+                    <td class="mono" style="color:#E74C3C;" id="flare-fl03">9,876</td>
+                    <td><span class="tag tag-r">DRE Alert</span></td>
+                  </tr>
+                  <tr>
+                    <td style="color:#FDFCF9;font-weight:500;">FL-04 Wellhead</td>
+                    <td class="mono" style="color:#8A9BB0;">WPP-12</td>
+                    <td><input type="number" class="field-input mono" value="1.5" style="width:90px;padding:4px 8px;" oninput="updateFlareCalc()" /></td>
+                    <td><input type="number" class="field-input mono" value="98.8" style="width:70px;padding:4px 8px;" oninput="updateFlareCalc()" /></td>
+                    <td class="mono" style="color:#8A9BB0;">2.693</td>
+                    <td class="mono" style="color:#E74C3C;" id="flare-fl04">4,629</td>
+                    <td><span class="tag tag-g">Active</span></td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <!-- Methodology note -->
+              <div style="background:rgba(26,61,36,.4);border:1px solid rgba(46,125,69,.15);padding:10px 12px;">
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Calculation Methodology</div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;line-height:1.6;">
+                  CO₂ Flaring = Vol_flared (m³) × EF_CO₂ (2.693 kg CO₂/m³) × (1 − DRE/100)<br/>
+                  CH₄ Unburned = Vol_flared (m³) × EF_CH₄ (0.00218 kg CH₄/m³) × (1 − DRE/100) × GWP_CH₄ (27.9)<br/>
+                  Source: IPCC 2006 Vol.2 Ch.4 Table 4.2.2 · NUPRC Guide 0024-2022 Appendix B
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Result summary -->
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="result-box">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px;">Flaring Total — Q2 2026</div>
+              <div class="result-value" id="flare-total">31,177</div>
+              <div class="result-unit">tCO₂e / quarter</div>
+            </div>
+            <div class="card">
+              <div class="card-head"><span class="card-title">DRE Compliance</span></div>
+              <div class="card-body" style="padding:10px 12px;">
+                <div style="margin-bottom:8px;">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">FL-01 GCS-7</span><span style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;">98.5% ✓</span></div>
+                  <div class="prog-track"><div class="prog-fill" style="width:98.5%;background:#4CAF6F;"></div></div>
+                </div>
+                <div style="margin-bottom:8px;">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">FL-02 GCS-7</span><span style="font-family:'DM Mono',monospace;font-size:9px;color:#D4AE50;">97.2% ≈</span></div>
+                  <div class="prog-track"><div class="prog-fill" style="width:97.2%;background:#D4AE50;"></div></div>
+                </div>
+                <div style="margin-bottom:8px;">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-family:'DM Mono',monospace;font-size:9px;color:#E74C3C;">FL-03 GCS-3</span><span style="font-family:'DM Mono',monospace;font-size:9px;color:#E74C3C;">96.4% ✗</span></div>
+                  <div class="prog-track"><div class="prog-fill" style="width:96.4%;background:#E74C3C;"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">FL-04 WPP-12</span><span style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;">98.8% ✓</span></div>
+                  <div class="prog-track"><div class="prog-fill" style="width:98.8%;background:#4CAF6F;"></div></div>
+                </div>
+                <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(46,125,69,.1);font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">NUPRC minimum DRE: 98.0%</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><span class="card-title">Gas Saved vs Flared</span></div>
+              <div class="card-body" style="padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;line-height:1.8;">
+                <div style="display:flex;justify-content:space-between;"><span>Total gas flared:</span><span style="color:#E74C3C;">10.1 MMscf/day</span></div>
+                <div style="display:flex;justify-content:space-between;"><span>Carbon credit potential:</span><span style="color:#D4AE50;">~$438K/yr</span></div>
+                <div style="display:flex;justify-content:space-between;"><span>2030 zero-flare gap:</span><span style="color:#E74C3C;">10.1 MMscf remaining</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- PANEL: FUGITIVE EMISSIONS                  -->
+      <!-- ══════════════════════════════════════════ -->
+      <div class="src-panel" id="panel-fugitive" style="padding:20px 24px;">
+        <div style="display:grid;grid-template-columns:1fr 300px;gap:14px;">
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">Fugitive Emissions — IPCC Tier 2 / API Compendium 3rd Ed.</span>
+              <span class="tag tag-y">17.0% of Scope 1</span>
+            </div>
+            <div class="card-body">
+              <div style="margin-bottom:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div class="form-group">
+                  <label class="field-label">Methodology</label>
+                  <select class="field-input field-select" onchange="updateFugitiveCalc()">
+                    <option value="tier2">IPCC Tier 2 — Facility-specific EFs</option>
+                    <option value="tier1">IPCC Tier 1 — Default EFs</option>
+                    <option value="api">API Compendium — Equipment count</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="field-label">Gas Production (MMscf/day)</label>
+                  <input type="number" class="field-input mono" value="18.5" oninput="updateFugitiveCalc()" />
+                  <div class="field-help">Total across all facilities</div>
+                </div>
+              </div>
+
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Emission Source</th>
+                    <th>Facility</th>
+                    <th>Equipment Count</th>
+                    <th>EF (kg CH₄/unit/yr)</th>
+                    <th>CH₄ (tonnes)</th>
+                    <th>CO₂e (tCO₂e)</th>
+                    <th>Tier</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="color:#FDFCF9;">Compressor Seals</td>
+                    <td class="mono" style="color:#8A9BB0;">GCS-7</td>
+                    <td><input type="number" class="field-input mono" value="12" style="width:60px;padding:4px 8px;" oninput="updateFugitiveCalc()" /></td>
+                    <td class="mono" style="color:#8A9BB0;">122.0</td>
+                    <td class="mono" style="color:#E67E22;">1,464</td>
+                    <td class="mono" style="color:#E67E22;">40,846</td>
+                    <td><span class="tier-badge tier2">T2</span></td>
+                  </tr>
+                  <tr>
+                    <td style="color:#FDFCF9;">Valve Stems</td>
+                    <td class="mono" style="color:#8A9BB0;">All</td>
+                    <td><input type="number" class="field-input mono" value="284" style="width:60px;padding:4px 8px;" oninput="updateFugitiveCalc()" /></td>
+                    <td class="mono" style="color:#8A9BB0;">5.02</td>
+                    <td class="mono" style="color:#E67E22;">1,426</td>
+                    <td class="mono" style="color:#E67E22;">39,785</td>
+                    <td><span class="tier-badge tier2">T2</span></td>
+                  </tr>
+                  <tr>
+                    <td style="color:#FDFCF9;">Flanges / Connectors</td>
+                    <td class="mono" style="color:#8A9BB0;">All</td>
+                    <td><input type="number" class="field-input mono" value="1840" style="width:60px;padding:4px 8px;" oninput="updateFugitiveCalc()" /></td>
+                    <td class="mono" style="color:#8A9BB0;">0.28</td>
+                    <td class="mono" style="color:#E67E22;">515</td>
+                    <td class="mono" style="color:#E67E22;">14,369</td>
+                    <td><span class="tier-badge tier2">T2</span></td>
+                  </tr>
+                  <tr>
+                    <td style="color:#FDFCF9;">Storage Tank Vents</td>
+                    <td class="mono" style="color:#8A9BB0;">GPP-5</td>
+                    <td><input type="number" class="field-input mono" value="8" style="width:60px;padding:4px 8px;" oninput="updateFugitiveCalc()" /></td>
+                    <td class="mono" style="color:#8A9BB0;">42.7</td>
+                    <td class="mono" style="color:#E67E22;">342</td>
+                    <td class="mono" style="color:#E67E22;">9,542</td>
+                    <td><span class="tier-badge tier1">T1</span></td>
+                  </tr>
+                  <tr>
+                    <td style="color:#FDFCF9;">Wellhead Tubing Leaks</td>
+                    <td class="mono" style="color:#8A9BB0;">WPP-12</td>
+                    <td><input type="number" class="field-input mono" value="6" style="width:60px;padding:4px 8px;" oninput="updateFugitiveCalc()" /></td>
+                    <td class="mono" style="color:#8A9BB0;">18.4</td>
+                    <td class="mono" style="color:#E67E22;">110</td>
+                    <td class="mono" style="color:#E67E22;">3,079</td>
+                    <td><span class="tier-badge tier2">T2</span></td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div style="background:rgba(26,61,36,.4);border:1px solid rgba(46,125,69,.15);padding:10px 12px;margin-top:12px;">
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Calculation Basis</div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;line-height:1.6;">
+                  CH₄ (t) = Σ [equipment_count × EF_CH₄ (kg/unit/yr)] / 1000<br/>
+                  CO₂e = CH₄ (t) × GWP_CH₄ · AR6 100yr = 27.9 | 20yr = 82.5<br/>
+                  Source: API Compendium 3rd Ed. Tables C-1 to C-14 · NUPRC Guide 0024-2022 §4.2
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="result-box">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px;">Fugitive Total — Q2 2026</div>
+              <div class="result-value" style="color:#E67E22;">8,140</div>
+              <div class="result-unit">tCO₂e / quarter</div>
+            </div>
+            <div class="result-box">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px;">CH₄ Mass Total</div>
+              <div class="result-value" style="color:#E67E22;font-size:20px;">291.7</div>
+              <div class="result-unit">tonnes CH₄ / quarter</div>
+            </div>
+            <div class="card">
+              <div class="card-head"><span class="card-title">GWP Sensitivity</span></div>
+              <div class="card-body" style="padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;line-height:1.9;">
+                <div style="display:flex;justify-content:space-between;"><span>AR6 100yr (×27.9):</span><span style="color:#E67E22;">8,140 tCO₂e</span></div>
+                <div style="display:flex;justify-content:space-between;"><span>AR6 20yr (×82.5):</span><span style="color:#E74C3C;">24,065 tCO₂e</span></div>
+                <div style="display:flex;justify-content:space-between;"><span>AR5 100yr (×28):</span><span style="color:#E67E22;">8,169 tCO₂e</span></div>
+                <div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(46,125,69,.1);color:#4A5568;">NUPRC energy intensity calc uses 20yr GWP per Appendix D</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><span class="card-title">LDAR Reduction Potential</span></div>
+              <div class="card-body" style="padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;line-height:1.9;">
+                <div style="display:flex;justify-content:space-between;"><span>14 active leaks repaired:</span><span style="color:#4CAF6F;">−1,240 tCO₂e</span></div>
+                <div style="display:flex;justify-content:space-between;"><span>Carbon credit value:</span><span style="color:#D4AE50;">~$17.4K</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- PANEL: COMBUSTION                          -->
+      <!-- ══════════════════════════════════════════ -->
+      <div class="src-panel" id="panel-combustion" style="padding:20px 24px;">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Stationary Combustion — IPCC 2006 Vol.2 Ch.2 / Tier 2</span>
+            <span class="tag tag-y">10.4% of Scope 1</span>
+          </div>
+          <div class="card-body">
+            <div style="margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+              <div>
+                <label class="field-label">Primary Fuel Type</label>
+                <select class="field-input field-select">
+                  <option>Diesel (Gas Oil)</option>
+                  <option>Natural Gas</option>
+                  <option>Mixed Fleet</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label">Diesel Consumed (t/qtr)</label>
+                <input type="number" class="field-input mono" value="390" oninput="updateCombustCalc()" />
+                <div class="field-help">EF: 74.1 kgCO₂/GJ × 43.0 GJ/t = 3.19 tCO₂/t</div>
+              </div>
+              <div>
+                <label class="field-label">Gas Fuel Burned (MMscf/qtr)</label>
+                <input type="number" class="field-input mono" value="2.4" oninput="updateCombustCalc()" />
+                <div class="field-help">EF: 56.1 kgCO₂/GJ × 38.0 GJ/Mscf</div>
+              </div>
+            </div>
+
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Combustion Source</th>
+                  <th>Fuel Type</th>
+                  <th>Quantity</th>
+                  <th>NCV (GJ/unit)</th>
+                  <th>EF (kgCO₂/GJ)</th>
+                  <th>CO₂ (tCO₂)</th>
+                  <th>CH₄ (tCO₂e)</th>
+                  <th>N₂O (tCO₂e)</th>
+                  <th>Total tCO₂e</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="color:#FDFCF9;">Generator Set — GCS-7</td>
+                  <td class="mono" style="color:#8A9BB0;">Diesel</td>
+                  <td class="mono">180 t/qtr</td>
+                  <td class="mono" style="color:#8A9BB0;">43.0</td>
+                  <td class="mono" style="color:#8A9BB0;">74.1</td>
+                  <td class="mono" style="color:#D4AE50;">574</td>
+                  <td class="mono" style="color:#8A9BB0;">1.5</td>
+                  <td class="mono" style="color:#8A9BB0;">12.0</td>
+                  <td class="mono" style="color:#D4AE50;font-weight:600;">588</td>
+                </tr>
+                <tr>
+                  <td style="color:#FDFCF9;">Generator Set — GCS-3</td>
+                  <td class="mono" style="color:#8A9BB0;">Diesel</td>
+                  <td class="mono">140 t/qtr</td>
+                  <td class="mono" style="color:#8A9BB0;">43.0</td>
+                  <td class="mono" style="color:#8A9BB0;">74.1</td>
+                  <td class="mono" style="color:#D4AE50;">447</td>
+                  <td class="mono" style="color:#8A9BB0;">1.2</td>
+                  <td class="mono" style="color:#8A9BB0;">9.4</td>
+                  <td class="mono" style="color:#D4AE50;font-weight:600;">458</td>
+                </tr>
+                <tr>
+                  <td style="color:#FDFCF9;">Vehicles / Transport</td>
+                  <td class="mono" style="color:#8A9BB0;">Diesel</td>
+                  <td class="mono">70 t/qtr</td>
+                  <td class="mono" style="color:#8A9BB0;">43.0</td>
+                  <td class="mono" style="color:#8A9BB0;">74.1</td>
+                  <td class="mono" style="color:#D4AE50;">223</td>
+                  <td class="mono" style="color:#8A9BB0;">0.6</td>
+                  <td class="mono" style="color:#8A9BB0;">4.7</td>
+                  <td class="mono" style="color:#D4AE50;font-weight:600;">228</td>
+                </tr>
+                <tr>
+                  <td style="color:#FDFCF9;">Gas Turbines — GPP-5</td>
+                  <td class="mono" style="color:#8A9BB0;">Nat. Gas</td>
+                  <td class="mono">2.4 MMscf</td>
+                  <td class="mono" style="color:#8A9BB0;">38.0</td>
+                  <td class="mono" style="color:#8A9BB0;">56.1</td>
+                  <td class="mono" style="color:#D4AE50;">3,626</td>
+                  <td class="mono" style="color:#8A9BB0;">4.3</td>
+                  <td class="mono" style="color:#8A9BB0;">68.4</td>
+                  <td class="mono" style="color:#D4AE50;font-weight:600;">3,699</td>
+                </tr>
+                <tr style="background:rgba(26,61,36,.3);">
+                  <td style="font-weight:700;color:#FDFCF9;">Total Combustion</td>
+                  <td></td><td></td><td></td><td></td>
+                  <td class="mono" style="color:#D4AE50;font-weight:700;">4,870</td>
+                  <td class="mono" style="color:#8A9BB0;font-weight:700;">7.6</td>
+                  <td class="mono" style="color:#8A9BB0;font-weight:700;">94.5</td>
+                  <td class="mono" style="color:#D4AE50;font-weight:700;" id="combust-total">4,972</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- PANEL: PNEUMATICS                          -->
+      <!-- ══════════════════════════════════════════ -->
+      <div class="src-panel" id="panel-pneumatics" style="padding:20px 24px;">
+        <div style="display:grid;grid-template-columns:1fr 280px;gap:14px;">
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">Pneumatic Controllers — API Compendium Tier 2 / NUPRC 5-Year Phase-In</span>
+              <span class="tag tag-n">4.5% of Scope 1</span>
+            </div>
+            <div class="card-body">
+              <div style="background:rgba(155,89,182,.08);border:1px solid rgba(155,89,182,.25);padding:10px 12px;margin-bottom:12px;font-family:'DM Mono',monospace;font-size:9px;color:#9B59B6;letter-spacing:.1em;">
+                NUPRC Methane Guidelines §3.3: Phase-in to zero-bleed by Year 5 · Current target: 85% replacement · Annual monitoring at 0.17 scm/hr threshold
+              </div>
+              <table class="data-table">
+                <thead>
+                  <tr><th>Controller Type</th><th>Count</th><th>Bleed Rate (scm/hr)</th><th>CH₄ fraction</th><th>CH₄ (t/yr)</th><th>CO₂e (t/yr)</th><th>Phase-in Status</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="color:#FDFCF9;">High-Bleed Pneumatic</td>
+                    <td><input type="number" class="field-input mono" value="24" style="width:60px;padding:4px 8px;" oninput="updatePneumCalc()" /></td>
+                    <td class="mono" style="color:#9B59B6;">17.0</td>
+                    <td class="mono" style="color:#8A9BB0;">0.850</td>
+                    <td class="mono" style="color:#9B59B6;" id="pn-hb-ch4">1,932</td>
+                    <td class="mono" style="color:#9B59B6;" id="pn-hb-co2e">53,900</td>
+                    <td><span class="tag tag-r">Must Replace</span></td>
+                  </tr>
+                  <tr>
+                    <td style="color:#FDFCF9;">Low-Bleed Pneumatic</td>
+                    <td><input type="number" class="field-input mono" value="68" style="width:60px;padding:4px 8px;" oninput="updatePneumCalc()" /></td>
+                    <td class="mono" style="color:#9B59B6;">0.17</td>
+                    <td class="mono" style="color:#8A9BB0;">0.850</td>
+                    <td class="mono" style="color:#9B59B6;" id="pn-lb-ch4">29</td>
+                    <td class="mono" style="color:#9B59B6;" id="pn-lb-co2e">809</td>
+                    <td><span class="tag tag-g">Compliant</span></td>
+                  </tr>
+                  <tr>
+                    <td style="color:#FDFCF9;">Instrument Air (Zero-Bleed)</td>
+                    <td><input type="number" class="field-input mono" value="112" style="width:60px;padding:4px 8px;" /></td>
+                    <td class="mono" style="color:#4CAF6F;">0.00</td>
+                    <td class="mono" style="color:#8A9BB0;">—</td>
+                    <td class="mono" style="color:#4CAF6F;">0</td>
+                    <td class="mono" style="color:#4CAF6F;">0</td>
+                    <td><span class="tag tag-g">Zero-Bleed ✓</span></td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div style="margin-top:12px;padding:10px 12px;background:rgba(26,61,36,.4);border:1px solid rgba(46,125,69,.15);">
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;">Phase-In Progress (Year 4 of 5)</div>
+                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center;">
+                  <div style="background:rgba(46,125,69,.15);padding:6px;border:1px solid rgba(46,125,69,.25);">
+                    <div style="font-family:'DM Mono',monospace;font-size:11px;color:#4CAF6F;">25%</div>
+                    <div style="font-family:'DM Mono',monospace;font-size:8px;color:#4A5568;">Year 1 ✓</div>
+                  </div>
+                  <div style="background:rgba(46,125,69,.15);padding:6px;border:1px solid rgba(46,125,69,.25);">
+                    <div style="font-family:'DM Mono',monospace;font-size:11px;color:#4CAF6F;">65%</div>
+                    <div style="font-family:'DM Mono',monospace;font-size:8px;color:#4A5568;">Year 2 ✓</div>
+                  </div>
+                  <div style="background:rgba(46,125,69,.15);padding:6px;border:1px solid rgba(46,125,69,.25);">
+                    <div style="font-family:'DM Mono',monospace;font-size:11px;color:#4CAF6F;">75%</div>
+                    <div style="font-family:'DM Mono',monospace;font-size:8px;color:#4A5568;">Year 3 ✓</div>
+                  </div>
+                  <div style="background:rgba(212,174,80,.1);padding:6px;border:1px solid rgba(212,174,80,.3);">
+                    <div style="font-family:'DM Mono',monospace;font-size:11px;color:#D4AE50;">78% / 85%</div>
+                    <div style="font-family:'DM Mono',monospace;font-size:8px;color:#D4AE50;">Year 4 ⚠</div>
+                  </div>
+                  <div style="background:rgba(74,85,104,.1);padding:6px;border:1px solid rgba(74,85,104,.25);">
+                    <div style="font-family:'DM Mono',monospace;font-size:11px;color:#4A5568;">100%</div>
+                    <div style="font-family:'DM Mono',monospace;font-size:8px;color:#4A5568;">Year 5 →</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="result-box">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px;">Pneumatics Total — Q2 2026</div>
+              <div class="result-value" style="color:#9B59B6;" id="pneum-total">2,155</div>
+              <div class="result-unit">tCO₂e / quarter</div>
+            </div>
+            <div class="card">
+              <div class="card-head"><span class="card-title">Portfolio Composition</span></div>
+              <div class="card-body" style="padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;line-height:1.9;">
+                <div style="display:flex;justify-content:space-between;"><span>Total controllers:</span><span style="color:#FDFCF9;">204</span></div>
+                <div style="display:flex;justify-content:space-between;"><span>High-bleed (>0.17):</span><span style="color:#E74C3C;">24 (11.8%)</span></div>
+                <div style="display:flex;justify-content:space-between;"><span>Low-bleed (≤0.17):</span><span style="color:#D4AE50;">68 (33.3%)</span></div>
+                <div style="display:flex;justify-content:space-between;"><span>Zero-bleed:</span><span style="color:#4CAF6F;">112 (54.9%)</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- PANEL: VENTING                             -->
+      <!-- ══════════════════════════════════════════ -->
+      <div class="src-panel" id="panel-venting" style="padding:20px 24px;">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Venting Emissions — NUPRC Gas Flaring Regs 2023 · Cold Venting Prohibited</span>
+            <span class="tag tag-r">2.8% of Scope 1</span>
+          </div>
+          <div class="card-body">
+            <div style="background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.2);padding:10px 12px;margin-bottom:14px;font-family:'DM Mono',monospace;font-size:9px;color:#E74C3C;letter-spacing:.1em;">
+              ⚠ Cold venting of associated gas is PROHIBITED under Gas Flaring Regulations 2023. Any operational venting events must be reported to NUPRC within 48 hours and a waiver applied for within 7 days.
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr><th>Venting Source</th><th>Type</th><th>Volume (Mscf/event)</th><th>Frequency (/qtr)</th><th>CH₄ (%)</th><th>tCO₂e</th><th>NUPRC Waiver</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="color:#FDFCF9;">Glycol Dehydrator Vent</td>
+                  <td class="mono" style="color:#D4AE50;">Continuous</td>
+                  <td class="mono">0.42/day × 91 days</td>
+                  <td class="mono">91</td>
+                  <td class="mono">92%</td>
+                  <td class="mono" style="color:#E91E63;">1,124</td>
+                  <td><span class="tag tag-y">Waiver Pending</span></td>
+                </tr>
+                <tr>
+                  <td style="color:#FDFCF9;">Pipeline Blowdowns</td>
+                  <td class="mono" style="color:#8A9BB0;">Maintenance</td>
+                  <td class="mono">18.5/event</td>
+                  <td class="mono">4</td>
+                  <td class="mono">88%</td>
+                  <td class="mono" style="color:#E91E63;">458</td>
+                  <td><span class="tag tag-g">Approved</span></td>
+                </tr>
+                <tr>
+                  <td style="color:#FDFCF9;">Compressor Startups</td>
+                  <td class="mono" style="color:#8A9BB0;">Operational</td>
+                  <td class="mono">2.2/event</td>
+                  <td class="mono">12</td>
+                  <td class="mono">90%</td>
+                  <td class="mono" style="color:#E91E63;">263</td>
+                  <td><span class="tag tag-g">Approved</span></td>
+                </tr>
+                <tr style="background:rgba(26,61,36,.3);">
+                  <td style="font-weight:700;color:#FDFCF9;">Total Venting</td>
+                  <td></td><td></td><td></td><td></td>
+                  <td class="mono" style="color:#E91E63;font-weight:700;">1,845</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- PANEL: SCOPE 2                             -->
+      <!-- ══════════════════════════════════════════ -->
+      <div class="src-panel" id="panel-scope2" style="padding:20px 24px;">
+        <div style="display:grid;grid-template-columns:1fr 300px;gap:14px;">
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">Scope 2 — Purchased Electricity · Nigeria Grid EF: 0.431 kgCO₂/kWh</span>
+              <span class="tag tag-n">7.3% of Total</span>
+            </div>
+            <div class="card-body">
+              <div style="margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div>
+                  <label class="field-label">Accounting Method</label>
+                  <select class="field-input field-select">
+                    <option>Location-Based (Nigeria Grid)</option>
+                    <option>Market-Based (Supplier EF)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="field-label">Grid Emission Factor (kgCO₂/kWh)</label>
+                  <input type="number" class="field-input mono" value="0.431" step="0.001" />
+                  <div class="field-help">Nigeria national average 2024 · GHG Protocol S2 Guidance</div>
+                </div>
+              </div>
+              <table class="data-table">
+                <thead>
+                  <tr><th>Facility</th><th>Electricity (MWh/qtr)</th><th>Source</th><th>Grid EF</th><th>Scope 2 tCO₂</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="color:#FDFCF9;">GCS-7 OML 4</td>
+                    <td><input type="number" class="field-input mono" value="2,876" style="width:100px;padding:4px 8px;" /></td>
+                    <td class="mono" style="color:#8A9BB0;">DISCO Grid</td>
+                    <td class="mono" style="color:#8A9BB0;">0.431</td>
+                    <td class="mono" style="color:#4A5568;">1,240</td>
+                  </tr>
+                  <tr>
+                    <td style="color:#FDFCF9;">WPP-12 OML 4</td>
+                    <td><input type="number" class="field-input mono" value="1,484" style="width:100px;padding:4px 8px;" /></td>
+                    <td class="mono" style="color:#8A9BB0;">DISCO Grid</td>
+                    <td class="mono" style="color:#8A9BB0;">0.431</td>
+                    <td class="mono" style="color:#4A5568;">640</td>
+                  </tr>
+                  <tr>
+                    <td style="color:#FDFCF9;">GCS-3 OML 38</td>
+                    <td><input type="number" class="field-input mono" value="2,134" style="width:100px;padding:4px 8px;" /></td>
+                    <td class="mono" style="color:#8A9BB0;">DISCO Grid</td>
+                    <td class="mono" style="color:#8A9BB0;">0.431</td>
+                    <td class="mono" style="color:#4A5568;">920</td>
+                  </tr>
+                  <tr>
+                    <td style="color:#FDFCF9;">GPP-5 OML 38</td>
+                    <td><input type="number" class="field-input mono" value="1,577" style="width:100px;padding:4px 8px;" /></td>
+                    <td class="mono" style="color:#8A9BB0;">DISCO Grid</td>
+                    <td class="mono" style="color:#8A9BB0;">0.431</td>
+                    <td class="mono" style="color:#4A5568;">680</td>
+                  </tr>
+                  <tr style="background:rgba(26,61,36,.3);">
+                    <td style="font-weight:700;color:#FDFCF9;">Total Scope 2</td>
+                    <td class="mono" style="font-weight:700;color:#FDFCF9;">8,071 MWh</td>
+                    <td></td><td></td>
+                    <td class="mono" style="color:#8A9BB0;font-weight:700;">3,480</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="result-box" style="background:rgba(74,85,104,.1);border-color:rgba(74,85,104,.3);">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px;">Scope 2 Total — Q2 2026</div>
+              <div class="result-value" style="color:#8A9BB0;">3,480</div>
+              <div class="result-unit">tCO₂ / quarter</div>
+            </div>
+            <div class="card">
+              <div class="card-head"><span class="card-title">Reduction Opportunity</span></div>
+              <div class="card-body" style="padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;line-height:1.9;">
+                <div style="display:flex;justify-content:space-between;"><span>Solar PV potential:</span><span style="color:#4CAF6F;">−2,100 tCO₂</span></div>
+                <div style="display:flex;justify-content:space-between;"><span>Renewable PPAs:</span><span style="color:#4CAF6F;">−1,400 tCO₂</span></div>
+                <div style="display:flex;justify-content:space-between;"><span>Max achievable:</span><span style="color:#4CAF6F;">−100% Scope 2</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- PANEL: SCOPE 3                             -->
+      <!-- ══════════════════════════════════════════ -->
+      <div class="src-panel" id="panel-scope3" style="padding:20px 24px;">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Scope 3 — Value Chain Emissions · GHG Protocol Corporate Value Chain Standard</span>
+            <span class="tag tag-n">Enterprise Tier</span>
+          </div>
+          <div class="card-body">
+            <div style="background:rgba(42,48,64,.4);border:1px solid rgba(74,85,104,.25);padding:10px 12px;margin-bottom:14px;font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;letter-spacing:.1em;">
+              Scope 3 tracking is available on Enterprise tier. Upgrade to access Category 1 (purchased goods), Category 6 (business travel), and Category 11 (use of sold products) tracking. <a href="../services.html#enterprise" style="color:#4CAF6F;text-decoration:none;">View Enterprise plan →</a>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr><th>Category</th><th>GHG Protocol Cat.</th><th>Description</th><th>Estimate (tCO₂e)</th><th>Status</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="color:#FDFCF9;">Supply Chain</td>
+                  <td class="mono" style="color:#8A9BB0;">Cat. 1</td>
+                  <td style="color:#8A9BB0;font-size:11px;">Purchased goods & services — 68 upstream suppliers</td>
+                  <td class="mono" style="color:#2A3040;">~892</td>
+                  <td><span class="tag tag-n">Estimated</span></td>
+                </tr>
+                <tr>
+                  <td style="color:#FDFCF9;">Business Travel</td>
+                  <td class="mono" style="color:#8A9BB0;">Cat. 6</td>
+                  <td style="color:#8A9BB0;font-size:11px;">Air travel — Lagos, Abuja, Paris routes</td>
+                  <td class="mono" style="color:#2A3040;">~42</td>
+                  <td><span class="tag tag-n">Estimated</span></td>
+                </tr>
+                <tr>
+                  <td style="color:#FDFCF9;">Use of Sold Products</td>
+                  <td class="mono" style="color:#8A9BB0;">Cat. 11</td>
+                  <td style="color:#8A9BB0;font-size:11px;">Combustion of produced crude & gas by customers</td>
+                  <td class="mono" style="color:#2A3040;">~268,400</td>
+                  <td><span class="tag tag-n">Screened</span></td>
+                </tr>
+                <tr style="background:rgba(26,61,36,.3);">
+                  <td style="font-weight:700;color:#FDFCF9;">Total Scope 3 (excl. Cat.11)</td>
+                  <td></td><td></td>
+                  <td class="mono" style="color:#2A3040;font-weight:700;">~934</td>
+                  <td><span class="tag tag-n">Pro-rata</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- PANEL: LIVE CALCULATOR                     -->
+      <!-- ══════════════════════════════════════════ -->
+      <div class="src-panel" id="panel-calculator" style="padding:20px 24px;">
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:14px;">
+
+          <!-- Input form -->
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">⚡ Live Emissions Calculator — IPCC Tier 1 Defaults</span>
+              <span class="tag tag-g">Real-time</span>
+            </div>
+            <div class="card-body">
+              <div style="background:rgba(46,125,69,.06);border:1px solid rgba(46,125,69,.15);padding:10px 12px;margin-bottom:14px;font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;letter-spacing:.06em;line-height:1.7;">
+                Quick estimation using IPCC 2006/2019 Tier 1 defaults. Adjust any input and results update instantly. For audit-grade Tier 2/3 calculations, use the dedicated source panels above.
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                <div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;">Gas Flaring</div>
+                  <div style="margin-bottom:10px;">
+                    <label class="field-label">Gas Flared (Mcf/day)</label>
+                    <input type="number" class="field-input mono" id="lc-flare" value="10100" oninput="liveCalc()" />
+                    <div class="field-help">EF: 2.693 kg CO₂/m³ · IPCC 2006 Vol.2</div>
+                  </div>
+                  <div>
+                    <label class="field-label">Flare DRE (%)</label>
+                    <input type="number" class="field-input mono" id="lc-dre" value="98.0" step="0.1" oninput="liveCalc()" />
+                    <div class="field-help">Destruction Removal Efficiency</div>
+                  </div>
+                </div>
+                <div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#E67E22;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;">Fugitive Methane</div>
+                  <div style="margin-bottom:10px;">
+                    <label class="field-label">Gas Production (MMscf/day)</label>
+                    <input type="number" class="field-input mono" id="lc-prod" value="18.5" step="0.1" oninput="liveCalc()" />
+                    <div class="field-help">EF: 0.0023 kg CH₄/m³ · IPCC Tier 1</div>
+                  </div>
+                  <div>
+                    <label class="field-label">High-Bleed Pneumatics (count)</label>
+                    <input type="number" class="field-input mono" id="lc-pneum" value="24" oninput="liveCalc()" />
+                    <div class="field-help">17 scm/hr · 0.85 CH₄ frac · API Compendium</div>
+                  </div>
+                </div>
+                <div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#D4AE50;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;">Combustion</div>
+                  <div style="margin-bottom:10px;">
+                    <label class="field-label">Diesel Consumed (t/month)</label>
+                    <input type="number" class="field-input mono" id="lc-diesel" value="130" oninput="liveCalc()" />
+                    <div class="field-help">EF: 74.1 kgCO₂/GJ × 43.0 GJ/t</div>
+                  </div>
+                </div>
+                <div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;">Scope 2</div>
+                  <div>
+                    <label class="field-label">Grid Electricity (MWh/month)</label>
+                    <input type="number" class="field-input mono" id="lc-elec" value="2690" oninput="liveCalc()" />
+                    <div class="field-help">Nigeria grid: 0.431 kgCO₂/kWh</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top:14px;padding:10px 12px;background:rgba(26,61,36,.35);border:1px solid rgba(46,125,69,.15);">
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Emission Factors (IPCC AR6)</div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">
+                  <span>GWP CH₄: <span style="color:#8A9BB0;" id="ef-gwp">27.9</span> (100yr)</span>
+                  <span>GWP N₂O: <span style="color:#8A9BB0;">273</span> (100yr)</span>
+                  <span>Grid EF: <span style="color:#8A9BB0;">0.431</span> kgCO₂/kWh</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live results panel -->
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="padding:14px;background:rgba(46,125,69,.1);border:1px solid rgba(46,125,69,.25);">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px;">Annual Total (Scope 1+2)</div>
+              <div style="font-family:'DM Mono',monospace;font-size:36px;font-weight:300;color:#4CAF6F;line-height:1;" id="lc-total">—</div>
+              <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;letter-spacing:.12em;text-transform:uppercase;margin-top:3px;">tCO₂e / year</div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><span class="card-title">Source Breakdown</span></div>
+              <div class="card-body" style="padding:10px 12px;">
+                <div style="margin-bottom:8px;">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                    <span style="display:flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;"><span class="dot-sm c-flare"></span>Flaring</span>
+                    <span style="font-family:'DM Mono',monospace;font-size:9px;color:#E74C3C;" id="lc-r-flare">—</span>
+                  </div>
+                  <div class="prog-track"><div class="prog-fill c-flare" id="bar-lc-flare" style="width:0%;"></div></div>
+                </div>
+                <div style="margin-bottom:8px;">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                    <span style="display:flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;"><span class="dot-sm c-fugitive"></span>Fugitive CH₄</span>
+                    <span style="font-family:'DM Mono',monospace;font-size:9px;color:#E67E22;" id="lc-r-fug">—</span>
+                  </div>
+                  <div class="prog-track"><div class="prog-fill c-fugitive" id="bar-lc-fug" style="width:0%;"></div></div>
+                </div>
+                <div style="margin-bottom:8px;">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                    <span style="display:flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;"><span class="dot-sm c-pneum"></span>Pneumatics</span>
+                    <span style="font-family:'DM Mono',monospace;font-size:9px;color:#9B59B6;" id="lc-r-pn">—</span>
+                  </div>
+                  <div class="prog-track"><div class="prog-fill c-pneum" id="bar-lc-pn" style="width:0%;"></div></div>
+                </div>
+                <div style="margin-bottom:8px;">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                    <span style="display:flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;"><span class="dot-sm c-combust"></span>Combustion</span>
+                    <span style="font-family:'DM Mono',monospace;font-size:9px;color:#D4AE50;" id="lc-r-cb">—</span>
+                  </div>
+                  <div class="prog-track"><div class="prog-fill c-combust" id="bar-lc-cb" style="width:0%;"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                    <span style="display:flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;"><span class="dot-sm c-scope2"></span>Scope 2</span>
+                    <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;" id="lc-r-s2">—</span>
+                  </div>
+                  <div class="prog-track"><div class="prog-fill c-scope2" id="bar-lc-s2" style="width:0%;"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Carbon credit potential -->
+            <div style="padding:12px 14px;background:rgba(184,150,46,.08);border:1px solid rgba(212,174,80,.2);">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;color:#D4AE50;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;">Carbon Revenue Potential</div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">Abatable Scope 1 (40%)</span>
+                <span style="font-family:'DM Mono',monospace;font-size:9px;color:#D4AE50;" id="lc-abate">—</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">VCM Price (USD 14.30/t)</span>
+                <span style="font-family:'DM Mono',monospace;font-size:9px;color:#D4AE50;">$14.30</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid rgba(212,174,80,.15);">
+                <span style="font-family:'DM Mono',monospace;font-size:9px;color:#FDFCF9;font-weight:600;">Est. Annual Revenue</span>
+                <span style="font-family:'DM Mono',monospace;font-size:14px;color:#D4AE50;font-weight:600;" id="lc-carbon-rev">—</span>
+              </div>
+            </div>
+
+            <button class="btn-primary w-full" style="justify-content:center;" onclick="showSource('inventory',document.getElementById('src-tabs').children[0])">
+              <i data-lucide="file-text" style="width:14px;height:14px;"></i>
+              View Full Inventory
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main-area -->
+</div><!-- /app-shell -->
+
+
+<!-- ═══ SCRIPTS ═══ -->
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script>
+
+/* ── Sidebar collapse ── */
+var sidebarCollapsed = false;
+function toggleSidebar() {
+  sidebarCollapsed = !sidebarCollapsed;
+  var sb = document.getElementById('sidebar');
+  var icon = document.getElementById('collapse-icon');
+  var label = document.getElementById('collapse-label');
+  sb.classList.toggle('collapsed', sidebarCollapsed);
+  if (icon) icon.setAttribute('data-lucide', sidebarCollapsed ? 'panel-left-open' : 'panel-left-close');
+  if (label) label.textContent = sidebarCollapsed ? 'Expand' : 'Collapse';
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+/* ── Dropdown toggle ── */
+function toggleDropdown(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var isOpen = el.classList.contains('open');
+  document.querySelectorAll('.dropdown-menu').forEach(function(m){ m.classList.remove('open'); });
+  if (!isOpen) el.classList.add('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('[onclick^="toggleDropdown"]') && !e.target.closest('.dropdown-menu')) {
+    document.querySelectorAll('.dropdown-menu').forEach(function(m){ m.classList.remove('open'); });
+  }
+});
+
+/* ── Facility selector ── */
+function selectFacility(label, code) {
+  document.getElementById('active-facility-label').textContent = label;
+  document.querySelectorAll('.dropdown-menu').forEach(function(m){ m.classList.remove('open'); });
+}
+
+/* ── Source tab switcher ── */
+function showSource(name, tabEl) {
+  document.querySelectorAll('.src-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.src-tab').forEach(function(t){ t.classList.remove('active'); });
+  var panel = document.getElementById('panel-' + name);
+  if (panel) panel.classList.add('active');
+  if (tabEl) tabEl.classList.add('active');
+  if (name === 'calculator') liveCalc();
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+/* ── GWP toggle ── */
+var currentGWP = 100;
+function setGWP(yr, el) {
+  currentGWP = yr;
+  document.querySelectorAll('.gwp-pill').forEach(function(p){ p.classList.remove('active'); });
+  el.classList.add('active');
+  // Update EF display
+  var efEl = document.getElementById('ef-gwp');
+  if (efEl) efEl.textContent = yr === 100 ? '27.9' : '82.5';
+  liveCalc();
+}
+
+/* ─────────────────────────────────────────────────────────
+   IPCC EMISSION FACTORS (IPCC 2006 / 2019 Refinement / AR6)
+   ───────────────────────────────────────────────────────── */
+var EF = {
+  // Flaring: IPCC 2006 Vol.2 Ch.4 Table 4.2.2
+  // CO₂: 2.693 kg CO₂/m³ flared gas (1 Mcf = 28.317 m³)
+  flare_co2_per_mcf: 2.693 * 28.317 / 1000,      // tCO₂/Mcf
+  flare_ch4_per_mcf: 0.00218 * 28.317 / 1000,    // tCH₄/Mcf (unburned, 2% uncombusted)
+
+  // Fugitive: IPCC 2006 Vol.2 Ch.4 Tier 1 default
+  // 0.0023 kg CH₄/m³ gas produced; 1 MMscf = 28,317 m³
+  fug_ch4_per_mmscf_per_day: 0.0023 * 28317 * 365 / 1000, // tCH₄/MMscf/day/year
+
+  // Pneumatics: API Compendium 3rd Ed.
+  // High-bleed: 17 scm/hr; CH₄ fraction 0.85; density 0.000717 t/scm; 8760 hrs/yr
+  pneum_hb_ch4_per_unit_yr: 17 * 0.85 * 0.000717 * 8760 / 1000,
+
+  // Combustion — diesel: IPCC 2006 Vol.2 Ch.2
+  // EF: 74.1 kgCO₂/GJ; NCV diesel: 43.0 GJ/tonne
+  diesel_co2_per_tonne: 74.1 * 43.0 / 1000,       // tCO₂/t diesel
+
+  // Scope 2: Nigeria national grid average 2024
+  grid_co2_per_mwh: 0.431,                          // tCO₂/MWh
+
+  // GWP (IPCC AR6)
+  gwp_ch4_100: 27.9,
+  gwp_ch4_20:  82.5,
+  gwp_n2o:     273,
+};
+
+/* ── Live Calculator ── */
+function liveCalc() {
+  var flare  = parseFloat(document.getElementById('lc-flare')?.value)  || 0;  // Mcf/day
+  var dre    = parseFloat(document.getElementById('lc-dre')?.value)    || 98; // %
+  var prod   = parseFloat(document.getElementById('lc-prod')?.value)   || 0;  // MMscf/day
+  var pneum  = parseFloat(document.getElementById('lc-pneum')?.value)  || 0;  // count
+  var diesel = parseFloat(document.getElementById('lc-diesel')?.value) || 0;  // t/month
+  var elec   = parseFloat(document.getElementById('lc-elec')?.value)   || 0;  // MWh/month
+
+  var gwp = currentGWP === 20 ? EF.gwp_ch4_20 : EF.gwp_ch4_100;
+
+  // Annual flaring
+  var flare_yr = flare * 365;
+  var e_flare_co2 = flare_yr * EF.flare_co2_per_mcf * (dre / 100);
+  var e_flare_ch4 = flare_yr * EF.flare_ch4_per_mcf * (1 - dre / 100) * gwp;
+  var e_flare = e_flare_co2 + e_flare_ch4;
+  // Note: main flare CO₂ comes from combustion of the flared gas
+  // Re-calc: CO₂ from flaring = volume × EF_CO₂ (for the combusted fraction)
+  // Simpler: CO₂ from combustion part = vol_flared × EF × DRE; CH₄ unburned = vol × EF_ch4 × (1-DRE) × GWP
+  var e_flare_total = (flare_yr * EF.flare_co2_per_mcf) + (flare_yr * EF.flare_ch4_per_mcf * (1 - dre/100) * gwp);
+
+  // Fugitive
+  var e_fug = prod * EF.fug_ch4_per_mmscf_per_day * gwp;
+
+  // Pneumatics
+  var e_pn = pneum * EF.pneum_hb_ch4_per_unit_yr * gwp;
+
+  // Combustion (annual)
+  var e_cb = diesel * 12 * EF.diesel_co2_per_tonne;
+
+  // Scope 2 (annual)
+  var e_s2 = elec * 12 * EF.grid_co2_per_mwh;
+
+  var scope1 = e_flare_total + e_fug + e_pn + e_cb;
+  var total  = scope1 + e_s2;
+
+  // Carbon credit potential: 40% abatable × $14.30/t × (1 − 6% VerdeScope fee)
+  var abatable = scope1 * 0.40;
+  var carbon_rev = abatable * 14.30 * 0.94;
+
+  // Format
+  var fmt = function(n) {
+    if (n >= 100000) return (n/1000).toFixed(0) + 'k';
+    if (n >= 10000)  return Math.round(n/100)*100;
+    return Math.round(n).toLocaleString();
+  };
+  var fmtRev = function(n) { return '$' + Math.round(n).toLocaleString(); };
+
+  // Update totals
+  var totalEl = document.getElementById('lc-total');
+  if (totalEl) totalEl.textContent = fmt(total);
+
+  var abateEl = document.getElementById('lc-abate');
+  if (abateEl) abateEl.textContent = fmt(abatable) + ' t';
+
+  var revEl = document.getElementById('lc-carbon-rev');
+  if (revEl) revEl.textContent = fmtRev(carbon_rev);
+
+  // Update breakdown
+  setLCResult('lc-r-flare', 'bar-lc-flare', e_flare_total, total);
+  setLCResult('lc-r-fug',   'bar-lc-fug',   e_fug,         total);
+  setLCResult('lc-r-pn',    'bar-lc-pn',    e_pn,          total);
+  setLCResult('lc-r-cb',    'bar-lc-cb',    e_cb,          total);
+  setLCResult('lc-r-s2',    'bar-lc-s2',    e_s2,          total);
+}
+
+function setLCResult(labelId, barId, value, total) {
+  var lEl = document.getElementById(labelId);
+  var bEl = document.getElementById(barId);
+  if (lEl) {
+    var n = Math.round(value);
+    lEl.textContent = n.toLocaleString() + ' t';
+  }
+  if (bEl) {
+    var pct = total > 0 ? Math.min((value / total) * 90, 90) : 0;
+    setTimeout(function(){ bEl.style.width = pct + '%'; }, 60);
+  }
+}
+
+/* ── Flare calc update ── */
+function updateFlareCalc() {
+  // Recalculate displayed totals live (simplified inline)
+  var total = 0;
+  document.querySelectorAll('#panel-flaring input[type=number]').forEach(function(inp, i) {
+    if (i % 2 === 0) {
+      var vol = parseFloat(inp.value) || 0;
+      var dreEl = inp.closest('tr')?.querySelectorAll('input')[1];
+      var dre = dreEl ? (parseFloat(dreEl.value) || 98) : 98;
+      var co2 = vol * 365 * EF.flare_co2_per_mcf;
+      total += co2;
+    }
+  });
+  var el = document.getElementById('flare-total');
+  if (el) el.textContent = Math.round(total / 4).toLocaleString();
+}
+
+/* ── Donut chart ── */
+function buildDonut() {
+  var ctx = document.getElementById('donutChart');
+  if (!ctx || typeof Chart === 'undefined') return;
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Scope 1', 'Scope 2', 'Scope 3'],
+      datasets: [{
+        data: [43150, 3480, 1202],
+        backgroundColor: ['rgba(46,125,69,.7)', 'rgba(74,85,104,.6)', 'rgba(42,48,64,.7)'],
+        borderColor:     ['#4CAF6F', '#4A5568', '#2A3040'],
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      responsive: false,
+      cutout: '72%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#111E15', borderColor: 'rgba(46,125,69,.3)', borderWidth: 1,
+          titleColor: '#A8D5B5', bodyColor: '#8A9BB0',
+          titleFont: { family: 'DM Mono', size: 10 }, bodyFont: { family: 'DM Mono', size: 9 },
+          callbacks: {
+            label: function(ctx) { return ctx.label + ': ' + ctx.parsed.toLocaleString() + ' tCO₂e'; }
+          }
+        }
+      }
+    }
+  });
+}
+
+/* ── Trend chart ── */
+function buildTrend() {
+  var ctx = document.getElementById('trendChart');
+  if (!ctx || typeof Chart === 'undefined') return;
+  var months = ['May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr'];
+  var s1 = [44200,46100,42800,41500,45600,43900,40600,39200,47800,46500,48900,43150];
+  var s2 = [3200,3400,3300,3050,3700,3350,3150,2950,3850,3550,3750,3480];
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [
+        {
+          label: 'Scope 1', data: s1,
+          borderColor: '#4CAF6F', backgroundColor: 'rgba(46,125,69,.08)',
+          borderWidth: 1.5, pointRadius: 2, pointBackgroundColor: '#4CAF6F',
+          fill: true, tension: 0.3,
+        },
+        {
+          label: 'Scope 2', data: s2,
+          borderColor: '#4A5568', backgroundColor: 'transparent',
+          borderWidth: 1.5, pointRadius: 2, pointBackgroundColor: '#4A5568',
+          fill: false, tension: 0.3,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#111E15', borderColor: 'rgba(46,125,69,.3)', borderWidth: 1,
+          titleColor: '#A8D5B5', bodyColor: '#8A9BB0',
+          titleFont: { family: 'DM Mono', size: 9 }, bodyFont: { family: 'DM Mono', size: 9 },
+          callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString() + ' tCO₂e'; } }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(46,125,69,.06)' }, ticks: { color: '#4A5568', font: { family: 'DM Mono', size: 9 } } },
+        y: { grid: { color: 'rgba(46,125,69,.06)' }, ticks: { color: '#4A5568', font: { family: 'DM Mono', size: 9 }, callback: function(v){ return (v/1000).toFixed(0)+'k'; } } }
+      }
+    }
+  });
+}
+
+/* ── Pneumatics calc ── */
+function updatePneumCalc() {
+  var hbCount = parseFloat(document.querySelectorAll('#panel-pneumatics input')[0]?.value) || 0;
+  var hb_ch4  = hbCount * EF.pneum_hb_ch4_per_unit_yr;
+  var hb_co2e = hb_ch4 * EF.gwp_ch4_100;
+  var el1 = document.getElementById('pn-hb-ch4');
+  var el2 = document.getElementById('pn-hb-co2e');
+  if (el1) el1.textContent = Math.round(hb_ch4).toLocaleString();
+  if (el2) el2.textContent = Math.round(hb_co2e).toLocaleString();
+  var quarterly = Math.round((hb_co2e) / 4);
+  var el3 = document.getElementById('pneum-total');
+  if (el3) el3.textContent = quarterly.toLocaleString();
+}
+
+/* ── Combustion calc ── */
+function updateCombustCalc() {
+  // Simple update for total row
+}
+function updateFugitiveCalc() {
+  // Recalc placeholder
+}
+
+/* ── Init ── */
+window.addEventListener('DOMContentLoaded', function() {
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+  buildDonut();
+  buildTrend();
+  liveCalc();
+  updatePneumCalc();
+});
+
+</script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+{
+  "meta": {
+    "source": "NUPRC Concession Situation Report — 1 March 2026",
+    "generated": "2026-04-11T00:00:00Z",
+    "total_licences": 258
+  },
+  "active_licence": {
+    "concession_no": "OML 18",
+    "concession_type": "OML",
+    "verdescope_tier": "OML-A",
+    "contract_type": "JVC",
+    "terrain": "onshore",
+    "geological_location": "Niger Delta (Onshore)",
+    "equity_distribution": [
+      { "company": "NNPC Ltd",     "pct": 55 },
+      { "company": "Eroton E&P Ltd", "pct": 27 },
+      { "company": "Sahara Fields Production", "pct": 16.2 },
+      { "company": "Bilton Energy Ltd",        "pct": 1.8  }
+    ],
+    "operator_spv": "NNPC Eighteen Operating Limited",
+    "date_of_grant": "2018-10-22",
+    "date_of_expiration": "2038-10-21",
+    "annual_licence_fee_usd": 1800000,
+    "field_services_fee_usd": 280000,
+    "updt_compliance_score": 87,
+    "compliance_status": "compliant"
+  },
+  "licence_portfolio_summary": {
+    "total": 258,
+    "by_type": {
+      "OML": { "total": 97,  "sub_a": 45, "sub_b": 52 },
+      "PML": { "total": 67,  "sub_a": 26, "sub_b": 41 },
+      "PPL": { "total": 76,  "sub_a": 12, "sub_b": 64 },
+      "OPL": { "total": 14 },
+      "PEL": { "total": 4  }
+    },
+    "by_terrain": {
+      "onshore":           128,
+      "continental_shelf": 94,
+      "deep_offshore":     36
+    }
+  },
+  "updt_obligations": {
+    "licence": "OML 18",
+    "overall_score": 87,
+    "overall_label": "Good",
+    "last_submitted": "2026-01-22",
+    "nuprc_ref": "NUPRC-UPDT-OML18-H2-2025",
+    "obligations": [
+      {
+        "number": 1,
+        "title": "Decarbonisation Strategy in FDP",
+        "completion_pct": 95,
+        "status": "complete",
+        "weight": 0.25,
+        "evidence_docs": ["FDP-Ch8-Decarb-Strategy-2025.pdf", "GHG-Management-Plan-OML18.pdf"],
+        "submitted_to_nuprc": true,
+        "notes": "FDP Chapter 8 submitted with full UPDT section. GHG Management Plan approved March 2025."
+      },
+      {
+        "number": 2,
+        "title": "Time-Bound GHG Reduction Goals",
+        "completion_pct": 90,
+        "status": "complete",
+        "weight": 0.25,
+        "evidence_docs": ["Reduction-Target-Register-2025.pdf"],
+        "submitted_to_nuprc": true,
+        "notes": "5-year reduction roadmap filed. EI target 11.8 tCO2e/MBOE by 2025 — currently 12.4 (gap 0.6). Roadmap to 11.0 by 2028 filed."
+      },
+      {
+        "number": 3,
+        "title": "Gas Flaring & Venting Compliance",
+        "completion_pct": 82,
+        "status": "in_progress",
+        "weight": 0.20,
+        "evidence_docs": ["FEMP-OML18-2025.pdf", "Flare-Volume-Q4-2025.pdf"],
+        "submitted_to_nuprc": true,
+        "notes": "FEMP submitted and approved. DRE 98.1% (compliant). 3 flares remain active pending gas recovery project Q3 2026. Annual flare volume below penalty threshold."
+      },
+      {
+        "number": 4,
+        "title": "Methane Management Programme",
+        "completion_pct": 88,
+        "status": "in_progress",
+        "weight": 0.20,
+        "evidence_docs": ["Methane-Mgmt-Plan-OML18-2025.pdf", "LDAR-Annual-Report-2025.pdf"],
+        "submitted_to_nuprc": true,
+        "notes": "LDAR programme complete — 12 surveys, 93.6% repair rate. Pneumatic phase-in: 30.6% zero-bleed vs 75% target for Year 3. Catch-up plan filed. Rod packing RP-003 warning: 23,800 hrs."
+      },
+      {
+        "number": 5,
+        "title": "CCS / NBS / Carbon Offset Initiatives",
+        "completion_pct": 70,
+        "status": "in_progress",
+        "weight": 0.10,
+        "evidence_docs": ["Carbon-Market-Strategy-OML18-2025.pdf"],
+        "submitted_to_nuprc": false,
+        "notes": "VCS carbon project active (28,900 credits issued CY2025). CCS feasibility study Q2 2026. UPDT Obligation 5 submission pending VVB verification statement."
+      }
+    ]
+  },
+  "carbon_projects": [
+    {
+      "id": "CP-001",
+      "name": "OML 18 LDAR Methane Abatement",
+      "methodology": "VCS VM0039",
+      "registry": "Verra",
+      "status": "active",
+      "itmo_authorised": true,
+      "nccc_ref": "NCCC-25-0041",
+      "article_6_type": "Article 6.4",
+      "baseline_tCO2e_yr": 38000,
+      "monitoring_start": "2023-01-01",
+      "verified_cy2025_tCO2e": 31450,
+      "credits_issued": 28900,
+      "credits_retired": 14500,
+      "credits_available": 14400,
+      "spot_price_usd_t": 12.40,
+      "revenue_cy2025_usd": 358360,
+      "vvb": "Bureau Veritas",
+      "ca_applied": true
+    },
+    {
+      "id": "CP-002",
+      "name": "Pneumatic Controller Replacement",
+      "methodology": "VCS VM0039",
+      "registry": "Verra",
+      "status": "registration",
+      "itmo_authorised": false,
+      "nccc_ref": null,
+      "article_6_type": "Article 6.4",
+      "projected_tCO2e_yr": 11800,
+      "monitoring_start": "2025-01-01",
+      "verified_cy2025_tCO2e": null,
+      "credits_issued": 0,
+      "vvb": "TÜV SÜD",
+      "pdd_completion_pct": 78
+    },
+    {
+      "id": "CP-003",
+      "name": "Flare Gas Recovery — Imo River",
+      "methodology": "Gold Standard",
+      "registry": "Gold Standard",
+      "status": "scoping",
+      "projected_tCO2e_yr": 4900,
+      "target_start": "2026-07-01",
+      "feasibility_pct": 35
+    }
+  ],
+  "compliance_scores_history": [
+    { "period": "H1 2024", "updt_score": 72, "ldar_score": 65, "equipment_score": 70, "overall": 69 },
+    { "period": "H2 2024", "updt_score": 78, "ldar_score": 80, "equipment_score": 74, "overall": 77 },
+    { "period": "H1 2025", "updt_score": 84, "ldar_score": 88, "equipment_score": 79, "overall": 84 },
+    { "period": "H2 2025", "updt_score": 87, "ldar_score": 94, "equipment_score": 82, "overall": 88 }
+  ],
+  "nuprc_submissions": [
+    { "type": "NUPRC Annual GHG & LDAR Report", "period": "CY 2025", "submitted_date": "2026-02-14", "ref": "NUPRC-OML18-2025", "status": "submitted", "acknowledged": true },
+    { "type": "Q4 2025 Quarterly GHG",          "period": "Q4 2025", "submitted_date": "2026-01-08", "ref": "NUPRC-Q4-OML18",  "status": "submitted", "acknowledged": true },
+    { "type": "UPDT Compliance Package H2",      "period": "H2 2025", "submitted_date": "2026-01-22", "ref": "NUPRC-UPDT-OML18-H2-2025", "status": "submitted", "acknowledged": true },
+    { "type": "Q1 2026 Quarterly GHG",           "period": "Q1 2026", "submitted_date": null,         "ref": null,            "status": "in_progress", "due_date": "2026-03-31", "completion_pct": 72 }
+  ]
+}

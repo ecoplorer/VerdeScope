@@ -1,0 +1,289 @@
+{
+  "_meta": {
+    "title": "VerdeScope Emission Factor Library",
+    "file": "assets/data/emission-factors.json",
+    "version": "1.0.0",
+    "standard": "IPCC 2006 Guidelines + 2019 Refinement | API Compendium 3rd Edition",
+    "gwp_source": "IPCC AR6 (2021) — Table 7.SM.7",
+    "last_updated": "2026-04-11",
+    "note": "All values locked to AR6. Do not override without regulatory approval and version increment.",
+    "units_convention": "All emission factors yield kg of pollutant per unit of activity data"
+  },
+
+  "gwp": {
+    "_description": "Global Warming Potentials — IPCC AR6 (2021)",
+    "CO2":  { "gwp100": 1,    "gwp20": 1,    "source": "IPCC AR6 Table 7.SM.7" },
+    "CH4":  { "gwp100": 27.9, "gwp20": 82.5, "source": "IPCC AR6 Table 7.SM.7 — fossil methane",
+              "nuprc_note": "Use gwp20=82.5 for Energy Intensity calculation per NUPRC Guide 0024-2022 Appendix D" },
+    "N2O":  { "gwp100": 273,  "gwp20": 273,  "source": "IPCC AR6 Table 7.SM.7" },
+    "HFC134a": { "gwp100": 1526, "gwp20": 4144, "source": "IPCC AR6" }
+  },
+
+  "gas_flaring": {
+    "_reference": "IPCC 2006 Vol 2 Chapter 4.2 | NUPRC Guide 0024-2022 §3.3.2",
+    "_description": "Emissions from combustion of associated gas at flare stacks",
+    "CO2_per_m3_flared": {
+      "value": 2.693,
+      "unit": "kg CO2 / m3 gas flared",
+      "basis": "Assumes 98% DRE; Carbon content of Nigerian associated gas",
+      "source": "IPCC 2006 Vol 2 Ch4.2 default; NUPRC validated"
+    },
+    "CH4_unburned_fraction": {
+      "value": 0.003,
+      "unit": "kg CH4 / m3 gas flared (at 98% DRE)",
+      "basis": "1 - DRE fraction of CH4 in gas composition",
+      "source": "IPCC 2006 Vol 2 Ch4.2"
+    },
+    "N2O_per_m3_flared": {
+      "value": 0.0001,
+      "unit": "kg N2O / m3 gas flared",
+      "source": "IPCC 2006 Vol 2 Ch4.2 Table 4.2.2"
+    },
+    "dre_nuprc_minimum_pct": {
+      "value": 98,
+      "unit": "%",
+      "source": "NUPRC Guide 0024-2022 §3.3.2(1)(i)"
+    }
+  },
+
+  "stationary_combustion": {
+    "_reference": "IPCC 2006 Vol 2 Chapter 2 | Table 2.2",
+    "_description": "Combustion of fossil fuels in turbines, generators, heaters, and engines",
+
+    "diesel": {
+      "density_kg_per_litre": 0.832,
+      "net_calorific_value_gj_per_tonne": 43.0,
+      "CO2_kg_per_gj":  74.1,
+      "CH4_kg_per_gj":  0.003,
+      "N2O_kg_per_gj":  0.0006,
+      "source": "IPCC 2006 Vol 2 Table 2.2"
+    },
+
+    "natural_gas_lean": {
+      "_description": "Lean Nigerian associated/sales gas (typical composition)",
+      "net_calorific_value_gj_per_m3": 0.03846,
+      "CO2_kg_per_gj":  56.1,
+      "CH4_kg_per_gj":  0.001,
+      "N2O_kg_per_gj":  0.0001,
+      "source": "IPCC 2006 Vol 2 Table 2.2 — natural gas"
+    },
+
+    "natural_gas_rich": {
+      "_description": "Rich / wet gas with higher C2+ content",
+      "net_calorific_value_gj_per_m3": 0.04200,
+      "CO2_kg_per_gj":  56.5,
+      "CH4_kg_per_gj":  0.001,
+      "N2O_kg_per_gj":  0.0001,
+      "source": "IPCC 2006 Vol 2 Table 2.2"
+    },
+
+    "lpg": {
+      "net_calorific_value_gj_per_tonne": 47.3,
+      "CO2_kg_per_gj": 63.1,
+      "CH4_kg_per_gj": 0.001,
+      "N2O_kg_per_gj": 0.0001,
+      "source": "IPCC 2006 Vol 2 Table 2.2"
+    },
+
+    "turbine_single_cycle_efficiency_pct": 28,
+    "turbine_combined_cycle_efficiency_pct": 52,
+    "_turbine_note": "NUPRC requires 100% replacement of single-cycle to combined-cycle by 2030 (new projects: immediate)"
+  },
+
+  "fugitive_equipment": {
+    "_reference": "API Compendium 3rd Edition | NUPRC Guide 0024-2022 §3.4 | IPCC 2006 Vol 2 Ch4.3",
+    "_description": "Equipment-count emission factors for fugitive methane from upstream components",
+
+    "pneumatic_controllers": {
+      "_description": "Natural-gas-actuated pneumatic controllers — continuous bleed",
+      "high_bleed_scm_per_hr":  { "value": 17.0,  "unit": "scm/hr per device", "source": "API Compendium 3rd Ed. Table 4-8" },
+      "low_bleed_scm_per_hr":   { "value": 1.4,   "unit": "scm/hr per device", "source": "API Compendium 3rd Ed. Table 4-8" },
+      "intermittent_scm_per_hr":{ "value": 6.3,   "unit": "scm/hr per device", "source": "API Compendium 3rd Ed. Table 4-8" },
+      "zero_bleed_scm_per_hr":  { "value": 0.0,   "unit": "scm/hr per device", "source": "N/A — design specification" },
+      "ch4_mole_fraction":      { "value": 0.85,  "unit": "dimensionless",     "source": "Typical Nigerian associated gas composition" },
+      "ch4_density_kg_per_scm": { "value": 0.6772,"unit": "kg/scm at standard conditions" },
+      "nuprc_monitoring_threshold_scm_hr": { "value": 0.17, "source": "NUPRC Guide 0024-2022 §3.4.1(2)" },
+      "phase_in_schedule_pct_zero_bleed": {
+        "year_1": 25, "year_2": 65, "year_3": 75, "year_4": 85, "year_5": 100,
+        "source": "NUPRC Guide 0024-2022 §3.4.1(1)(ii)"
+      }
+    },
+
+    "pneumatic_pumps": {
+      "_description": "Gas-actuated diaphragm pumps",
+      "default_emission_scm_per_hr": { "value": 0.44, "unit": "scm/hr per pump", "source": "API Compendium 3rd Ed. Table 4-9" },
+      "ch4_mole_fraction": 0.85,
+      "nuprc_phase_in_years": 5,
+      "note": "5-year phase-in to non-emitting alternatives per NUPRC Guide 0024-2022 §3.4.2"
+    },
+
+    "centrifugal_compressor_seals": {
+      "wet_seal": {
+        "default_kg_ch4_per_hr": { "value": 0.00140, "unit": "kg CH4/hr per compressor", "source": "API Compendium 3rd Ed. Table 4-6" },
+        "control_requirement": "Route oil degassing to combustion device OR convert to dry seal"
+      },
+      "dry_seal": {
+        "default_kg_ch4_per_hr": { "value": 0.000024, "unit": "kg CH4/hr per compressor", "source": "API Compendium 3rd Ed. Table 4-6" }
+      }
+    },
+
+    "reciprocating_compressor_rod_packing": {
+      "default_kg_ch4_per_hr": { "value": 0.000636, "unit": "kg CH4/hr per compressor", "source": "API Compendium 3rd Ed. Table 4-7" },
+      "nuprc_replacement_limit_hours":  { "value": 26000, "source": "NUPRC Guide 0024-2022 §3.4.4(1)(a)" },
+      "nuprc_replacement_limit_months": { "value": 36,    "source": "NUPRC Guide 0024-2022 §3.4.4(1)(a)" },
+      "verdescope_warning_hours": 24000,
+      "note": "Replace at 26,000 hours OR 36 months from last replacement, whichever occurs first. New compressors: 36 months from startup."
+    },
+
+    "glycol_dehydrators": {
+      "_model": "GRI-GLYCalc (Tier 2)",
+      "still_vent_default_kg_ch4_per_mscm_gas_processed": { "value": 0.042, "source": "GRI-GLYCalc 4.0 default" },
+      "flash_separator_default_fraction_of_still_vent": 0.15,
+      "voc_reduction_requirement_pct": { "value": 95, "source": "NUPRC Guide 0024-2022 §3.4.5(1)(i)" },
+      "combustion_device_dre_requirement_pct": { "value": 98, "source": "NUPRC Guide 0024-2022 §3.4.5(1)(i)" },
+      "note": "Calculation input parameters: glycol circulation rate (L/hr), gas temperature (°C), contact pressure (kPa), BTU content (MJ/m3), contact temperature (°C)"
+    },
+
+    "storage_tanks": {
+      "_model": "EPA E&P Tank (Tier 2) | API MPMS Ch19.4",
+      "voc_phase_in_thresholds_tpy": {
+        "tier_1_above_12_tpy_deadline_years": 1,
+        "tier_2_6_to_12_tpy_deadline_years":  2,
+        "tier_3_2_to_6_tpy_deadline_years":   3,
+        "source": "NUPRC Guide 0024-2022 §3.4.6(1)(i)(a–c)"
+      },
+      "flash_gas_ef_kg_voc_per_m3_throughput": { "value": 0.0048, "unit": "kg VOC/m3 crude throughput", "basis": "API MPMS Ch19.4 default Nigerian crude API 28–35" },
+      "working_loss_ef_kg_voc_per_m3_throughput": { "value": 0.0011 },
+      "breathing_loss_ef_kg_voc_per_m3_standing": { "value": 0.00042, "unit": "kg VOC/m3 standing volume" },
+      "annual_flash_analysis_required_above_tpy": 2,
+      "note": "Tanks below 2 tpy VOC: annual flash analysis required if no vapour recovery system"
+    },
+
+    "wellhead_components": {
+      "_description": "LDAR component population-based emission factors",
+      "_source": "API Compendium 3rd Ed. Table 4-2",
+      "valve_gas_service_kg_ch4_per_hr":        0.000068,
+      "connector_gas_service_kg_ch4_per_hr":    0.000021,
+      "flange_gas_service_kg_ch4_per_hr":       0.000019,
+      "open_ended_line_kg_ch4_per_hr":          0.000095,
+      "pressure_relief_device_kg_ch4_per_hr":   0.000140,
+      "pump_seal_gas_service_kg_ch4_per_hr":    0.000113,
+      "agitator_seal_kg_ch4_per_hr":            0.000069
+    }
+  },
+
+  "venting": {
+    "_reference": "NUPRC Guide 0024-2022 §3.3.1 | IPCC 2006 Vol 2 Ch4.3",
+    "cold_venting_status": "PROHIBITED — NUPRC Guide 0024-2022 §3.3.1 in line with Flare Gas Regulation 2018",
+    "waiver_regime": "Operator must apply to NUPRC Chief Executive for waiver on grounds of operational exigency",
+    "ch4_density_kg_per_scm": 0.6772,
+    "co2_density_kg_per_scm": 1.9636,
+    "gas_composition_ch4_fraction_default": 0.85,
+    "gas_composition_co2_fraction_default": 0.05,
+    "flare_unlit_reignition_deadline_hrs": 48,
+    "flare_unlit_nuprc_notification_after_hrs": 6,
+    "note": "Cold venting to cold vent stack is prohibited. Remaining venting must be routed to flare unless gas is non-flammable or volume too low for stable flame."
+  },
+
+  "scope2_electricity": {
+    "_reference": "GHG Protocol Scope 2 Guidance 2015",
+    "nigeria_national_grid": {
+      "ef_kg_co2_per_kwh": 0.431,
+      "basis": "Location-based method",
+      "year": 2023,
+      "source": "NNPC/ECN Nigeria Energy Intensity Report 2023 estimate"
+    },
+    "market_based_note": "Use supplier-specific emission factor if renewable energy certificate (REC) or Power Purchase Agreement (PPA) applies"
+  },
+
+  "energy_intensity": {
+    "_reference": "NUPRC Guide 0024-2022 Appendix D",
+    "formula": "EI = (CO2_mt + CH4_mt × 82.5) / MBOE",
+    "gwp_for_ch4": 82.5,
+    "gwp_basis": "IPCC AR6 20-year GWP for fossil methane — mandated by NUPRC",
+    "mboe_conversion": {
+      "oil_bbl_to_mboe": 0.000001,
+      "gas_mcf_to_mboe": 0.000166
+    },
+    "base_year": 2020,
+    "annual_reduction_target_pct": 2.5,
+    "note": "Operators must demonstrate 2.5% per year reduction in energy intensity from 2020 base year. EI is calculated using GWP20 specifically for this metric only; all other CO2e reporting uses GWP100."
+  },
+
+  "ndc_targets": {
+    "_reference": "Nigeria NDC 3.0 (September 2025) | NUPRC Guide 0024-2022 §1.3",
+    "oil_gas_sector": {
+      "zero_routine_flaring_by": 2030,
+      "fugitive_methane_reduction_pct_by_2035": 60,
+      "fugitive_methane_reduction_pct_by_2030_nuprc": 60,
+      "turbine_replacement_combined_cycle_by": 2030,
+      "source": "NDC 3.0 Table 2; NUPRC Guide 0024-2022 §1.3"
+    },
+    "economy_wide": {
+      "base_year": 2018,
+      "base_year_emissions_mtco2e": 573.5,
+      "target_year": 2035,
+      "absolute_reduction_mtco2e": 184.9,
+      "reduction_pct": 32.2,
+      "net_zero_target_year": 2060,
+      "source": "Nigeria NDC 3.0 September 2025"
+    }
+  },
+
+  "ldar_thresholds": {
+    "_reference": "NUPRC Guide 0024-2022 §3.2",
+    "leak_classification": {
+      "large":    { "threshold_ppmv": 50000, "repair_deadline_days": 5,   "source": "Guide 0024-2022 §3.2.4" },
+      "small":    { "threshold_ppmv": 5000,  "repair_deadline_days": 14,  "source": "Guide 0024-2022 §3.2.4" },
+      "critical": { "threshold_ppmv": null,   "repair_deadline": "Next shutdown, max 365 days", "source": "Guide 0024-2022 §3.2.4" }
+    },
+    "re_survey_after_repair_days": 15,
+    "first_inspection_new_facility_days": 90,
+    "inspection_frequency": {
+      "year_1": 1,
+      "year_2": 2,
+      "year_3_plus": 4,
+      "min_interval_months_year2": 5,
+      "min_interval_months_year3": 2,
+      "offshore_manned": "Same as onshore",
+      "offshore_unmanned": "At planned maintenance visits up to onshore frequency",
+      "source": "NUPRC Guide 0024-2022 §3.2.2"
+    },
+    "inspection_technologies": ["OGI", "laser_beam", "EPA_method_21", "acoustic", "AVO"],
+    "approved_equipment": ["FLIR GF320", "FLIR GF77", "OPGAL EyeCGas", "Sierra ProFLO Hi-Flow Sampler"],
+    "hi_flow_calibration_standard": "NIST-traceable",
+    "hi_flow_calibration_interval_months": 12
+  },
+
+  "carbon_market": {
+    "_reference": "Nigeria Carbon Market Framework October 2025 | VCS VM0039 | ISO 14064-2",
+    "methodologies": {
+      "VCS_VM0039": {
+        "title": "Methane Capture and Combustion from Petroleum Production and Distribution",
+        "applicability": "Upstream oil and gas methane abatement including LDAR and pneumatic controller replacement",
+        "version": "2.0",
+        "source": "Verra VCS"
+      },
+      "Gold_Standard_methane": {
+        "title": "Avoided Methane Emissions from Upstream Oil and Gas",
+        "applicability": "Flare elimination and methane abatement projects",
+        "source": "Gold Standard"
+      },
+      "PACM_Article_6_4": {
+        "title": "Paris Agreement Crediting Mechanism",
+        "applicability": "Projects authorised under Nigeria Carbon Market Framework Article 6.4",
+        "dna": "National Council on Climate Change (NCCC)",
+        "source": "UNFCCC; Nigeria CMF October 2025"
+      }
+    },
+    "vcm_price_range_usd_per_t": {
+      "bear": 8.00,
+      "base": 12.40,
+      "bull": 20.00,
+      "source": "CTX / Xpansiv methane abatement credits April 2026"
+    },
+    "registry_fee_pct": 5.0,
+    "corresponding_adjustment": "Required for Article 6.2 and 6.4 credits — NCCC as DNA must authorise",
+    "no_objection_letter_required": true
+  }
+}

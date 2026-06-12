@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Verde Intel — VerdeScope</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme:{extend:{colors:{obsidian:'#0D1A12',forest:'#1A3D24',pine:'#235930',verde:'#2E7D45',sage:'#4CAF6F',mist:'#A8D5B5',ivory:'#FDFCF9',gold:'#B8962E',goldlight:'#D4AE50',slate:'#2A3040',steel:'#4A5568',ash:'#8A9BB0',cloud:'#D4DCE8'},fontFamily:{display:['Cormorant Garamond','serif'],sans:['Outfit','sans-serif'],mono:['DM Mono','monospace']}}}
+    }
+  </script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;overflow:hidden}
+    body{font-family:'Outfit',sans-serif;background:#0D1A12;color:#FDFCF9;display:flex;flex-direction:column}
+    ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:#0D1A12}::-webkit-scrollbar-thumb{background:#235930;border-radius:2px}
+    #app-shell{display:flex;flex:1;overflow:hidden}
+    #sidebar{width:220px;flex-shrink:0;background:#091410;border-right:1px solid rgba(46,125,69,.18);display:flex;flex-direction:column;transition:width .25s;overflow:hidden}
+    #sidebar.collapsed{width:56px}
+    #main-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    #topbar{height:52px;flex-shrink:0;background:rgba(13,26,18,.95);border-bottom:1px solid rgba(46,125,69,.18);display:flex;align-items:center;padding:0 20px;gap:16px;backdrop-filter:blur(8px)}
+    #content{flex:1;overflow-y:auto;padding:24px}
+    .nav-item{display:flex;align-items:center;gap:12px;padding:9px 16px;border-radius:6px;cursor:pointer;transition:background .15s;white-space:nowrap;font-size:13px;color:rgba(253,252,249,.6);text-decoration:none}
+    .nav-item:hover{background:rgba(46,125,69,.15);color:#FDFCF9}
+    .nav-item.active{background:rgba(46,125,69,.22);color:#FDFCF9;font-weight:500}
+    .nav-label{opacity:1;transition:opacity .2s}
+    #sidebar.collapsed .nav-label{opacity:0;pointer-events:none}
+    .card{background:rgba(26,61,36,.35);border:1px solid rgba(46,125,69,.2);border-radius:10px;padding:20px}
+    .card-sm{background:rgba(26,61,36,.25);border:1px solid rgba(46,125,69,.15);border-radius:8px;padding:14px}
+    .btn-primary{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:linear-gradient(135deg,#2E7D45,#235930);color:#FDFCF9;border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s;font-family:'Outfit',sans-serif}
+    .btn-primary:hover{opacity:.88}
+    .btn-ghost{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:transparent;color:rgba(253,252,249,.7);border:1px solid rgba(46,125,69,.3);border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s;font-family:'Outfit',sans-serif}
+    .btn-ghost:hover{border-color:rgba(46,125,69,.6);color:#FDFCF9}
+    .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;font-family:'DM Mono',monospace}
+    .badge-green{background:rgba(76,175,111,.15);color:#4CAF6F;border:1px solid rgba(76,175,111,.25)}
+    .badge-gold{background:rgba(184,150,46,.15);color:#D4AE50;border:1px solid rgba(184,150,46,.25)}
+    .badge-blue{background:rgba(99,179,237,.12);color:#90CDF4;border:1px solid rgba(99,179,237,.2)}
+    .badge-red{background:rgba(252,129,74,.12);color:#FC814A;border:1px solid rgba(252,129,74,.2)}
+    .badge-ash{background:rgba(138,155,176,.1);color:#8A9BB0;border:1px solid rgba(138,155,176,.2)}
+    .tab-btn{padding:8px 16px;font-size:13px;border-radius:6px;cursor:pointer;transition:all .15s;background:transparent;color:rgba(253,252,249,.5);border:1px solid transparent;font-family:'Outfit',sans-serif}
+    .tab-btn.active{background:rgba(46,125,69,.2);color:#FDFCF9;border-color:rgba(46,125,69,.3)}
+    .tab-btn:hover:not(.active){color:rgba(253,252,249,.8)}
+    .demo-banner{background:linear-gradient(90deg,rgba(184,150,46,.18),rgba(184,150,46,.1));border-bottom:1px solid rgba(184,150,46,.25);padding:6px 20px;font-size:11.5px;color:#D4AE50;text-align:center;letter-spacing:.03em}
+    .anomaly-row{display:grid;grid-template-columns:140px 1fr 90px 90px 80px;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(46,125,69,.08);font-size:12px;transition:background .12s}
+    .anomaly-row:hover{background:rgba(46,125,69,.06)}
+    .risk-meter{height:8px;border-radius:4px;overflow:hidden;background:rgba(46,125,69,.15)}
+    .risk-fill{height:100%;border-radius:4px;transition:width .5s}
+    .progress-bar{height:5px;background:rgba(46,125,69,.2);border-radius:3px;overflow:hidden}
+    .progress-fill{height:100%;border-radius:3px;transition:width .5s ease}
+    .model-card{background:rgba(26,61,36,.2);border:1px solid rgba(46,125,69,.15);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:8px}
+    .pulse{animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  </style>
+</head>
+<body>
+
+<div class="demo-banner">VerdeScope Platform — Investor Demo Build &nbsp;|&nbsp; Verde Intel ML &nbsp;|&nbsp; Models: Illustrative</div>
+
+<div id="app-shell">
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div style="padding:16px;border-bottom:1px solid rgba(46,125,69,.15);display:flex;align-items:center;gap:10px;min-height:60px">
+      <div style="width:28px;height:28px;background:linear-gradient(135deg,#2E7D45,#1A3D24);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A8D5B5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      </div>
+      <span class="nav-label" style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:500;color:#FDFCF9;letter-spacing:.02em">VerdeScope</span>
+    </div>
+    <div style="padding:10px 8px;flex:1;overflow-y:auto">
+      <div class="nav-label" style="padding:6px 10px;margin-bottom:4px">
+        <div style="background:rgba(46,125,69,.15);border:1px solid rgba(46,125,69,.25);border-radius:6px;padding:7px 10px;font-size:12px">
+          <div style="font-size:10px;color:rgba(253,252,249,.4);letter-spacing:.04em;margin-bottom:2px">ACTIVE LICENCE</div>
+          <div style="font-weight:500;color:#FDFCF9">OML 18</div>
+          <div style="font-size:11px;color:#4CAF6F;margin-top:1px">NNPC / Eroton JVC</div>
+        </div>
+      </div>
+      <div style="height:1px;background:rgba(46,125,69,.12);margin:8px 0"></div>
+      <a href="dashboard.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="nav-label">Dashboard</span></a>
+      <a href="emissions.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20M6 20V10l6-6 6 6v10"/></svg><span class="nav-label">Emissions</span></a>
+      <a href="ldar.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span class="nav-label">LDAR</span></a>
+      <a href="equipment.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg><span class="nav-label">Equipment</span></a>
+      <a href="updt.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span class="nav-label">UPDT</span></a>
+      <a href="carbon-market.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg><span class="nav-label">Carbon Market</span></a>
+      <a href="reports.html" class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span class="nav-label">Reports</span></a>
+      <a href="verde-intel.html" class="nav-item active"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg><span class="nav-label">Verde Intel</span></a>
+    </div>
+    <div style="padding:10px 8px;border-top:1px solid rgba(46,125,69,.12)">
+      <a href="#" class="nav-item" style="font-size:12px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg><span class="nav-label">S. Muazu, PhD</span></a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div id="main-area">
+    <div id="topbar">
+      <button onclick="document.getElementById('sidebar').classList.toggle('collapsed')" style="background:none;border:none;color:rgba(253,252,249,.5);cursor:pointer;padding:4px;border-radius:4px;display:flex;align-items:center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <span style="font-family:'Cormorant Garamond',serif;font-size:16px;color:rgba(253,252,249,.6)">Verde Intel</span>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#4CAF6F">
+        <div class="pulse" style="width:6px;height:6px;border-radius:50%;background:#4CAF6F"></div>
+        4 ML models active
+      </div>
+      <span class="badge badge-blue" style="font-size:10.5px">258-licence training set</span>
+      <span class="badge badge-gold" style="font-size:10.5px">Last retrain: 01 Apr 2026</span>
+    </div>
+
+    <div id="content">
+      <!-- HEADER -->
+      <div style="margin-bottom:22px">
+        <h1 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500">Verde Intel</h1>
+        <p style="font-size:13px;color:rgba(253,252,249,.5);margin-top:4px">Anomaly detection · 24-month forecasting · compliance risk scoring · decarbonisation pathway optimiser</p>
+      </div>
+
+      <!-- ML MODEL STATUS ROW -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px">
+        <div class="card-sm" style="border-left:3px solid #4CAF6F">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+            <div style="font-size:11px;font-weight:600;color:rgba(253,252,249,.7);text-transform:uppercase;letter-spacing:.04em">ML-1 Anomaly</div>
+            <span class="badge badge-green" style="font-size:9px">Live</span>
+          </div>
+          <div style="font-size:10px;color:rgba(253,252,249,.4);font-family:'DM Mono',monospace">Isolation Forest</div>
+          <div style="margin-top:6px;font-size:12px">F1 Score: <span style="color:#4CAF6F;font-family:'DM Mono',monospace">0.94</span></div>
+          <div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:2px">2 flags today</div>
+        </div>
+        <div class="card-sm" style="border-left:3px solid #90CDF4">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+            <div style="font-size:11px;font-weight:600;color:rgba(253,252,249,.7);text-transform:uppercase;letter-spacing:.04em">ML-2 Forecast</div>
+            <span class="badge badge-blue" style="font-size:9px">Live</span>
+          </div>
+          <div style="font-size:10px;color:rgba(253,252,249,.4);font-family:'DM Mono',monospace">Prophet + LSTM</div>
+          <div style="margin-top:6px;font-size:12px">MAPE: <span style="color:#90CDF4;font-family:'DM Mono',monospace">11.2%</span></div>
+          <div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:2px">24-month horizon</div>
+        </div>
+        <div class="card-sm" style="border-left:3px solid #D4AE50">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+            <div style="font-size:11px;font-weight:600;color:rgba(253,252,249,.7);text-transform:uppercase;letter-spacing:.04em">ML-3 Risk</div>
+            <span class="badge badge-gold" style="font-size:9px">Live</span>
+          </div>
+          <div style="font-size:10px;color:rgba(253,252,249,.4);font-family:'DM Mono',monospace">XGBoost Classifier</div>
+          <div style="margin-top:6px;font-size:12px">AUC-ROC: <span style="color:#D4AE50;font-family:'DM Mono',monospace">0.91</span></div>
+          <div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:2px">1 high-risk flag</div>
+        </div>
+        <div class="card-sm" style="border-left:3px solid #A8D5B5">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+            <div style="font-size:11px;font-weight:600;color:rgba(253,252,249,.7);text-transform:uppercase;letter-spacing:.04em">ML-4 Optimiser</div>
+            <span class="badge badge-green" style="font-size:9px">Live</span>
+          </div>
+          <div style="font-size:10px;color:rgba(253,252,249,.4);font-family:'DM Mono',monospace">NSGA-II Multi-obj.</div>
+          <div style="margin-top:6px;font-size:12px">Actions: <span style="color:#A8D5B5;font-family:'DM Mono',monospace">50+</span></div>
+          <div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:2px">Pareto front ready</div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div style="display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap">
+        <button class="tab-btn active" onclick="switchTab(this,'tab-anomaly')">Anomaly Detection</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-forecast')">Emissions Forecast</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-risk')">Compliance Risk</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-optimiser')">Pathway Optimiser</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-models')">Model Status</button>
+      </div>
+
+      <!-- ═══ TAB: ANOMALY ═══ -->
+      <div id="tab-anomaly">
+        <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:16px">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+              <div style="font-weight:600;font-size:14px">Anomaly Detection — ML-1</div>
+              <div style="display:flex;gap:6px">
+                <span class="badge badge-red">2 Active Flags</span>
+                <button class="btn-ghost" style="font-size:11px;padding:5px 10px">Export</button>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:140px 1fr 90px 90px 80px;padding:6px 14px;font-size:10px;color:rgba(253,252,249,.4);letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid rgba(46,125,69,.15)">
+              <div>Timestamp</div><div>Emission Source</div><div>Value</div><div>Expected</div><div style="text-align:right">Severity</div>
+            </div>
+
+            <!-- ANOMALY ROWS -->
+            <div class="anomaly-row" style="background:rgba(252,129,74,.04)">
+              <div style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(253,252,249,.5)">11 Apr 09:14</div>
+              <div><div style="font-size:13px;font-weight:500;color:#FC814A">Compressor CS-07 — Methane Bleed</div><div style="font-size:10px;color:rgba(253,252,249,.4)">Olo WPF · Pneumatic controller · High-bleed event</div></div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px;color:#FC814A">2,840 kg</div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px;color:rgba(253,252,249,.4)">340 kg</div>
+              <div style="text-align:right"><span class="badge badge-red">Critical</span></div>
+            </div>
+            <div class="anomaly-row" style="background:rgba(212,174,80,.03)">
+              <div style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(253,252,249,.5)">10 Apr 14:02</div>
+              <div><div style="font-size:13px;font-weight:500;color:#D4AE50">Flare Stack FL-03 — Combustion Efficiency</div><div style="font-size:10px;color:rgba(253,252,249,.4)">Asasa GPP · DRE below 95% threshold detected</div></div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px;color:#D4AE50">94.1%</div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px;color:rgba(253,252,249,.4)">≥98%</div>
+              <div style="text-align:right"><span class="badge badge-gold">High</span></div>
+            </div>
+            <div class="anomaly-row">
+              <div style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(253,252,249,.5)">08 Apr 08:33</div>
+              <div><div style="font-size:13px;font-weight:500">Tank TK-12 — VOC Emission Rate</div><div style="font-size:10px;color:rgba(253,252,249,.4)">Olo WPF · Flash gas deviation · Data quality flag</div></div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px">18.4 t</div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px;color:rgba(253,252,249,.4)">14.2 t</div>
+              <div style="text-align:right"><span class="badge badge-blue">Review</span></div>
+            </div>
+            <div class="anomaly-row">
+              <div style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(253,252,249,.5)">05 Apr 11:18</div>
+              <div><div style="font-size:13px;font-weight:500">Wellhead WHD-14 — Scope 1</div><div style="font-size:10px;color:rgba(253,252,249,.4)">Spike resolved after field verification · Normal</div></div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px">240 kg</div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px;color:rgba(253,252,249,.4)">210 kg</div>
+              <div style="text-align:right"><span class="badge badge-green">Resolved</span></div>
+            </div>
+            <div class="anomaly-row">
+              <div style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(253,252,249,.5)">01 Apr 07:55</div>
+              <div><div style="font-size:13px;font-weight:500">Dehydrator DEH-02 — Still Vent</div><div style="font-size:10px;color:rgba(253,252,249,.4)">Model flagged; operator confirmed scheduled maintenance</div></div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px">480 kg</div>
+              <div style="font-family:'DM Mono',monospace;font-size:12px;color:rgba(253,252,249,.4)">120 kg</div>
+              <div style="text-align:right"><span class="badge badge-green">Explained</span></div>
+            </div>
+          </div>
+
+          <!-- ANOMALY STATS -->
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="card">
+              <div style="font-weight:600;font-size:14px;margin-bottom:12px">April 2026 Anomaly Summary</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div class="card-sm" style="text-align:center;padding:10px"><div style="font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:#FC814A">2</div><div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:2px">Critical / High</div></div>
+                <div class="card-sm" style="text-align:center;padding:10px"><div style="font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:#4CAF6F">3</div><div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:2px">Resolved</div></div>
+                <div class="card-sm" style="text-align:center;padding:10px"><div style="font-family:'DM Mono',monospace;font-size:20px;font-weight:500">0.94</div><div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:2px">Model F1 Score</div></div>
+                <div class="card-sm" style="text-align:center;padding:10px"><div style="font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:#90CDF4">98.2%</div><div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:2px">Data Coverage</div></div>
+              </div>
+            </div>
+
+            <!-- CRITICAL FLAG DETAIL -->
+            <div class="card" style="border-color:rgba(252,129,74,.3)">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <div style="width:8px;height:8px;border-radius:50%;background:#FC814A" class="pulse"></div>
+                <div style="font-weight:600;font-size:13px;color:#FC814A">ACTIVE FLAG — CS-07 Methane Bleed</div>
+              </div>
+              <div style="font-size:12px;color:rgba(253,252,249,.6);line-height:1.7;margin-bottom:10px">
+                Isolation Forest model detected a <strong>735% deviation</strong> from expected methane bleed rate on pneumatic controller CS-07 at Olo WPF. Measured: 2,840 kg CH₄. Expected baseline: 340 kg. Possible causes: seal failure, valve malfunction, or data transmission error.
+              </div>
+              <div style="display:flex;gap:6px">
+                <button class="btn-primary" style="font-size:12px;padding:6px 12px">Assign LDAR Team</button>
+                <button class="btn-ghost" style="font-size:12px;padding:6px 10px">Mark Explained</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ TAB: FORECAST ═══ -->
+      <div id="tab-forecast" style="display:none">
+        <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <div style="font-weight:600;font-size:14px">24-Month Emissions Forecast — OML 18</div>
+              <span class="badge badge-blue">Prophet + LSTM · MAPE 11.2%</span>
+            </div>
+            <div style="font-size:12px;color:rgba(253,252,249,.4);margin-bottom:14px">Scope 1 total tCO₂e/month · 80% & 95% prediction intervals</div>
+            <div style="height:260px"><canvas id="forecastChart"></canvas></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="card">
+              <div style="font-weight:600;font-size:14px;margin-bottom:10px">Target Trajectory</div>
+              <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+                <div style="display:flex;justify-content:space-between;padding:8px;background:rgba(76,175,111,.08);border-radius:6px"><span>NDC 3.0 Target 2030</span><span style="font-family:'DM Mono',monospace;color:#4CAF6F">−60% CH₄</span></div>
+                <div style="display:flex;justify-content:space-between;padding:8px;background:rgba(184,150,46,.07);border-radius:6px"><span>NUPRC EI Target</span><span style="font-family:'DM Mono',monospace;color:#D4AE50">11.8 t/MBOE</span></div>
+                <div style="display:flex;justify-content:space-between;padding:8px;background:rgba(46,125,69,.1);border-radius:6px"><span>Current EI (CY 2025)</span><span style="font-family:'DM Mono',monospace">12.4 t/MBOE</span></div>
+                <div style="display:flex;justify-content:space-between;padding:8px;background:rgba(46,125,69,.1);border-radius:6px"><span>Forecast EI (Dec 2026)</span><span style="font-family:'DM Mono',monospace;color:#4CAF6F">11.6 t/MBOE</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <div style="font-weight:600;font-size:14px;margin-bottom:10px">Forecast by Source Category</div>
+              <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+                <div><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="color:rgba(253,252,249,.6)">Gas Flaring</span><span style="font-family:'DM Mono',monospace;color:#FC814A">↓ 18%</span></div><div class="progress-bar"><div class="progress-fill" style="width:65%;background:rgba(252,129,74,.5)"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="color:rgba(253,252,249,.6)">Fugitive CH₄</span><span style="font-family:'DM Mono',monospace;color:#4CAF6F">↓ 34%</span></div><div class="progress-bar"><div class="progress-fill" style="width:40%;background:rgba(76,175,111,.5)"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="color:rgba(253,252,249,.6)">Combustion</span><span style="font-family:'DM Mono',monospace;color:#D4AE50">↑ 3%</span></div><div class="progress-bar"><div class="progress-fill" style="width:78%;background:rgba(184,150,46,.5)"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="color:rgba(253,252,249,.6)">Venting</span><span style="font-family:'DM Mono',monospace;color:#4CAF6F">↓ 45%</span></div><div class="progress-bar"><div class="progress-fill" style="width:28%;background:rgba(76,175,111,.5)"></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ TAB: RISK ═══ -->
+      <div id="tab-risk" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:16px">
+          <!-- RISK FLAGS -->
+          <div class="card">
+            <div style="font-weight:600;font-size:14px;margin-bottom:14px">Compliance Risk Scores — ML-3 XGBoost</div>
+
+            <div style="font-size:12px;color:rgba(253,252,249,.4);margin-bottom:8px;letter-spacing:.04em;text-transform:uppercase">30-Day Deadline Risks</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+              <div style="padding:10px 12px;background:rgba(252,129,74,.07);border:1px solid rgba(252,129,74,.2);border-radius:6px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;font-weight:500;color:#FC814A">Q1 2026 GHG Report</span><span style="font-family:'DM Mono',monospace;font-size:12px;color:#FC814A">Risk: 82/100</span></div>
+                <div class="risk-meter"><div class="risk-fill" style="width:82%;background:linear-gradient(90deg,#FC814A,#e53e3e)"></div></div>
+                <div style="font-size:11px;color:rgba(253,252,249,.4);margin-top:4px">Due 31 Mar · 20 days · Currently 72% complete</div>
+              </div>
+              <div style="padding:10px 12px;background:rgba(184,150,46,.06);border:1px solid rgba(184,150,46,.15);border-radius:6px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;font-weight:500;color:#D4AE50">LDAR Facility 3 Survey</span><span style="font-family:'DM Mono',monospace;font-size:12px;color:#D4AE50">Risk: 61/100</span></div>
+                <div class="risk-meter"><div class="risk-fill" style="width:61%;background:linear-gradient(90deg,#D4AE50,#B8962E)"></div></div>
+                <div style="font-size:11px;color:rgba(253,252,249,.4);margin-top:4px">Due 28 Apr · Scheduling in progress</div>
+              </div>
+            </div>
+
+            <div style="font-size:12px;color:rgba(253,252,249,.4);margin-bottom:8px;letter-spacing:.04em;text-transform:uppercase">60-90 Day Risks</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="padding:10px 12px;background:rgba(46,125,69,.08);border:1px solid rgba(46,125,69,.15);border-radius:6px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px">ISO 14064-1 VVB Verification</span><span style="font-family:'DM Mono',monospace;font-size:12px;color:#4CAF6F">Risk: 28/100</span></div>
+                <div class="risk-meter"><div class="risk-fill" style="width:28%;background:linear-gradient(90deg,#4CAF6F,#2E7D45)"></div></div>
+                <div style="font-size:11px;color:rgba(253,252,249,.4);margin-top:4px">Due 30 May · VVB active and on track</div>
+              </div>
+              <div style="padding:10px 12px;background:rgba(46,125,69,.08);border:1px solid rgba(46,125,69,.15);border-radius:6px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px">Rod Packing CS-12 Replacement</span><span style="font-family:'DM Mono',monospace;font-size:12px;color:#4CAF6F">Risk: 22/100</span></div>
+                <div class="risk-meter"><div class="risk-fill" style="width:22%;background:linear-gradient(90deg,#4CAF6F,#2E7D45)"></div></div>
+                <div style="font-size:11px;color:rgba(253,252,249,.4);margin-top:4px">26,000 hr limit at 21,400 hrs — 4,600 hrs headroom</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RISK CHART + INSIGHTS -->
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="card">
+              <div style="font-weight:600;font-size:14px;margin-bottom:4px">30-Day Risk Score Trend</div>
+              <div style="font-size:12px;color:rgba(253,252,249,.4);margin-bottom:14px">Composite compliance risk across all deadlines</div>
+              <div style="height:180px"><canvas id="riskChart"></canvas></div>
+            </div>
+            <div class="card">
+              <div style="font-weight:600;font-size:14px;margin-bottom:10px">ML Insights — Regulatory Intelligence</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="padding:8px 10px;background:rgba(144,205,244,.06);border:1px solid rgba(144,205,244,.12);border-radius:6px;font-size:12px">
+                  <div style="color:#90CDF4;font-weight:500;margin-bottom:3px">🔔 Regulatory Update Detected</div>
+                  <div style="color:rgba(253,252,249,.6)">NUPRC issued revised LDAR inspection frequency guidelines (April 2026) — Q3 schedule may require adjustment</div>
+                </div>
+                <div style="padding:8px 10px;background:rgba(76,175,111,.06);border:1px solid rgba(76,175,111,.12);border-radius:6px;font-size:12px">
+                  <div style="color:#4CAF6F;font-weight:500;margin-bottom:3px">📊 Benchmark Insight</div>
+                  <div style="color:rgba(253,252,249,.6)">OML 18 fugitive emission intensity is 23% below average for OML Sub-A operators — strong UPDT Obligation 2 position</div>
+                </div>
+                <div style="padding:8px 10px;background:rgba(184,150,46,.06);border:1px solid rgba(184,150,46,.12);border-radius:6px;font-size:12px">
+                  <div style="color:#D4AE50;font-weight:500;margin-bottom:3px">⚡ Action Recommended</div>
+                  <div style="color:rgba(253,252,249,.6)">CS-07 anomaly flag: immediate OGI inspection recommended to rule out equipment failure and avoid NUPRC non-compliance notice</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ TAB: OPTIMISER ═══ -->
+      <div id="tab-optimiser" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1.5fr;gap:16px">
+          <!-- PARETO CONFIG -->
+          <div class="card">
+            <div style="font-weight:600;font-size:14px;margin-bottom:4px">Pathway Optimiser — ML-4</div>
+            <div style="font-size:12px;color:rgba(253,252,249,.4);margin-bottom:14px">NSGA-II multi-objective · 50+ abatement actions</div>
+
+            <div style="font-size:12px;color:rgba(253,252,249,.5);margin-bottom:8px">Optimisation Objectives</div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px;background:rgba(76,175,111,.07);border-radius:6px"><input type="checkbox" checked style="accent-color:#2E7D45"/> Maximise CO₂e reduction</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px;background:rgba(76,175,111,.07);border-radius:6px"><input type="checkbox" checked style="accent-color:#2E7D45"/> Minimise CAPEX cost</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px;background:rgba(76,175,111,.07);border-radius:6px"><input type="checkbox" checked style="accent-color:#2E7D45"/> Minimise time-to-impact</label>
+            </div>
+
+            <div style="font-size:12px;color:rgba(253,252,249,.5);margin-bottom:8px">Budget Constraint</div>
+            <div style="margin-bottom:14px">
+              <input type="range" id="budgetSlider" min="100" max="5000" value="1500" step="100" oninput="document.getElementById('budgetVal').textContent='$'+this.value+'K'" style="width:100%;accent-color:#2E7D45"/>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(253,252,249,.4);margin-top:4px"><span>$100K</span><span id="budgetVal" style="color:#D4AE50;font-weight:500">$1,500K</span><span>$5,000K</span></div>
+            </div>
+
+            <button class="btn-primary" style="width:100%;justify-content:center">Run Optimisation</button>
+
+            <!-- TOP ACTIONS -->
+            <div style="margin-top:16px">
+              <div style="font-size:12px;color:rgba(253,252,249,.4);margin-bottom:8px;letter-spacing:.04em;text-transform:uppercase">Top Recommended Actions</div>
+              <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+                <div style="display:grid;grid-template-columns:1fr 80px 70px;padding:8px 10px;background:rgba(46,125,69,.1);border-radius:6px;gap:8px">
+                  <div><div style="font-weight:500">Zero-bleed pneumatic replacement</div><div style="font-size:10px;color:rgba(253,252,249,.4)">78 units · 2 months</div></div>
+                  <div style="text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:#4CAF6F">−8,200t</div>
+                  <div style="text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:#D4AE50">$320K</div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 80px 70px;padding:8px 10px;background:rgba(46,125,69,.1);border-radius:6px;gap:8px">
+                  <div><div style="font-weight:500">Wet seal → dry seal upgrade</div><div style="font-size:10px;color:rgba(253,252,249,.4)">4 compressors · 6 months</div></div>
+                  <div style="text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:#4CAF6F">−3,400t</div>
+                  <div style="text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:#D4AE50">$480K</div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 80px 70px;padding:8px 10px;background:rgba(46,125,69,.1);border-radius:6px;gap:8px">
+                  <div><div style="font-weight:500">Flare gas recovery unit</div><div style="font-size:10px;color:rgba(253,252,249,.4)">Olo WPF · 12 months</div></div>
+                  <div style="text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:#4CAF6F">−11,600t</div>
+                  <div style="text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:#D4AE50">$1,200K</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PARETO + GANTT -->
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="card">
+              <div style="font-weight:600;font-size:14px;margin-bottom:4px">Pareto Front — Cost vs CO₂e Reduction</div>
+              <div style="font-size:12px;color:rgba(253,252,249,.4);margin-bottom:14px">Each point is a Pareto-optimal action set. Select a scenario to generate roadmap.</div>
+              <div style="height:200px"><canvas id="paretoChart"></canvas></div>
+            </div>
+            <div class="card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <div style="font-weight:600;font-size:14px">Selected Scenario — Base Efficiency</div>
+                <span class="badge badge-green">23,200 tCO₂e reduction</span>
+              </div>
+              <div style="display:flex;gap:0;overflow:hidden;border-radius:6px;background:rgba(9,20,16,.5);border:1px solid rgba(46,125,69,.15)">
+                <div style="flex:0.6;background:rgba(76,175,111,.15);border-right:1px solid rgba(46,125,69,.2);padding:8px 10px;font-size:11px;text-align:center">
+                  <div style="color:#4CAF6F;font-weight:600;margin-bottom:2px">Q2 2026</div>
+                  <div style="color:rgba(253,252,249,.6)">Pneumatic Replacement (78 units)</div>
+                </div>
+                <div style="flex:0.7;background:rgba(184,150,46,.1);border-right:1px solid rgba(46,125,69,.2);padding:8px 10px;font-size:11px;text-align:center">
+                  <div style="color:#D4AE50;font-weight:600;margin-bottom:2px">Q3–Q4 2026</div>
+                  <div style="color:rgba(253,252,249,.6)">Compressor Seal Upgrade</div>
+                </div>
+                <div style="flex:1;background:rgba(144,205,244,.08);padding:8px 10px;font-size:11px;text-align:center">
+                  <div style="color:#90CDF4;font-weight:600;margin-bottom:2px">Q1–Q2 2027</div>
+                  <div style="color:rgba(253,252,249,.6)">Flare Gas Recovery + Solar Hybrid</div>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;font-size:12px">
+                <div class="card-sm" style="text-align:center;padding:8px"><div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:#4CAF6F">−23,200t</div><div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:2px">CO₂e Reduction</div></div>
+                <div class="card-sm" style="text-align:center;padding:8px"><div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:#D4AE50">$2.0M</div><div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:2px">Total CAPEX</div></div>
+                <div class="card-sm" style="text-align:center;padding:8px"><div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:#90CDF4">$288K</div><div style="font-size:10px;color:rgba(253,252,249,.4);margin-top:2px">Carbon Revenue</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ TAB: MODELS ═══ -->
+      <div id="tab-models" style="display:none">
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px">
+          <div class="model-card">
+            <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:600;font-size:14px">ML-1 — Anomaly Detection</div><span class="badge badge-green">Production v3.1</span></div>
+            <div style="font-size:12px;color:rgba(253,252,249,.5)">Algorithm: Isolation Forest · Secondary: LOF</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px">
+              <div class="card-sm" style="padding:8px;text-align:center"><div style="font-family:'DM Mono',monospace;color:#4CAF6F">0.94</div><div style="font-size:10px;color:rgba(253,252,249,.4)">F1 Score</div></div>
+              <div class="card-sm" style="padding:8px;text-align:center"><div style="font-family:'DM Mono',monospace">1,240</div><div style="font-size:10px;color:rgba(253,252,249,.4)">Train samples</div></div>
+              <div class="card-sm" style="padding:8px;text-align:center"><div style="font-family:'DM Mono',monospace">01 Apr</div><div style="font-size:10px;color:rgba(253,252,249,.4)">Last retrain</div></div>
+            </div>
+            <div style="font-size:11px;color:rgba(253,252,249,.4)">Next retrain: 01 May 2026 · Auto-deploy if F1 improves >2%</div>
+          </div>
+          <div class="model-card">
+            <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:600;font-size:14px">ML-2 — Emissions Forecast</div><span class="badge badge-blue">Production v2.4</span></div>
+            <div style="font-size:12px;color:rgba(253,252,249,.5)">Algorithm: Prophet + LSTM ensemble (PyTorch)</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px">
+              <div class="card-sm" style="padding:8px;text-align:center"><div style="font-family:'DM Mono',monospace;color:#90CDF4">11.2%</div><div style="font-size:10px;color:rgba(253,252,249,.4)">MAPE</div></div>
+              <div class="card-sm" style="padding:8px;text-align:center"><div style="font-family:'DM Mono',monospace">24 mo</div><div style="font-size:10px;color:rgba(253,252,249,.4)">Horizon</div></div>
+              <div class="card-sm" style="padding:8px;text-align:center"><div style="font-family:'DM Mono',monospace">01 Apr</div><div style="font-size:10px;color:rgba(253,252,249,.4)">Last retrain</div></div>
+            </div>
+            <div style="font-size:11px;color:rgba(253,252,249,.4)">Monthly retraining · MLflow experiment tracking · Optuna hyperparameter tuning</div>
+          </div>
+          <div class="model-card">
+            <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:600;font-size:14px">ML-3 — Compliance Risk</div><span class="badge badge-gold">Production v1.8</span></div>
+            <div style="font-size:12px;color:rgba(253,252,249,.5)">Algorithm: XGBoost binary classifier (30/60/90-day horizons)</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px">
+              <div class="card-sm" style="padding:8px;text-align:center"><div style="font-family:'DM Mono',monospace;color:#D4AE50">0.91</div><div style="font-size:10px;color:rgba(253,252,249,.4)">AUC-ROC</div></div>
+              <div class="card-sm" style="padding:8px;text-align:center"><div style="font-family:'DM Mono',monospace">3</div><div style="font-size:10px;color:rgba(253,252,249,.4)">Sub-models</div></div>
+              <div class="card-sm" style="padding:8px;text-align:center"><div style="font-family:'DM Mono',monospace">01 Apr</div><div style="font-size:10px;color:rgba(253,252,249,.4)">Last retrain</div></div>
+            </div>
+            <div style="font-size:11px;color:rgba(253,252,249,.4)">Threshold ≥65 amber alert · ≥80 red alert + NUPRC enforcement flag · Billing payment sub-model active</div>
+          </div>
+          <div class="model-card">
+            <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:600;font-size:14px">ML-4 — Pathway Optimiser</div><span class="badge badge-green">Production v2.0</span></div>
+            <div style="font-size:12px;color:rgba(253,252,249,.5)">Algorithm: NSGA-II multi-objective (pymoo)</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px">
+              <div class="card-sm" style="padding:8px;text-align:center"><div style="font-family:'DM Mono',monospace;color:#A8D5B5">50+</div><div style="font-size:10px;color:rgba(253,252,249,.4)">Actions</div></div>
+              <div class="card-sm" style="padding:8px;text-align:center"><div style="font-family:'DM Mono',monospace">3</div><div style="font-size:10px;color:rgba(253,252,249,.4)">Objectives</div></div>
+              <div class="card-sm" style="padding:8px;text-align:center"><div style="font-family:'DM Mono',monospace">~2s</div><div style="font-size:10px;color:rgba(253,252,249,.4)">Solve time</div></div>
+            </div>
+            <div style="font-size:11px;color:rgba(253,252,249,.4)">Objectives: max CO₂e reduction · min CAPEX · min time-to-impact · Carbon revenue estimator integrated</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function switchTab(btn, tabId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    ['tab-anomaly','tab-forecast','tab-risk','tab-optimiser','tab-models'].forEach(id => {
+      document.getElementById(id).style.display = id === tabId ? '' : 'none';
+    });
+    if (tabId === 'tab-forecast' && !window._fcChart) initForecastChart();
+    if (tabId === 'tab-risk' && !window._riskChart) initRiskChart();
+    if (tabId === 'tab-optimiser' && !window._paretoChart) initParetoChart();
+  }
+
+  function initForecastChart() {
+    const months = ['May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr'];
+    const actual = [9800,9400,10200,9600,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null];
+    const forecast = [null,null,null,9600,9200,8900,8600,8400,8100,7800,7600,7400,7200,7000,6800,6600,6400,6200,6100,6000,5900,5800,5700,5600];
+    const hi80 = forecast.map(v => v ? v * 1.12 : null);
+    const lo80 = forecast.map(v => v ? v * 0.88 : null);
+    window._fcChart = new Chart(document.getElementById('forecastChart').getContext('2d'), {
+      type:'line',
+      data:{
+        labels:months,
+        datasets:[
+          {label:'Actual',data:actual,borderColor:'#4CAF6F',backgroundColor:'rgba(76,175,111,.1)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#4CAF6F',fill:false},
+          {label:'Forecast',data:forecast,borderColor:'#90CDF4',backgroundColor:'rgba(144,205,244,.08)',borderWidth:2,borderDash:[6,3],pointRadius:2,fill:false},
+          {label:'80% CI Upper',data:hi80,borderColor:'rgba(144,205,244,.2)',backgroundColor:'rgba(144,205,244,.06)',borderWidth:1,borderDash:[2,3],pointRadius:0,fill:'-1'},
+          {label:'80% CI Lower',data:lo80,borderColor:'rgba(144,205,244,.2)',backgroundColor:'rgba(144,205,244,.06)',borderWidth:1,borderDash:[2,3],pointRadius:0,fill:false},
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'rgba(253,252,249,.5)',font:{size:10},boxWidth:10}},tooltip:{backgroundColor:'rgba(9,20,16,.9)',titleColor:'#FDFCF9',bodyColor:'rgba(253,252,249,.7)'}},scales:{x:{grid:{color:'rgba(46,125,69,.08)'},ticks:{color:'rgba(253,252,249,.4)',font:{size:9},maxRotation:0}},y:{grid:{color:'rgba(46,125,69,.08)'},ticks:{color:'rgba(253,252,249,.4)',font:{size:9},callback:v=>`${(v/1000).toFixed(0)}k`}}}}
+    });
+  }
+
+  function initRiskChart() {
+    const days = Array.from({length:30},(_,i)=>`D-${30-i}`).filter((_,i)=>i%3===0);
+    const scores = [42,45,48,52,55,50,61,68,72,80];
+    window._riskChart = new Chart(document.getElementById('riskChart').getContext('2d'), {
+      type:'line',
+      data:{
+        labels:days,
+        datasets:[{label:'Risk Score',data:scores,borderColor:'#FC814A',backgroundColor:'rgba(252,129,74,.1)',borderWidth:2,pointRadius:3,fill:true,tension:.4,pointBackgroundColor:scores.map(s=>s>=80?'#FC814A':s>=65?'#D4AE50':'#4CAF6F')}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(9,20,16,.9)',titleColor:'#FDFCF9',bodyColor:'rgba(253,252,249,.7)'}},scales:{x:{grid:{color:'rgba(46,125,69,.08)'},ticks:{color:'rgba(253,252,249,.4)',font:{size:9}}},y:{grid:{color:'rgba(46,125,69,.08)'},ticks:{color:'rgba(253,252,249,.4)',font:{size:9}},min:0,max:100}}}
+    });
+  }
+
+  function initParetoChart() {
+    const pareto = [
+      {x:320,y:8200},{x:480,y:11600},{x:800,y:16400},{x:1200,y:22800},{x:2000,y:28500},{x:2800,y:32100},{x:3500,y:34200},{x:4500,y:36000}
+    ];
+    window._paretoChart = new Chart(document.getElementById('paretoChart').getContext('2d'), {
+      type:'scatter',
+      data:{
+        datasets:[
+          {label:'Pareto Scenarios',data:pareto,backgroundColor:'rgba(76,175,111,.6)',borderColor:'#4CAF6F',borderWidth:1.5,pointRadius:7,pointHoverRadius:9},
+          {label:'Selected',data:[{x:2000,y:23200}],backgroundColor:'#D4AE50',borderColor:'#B8962E',borderWidth:2,pointRadius:9,pointHoverRadius:11}
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'rgba(253,252,249,.5)',font:{size:10},boxWidth:10}},tooltip:{backgroundColor:'rgba(9,20,16,.9)',titleColor:'#FDFCF9',bodyColor:'rgba(253,252,249,.7)',callbacks:{label:c=>`$${c.parsed.x}K CAPEX · ${(c.parsed.y/1000).toFixed(1)}k tCO₂e`}}},scales:{x:{grid:{color:'rgba(46,125,69,.08)'},ticks:{color:'rgba(253,252,249,.4)',font:{size:9},callback:v=>`$${v}K`},title:{display:true,text:'CAPEX (USD)',color:'rgba(253,252,249,.3)',font:{size:10}}},y:{grid:{color:'rgba(46,125,69,.08)'},ticks:{color:'rgba(253,252,249,.4)',font:{size:9},callback:v=>`${(v/1000).toFixed(0)}k t`},title:{display:true,text:'CO₂e Reduction',color:'rgba(253,252,249,.3)',font:{size:10}}}}}
+    });
+  }
+
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+</script>
+</body>
+</html>

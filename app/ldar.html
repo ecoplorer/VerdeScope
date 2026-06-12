@@ -1,0 +1,1734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LDAR Manager — VerdeScope</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#0D1A12', forest: '#1A3D24', pine: '#235930',
+            verde:    '#2E7D45', sage:   '#4CAF6F', mist: '#A8D5B5',
+            ivory:    '#FDFCF9', gold:   '#B8962E', goldlight: '#D4AE50',
+            slate:    '#2A3040', steel:  '#4A5568', ash: '#8A9BB0', cloud: '#D4DCE8',
+          },
+          fontFamily: {
+            display: ['Cormorant Garamond','serif'],
+            sans:    ['Outfit','sans-serif'],
+            mono:    ['DM Mono','monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: 'Outfit', sans-serif; background: #0D1A12; color: #FDFCF9; display: flex; flex-direction: column; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: #0D1A12; }
+    ::-webkit-scrollbar-thumb { background: #235930; border-radius: 2px; }
+
+    /* ── Layout ── */
+    #app-shell  { display: flex; flex: 1; overflow: hidden; }
+    #sidebar    { width: 220px; flex-shrink: 0; background: #091410; border-right: 1px solid rgba(46,125,69,.18); display: flex; flex-direction: column; transition: width .25s; overflow: hidden; }
+    #sidebar.collapsed { width: 56px; }
+    #main-area  { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    #topbar     { height: 52px; flex-shrink: 0; background: rgba(13,26,18,.95); border-bottom: 1px solid rgba(46,125,69,.18); display: flex; align-items: center; padding: 0 20px; gap: 16px; backdrop-filter: blur(8px); }
+    #content    { flex: 1; overflow-y: auto; background: #0D1A12; }
+    #content {
+      background-image: linear-gradient(rgba(46,125,69,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(46,125,69,.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    /* ── Sidebar nav ── */
+    .nav-logo { padding: 14px 14px 10px; border-bottom: 1px solid rgba(46,125,69,.15); flex-shrink: 0; }
+    .nav-section-label { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: #4A5568; padding: 14px 14px 6px; white-space: nowrap; overflow: hidden; }
+    #sidebar.collapsed .nav-section-label { opacity: 0; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; cursor: pointer; font-family: 'Outfit',sans-serif; font-size: 13px; font-weight: 500; color: #8A9BB0; transition: all .18s; white-space: nowrap; overflow: hidden; border-left: 2px solid transparent; text-decoration: none; }
+    .nav-item:hover  { color: #FDFCF9; background: rgba(46,125,69,.08); }
+    .nav-item.active { color: #4CAF6F; background: rgba(46,125,69,.12); border-left-color: #4CAF6F; }
+    .nav-item .nav-icon  { flex-shrink: 0; width: 16px; height: 16px; }
+    .nav-item .nav-badge { margin-left: auto; background: #E74C3C; color: #fff; font-family: 'DM Mono',monospace; font-size: 9px; padding: 1px 5px; border-radius: 8px; flex-shrink: 0; }
+    .nav-item .nav-badge.gold { background: rgba(184,150,46,.3); color: #D4AE50; }
+    #sidebar.collapsed .nav-item span, #sidebar.collapsed .nav-badge { display: none; }
+
+    /* ── Demo banner ── */
+    #demo-banner { background: rgba(184,150,46,.12); border-bottom: 1px solid rgba(212,174,80,.25); padding: 6px 20px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+
+    /* ── Module header / tabs ── */
+    .module-header { padding: 20px 24px 0; border-bottom: 1px solid rgba(46,125,69,.12); background: rgba(9,20,16,.6); }
+    .mod-tab { font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; padding: 10px 16px; cursor: pointer; color: #4A5568; border-bottom: 2px solid transparent; transition: all .18s; white-space: nowrap; }
+    .mod-tab:hover { color: #8A9BB0; }
+    .mod-tab.active { color: #4CAF6F; border-bottom-color: #4CAF6F; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── KPI cards ── */
+    .kpi-card { background: rgba(255,255,255,.025); border: 1px solid rgba(46,125,69,.15); padding: 16px 18px; transition: border-color .2s, transform .2s; position: relative; overflow: hidden; }
+    .kpi-card:hover { border-color: rgba(46,125,69,.4); transform: translateY(-2px); }
+    .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+    .kpi-card.green::before  { background: #4CAF6F; }
+    .kpi-card.gold::before   { background: #D4AE50; }
+    .kpi-card.red::before    { background: #E74C3C; }
+    .kpi-card.orange::before { background: #E67E22; }
+    .kpi-value { font-family: 'DM Mono',monospace; font-size: 28px; font-weight: 300; line-height: 1; }
+    .kpi-label { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: #4A5568; margin-top: 4px; }
+    .kpi-sub   { font-family: 'Outfit',sans-serif; font-size: 11px; color: #8A9BB0; margin-top: 6px; }
+    .kpi-delta { font-family: 'DM Mono',monospace; font-size: 10px; font-weight: 500; }
+    .kpi-delta.up   { color: #4CAF6F; }
+    .kpi-delta.down { color: #E74C3C; }
+    .kpi-delta.warn { color: #D4AE50; }
+
+    /* ── Panel / card ── */
+    .panel { background: rgba(255,255,255,.02); border: 1px solid rgba(46,125,69,.12); overflow: hidden; }
+    .panel-head { padding: 12px 16px; border-bottom: 1px solid rgba(46,125,69,.12); display: flex; align-items: center; justify-content: space-between; background: rgba(26,61,36,.25); }
+    .panel-title { font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8A9BB0; }
+    .panel-body  { padding: 14px 16px; }
+
+    /* ── Tags ── */
+    .tag { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; padding: 2px 8px; display: inline-block; }
+    .tag-g { background: rgba(46,125,69,.15);  color: #4CAF6F; border: 1px solid rgba(46,125,69,.3); }
+    .tag-r { background: rgba(231,76,60,.12);  color: #E74C3C; border: 1px solid rgba(231,76,60,.25); }
+    .tag-y { background: rgba(212,174,80,.12); color: #D4AE50; border: 1px solid rgba(212,174,80,.25); }
+    .tag-n { background: rgba(255,255,255,.04); color: #8A9BB0; border: 1px solid rgba(255,255,255,.1); }
+    .tag-b { background: rgba(93,173,226,.1);  color: #5DADE2; border: 1px solid rgba(93,173,226,.2); }
+    .tag-o { background: rgba(230,126,34,.1);  color: #E67E22; border: 1px solid rgba(230,126,34,.25); }
+
+    /* ── Status dot ── */
+    .dot   { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+    .dot-g { background: #4CAF6F; }
+    .dot-r { background: #E74C3C; }
+    .dot-y { background: #D4AE50; }
+    .dot-o { background: #E67E22; }
+    @keyframes pulse-dot { 0%,100%{ opacity:1; transform:scale(1); } 50%{ opacity:.4; transform:scale(1.5); } }
+    .dot-pulse { animation: pulse-dot 2s ease infinite; }
+
+    /* ── Progress ── */
+    .prog-track { height: 5px; background: rgba(46,125,69,.12); border-radius: 1px; overflow: hidden; }
+    .prog-fill  { height: 100%; border-radius: 1px; transition: width 1.2s cubic-bezier(.22,1,.36,1); }
+
+    /* ── Data table ── */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .data-table th { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: #4A5568; padding: 8px 10px; text-align: left; border-bottom: 1px solid rgba(46,125,69,.12); background: rgba(26,61,36,.2); }
+    .data-table td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.03); color: #D4DCE8; vertical-align: middle; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(46,125,69,.04); cursor: pointer; }
+    .mono { font-family: 'DM Mono',monospace; font-size: 11px; }
+
+    /* ── SLA countdown ── */
+    .sla-pill { font-family: 'DM Mono',monospace; font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 2px; display: inline-flex; align-items: center; gap: 5px; }
+    .sla-ok   { background: rgba(46,125,69,.15); color: #4CAF6F; }
+    .sla-warn { background: rgba(212,174,80,.12); color: #D4AE50; }
+    .sla-crit { background: rgba(231,76,60,.15);  color: #E74C3C; }
+    .sla-over { background: rgba(231,76,60,.25);  color: #E74C3C; animation: pulse-dot 1.5s ease infinite; }
+
+    /* ── Leak severity bar ── */
+    .sev-bar { height: 4px; border-radius: 1px; }
+    .sev-large  { background: #E74C3C; }
+    .sev-small  { background: #D4AE50; }
+    .sev-crit   { background: #E67E22; }
+    .sev-repaired { background: #4CAF6F; }
+
+    /* ── Form elements ── */
+    .field-label  { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: #8A9BB0; display: block; margin-bottom: 6px; }
+    .field-input  { width: 100%; background: rgba(26,61,36,.45); border: 1px solid rgba(46,125,69,.25); color: #FDFCF9; font-family: 'DM Mono',monospace; font-size: 13px; padding: 10px 12px; transition: border-color .2s; }
+    .field-input:focus { outline: none; border-color: #4CAF6F; background: rgba(26,61,36,.65); }
+    .field-input::placeholder { color: #4A5568; }
+    .field-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234A5568' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+    .field-select option { background: #1A3D24; }
+
+    /* ── Buttons ── */
+    .btn-primary { background: #2E7D45; color: #FDFCF9; font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; padding: 9px 16px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background .2s; }
+    .btn-primary:hover { background: #235930; }
+    .btn-outline  { background: transparent; color: #4CAF6F; border: 1px solid rgba(46,125,69,.35); font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; padding: 8px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all .2s; }
+    .btn-outline:hover { background: rgba(46,125,69,.1); border-color: #4CAF6F; }
+    .btn-red { background: rgba(231,76,60,.15); color: #E74C3C; border: 1px solid rgba(231,76,60,.3); font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; padding: 8px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all .2s; }
+    .btn-red:hover { background: rgba(231,76,60,.25); }
+    .btn-gold { background: #B8962E; color: #0D1A12; font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; padding: 9px 16px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background .2s; font-weight: 700; }
+    .btn-gold:hover { background: #D4AE50; }
+
+    /* ── Notification ── */
+    .notif-badge { position: absolute; top: -3px; right: -3px; width: 14px; height: 14px; background: #E74C3C; border-radius: 50%; font-family: 'DM Mono',monospace; font-size: 8px; color: #fff; display: flex; align-items: center; justify-content: center; }
+
+    /* ── Dropdown ── */
+    .dropdown-menu { position: absolute; top: 100%; right: 0; background: #1A3D24; border: 1px solid rgba(46,125,69,.3); min-width: 180px; z-index: 100; display: none; }
+    .dropdown-menu.open { display: block; }
+    .dropdown-item { display: block; padding: 8px 14px; font-family: 'Outfit',sans-serif; font-size: 12px; color: #D4DCE8; transition: background .15s; cursor: pointer; }
+    .dropdown-item:hover { background: rgba(46,125,69,.12); color: #FDFCF9; }
+
+    /* ── Tooltip ── */
+    [data-tip] { position: relative; }
+    [data-tip]:hover::after { content: attr(data-tip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #1A3D24; border: 1px solid rgba(46,125,69,.3); font-family: 'DM Mono',monospace; font-size: 9px; color: #A8D5B5; padding: 4px 8px; white-space: nowrap; pointer-events: none; z-index: 200; margin-bottom: 4px; }
+
+    /* ── Workflow state track ── */
+    .state-track { display: flex; align-items: center; gap: 0; }
+    .state-step  { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 4px 12px; border: 1px solid rgba(46,125,69,.15); color: #4A5568; background: rgba(9,20,16,.8); flex-shrink: 0; }
+    .state-step.done   { color: #4CAF6F; background: rgba(46,125,69,.1); border-color: rgba(46,125,69,.3); }
+    .state-step.active { color: #FDFCF9; background: rgba(46,125,69,.2); border-color: #4CAF6F; }
+    .state-step.warn   { color: #D4AE50; background: rgba(212,174,80,.1); border-color: rgba(212,174,80,.3); }
+    .state-step.crit   { color: #E74C3C; background: rgba(231,76,60,.1); border-color: rgba(231,76,60,.3); }
+    .state-arrow { width: 16px; height: 1px; background: rgba(46,125,69,.2); flex-shrink: 0; }
+
+    /* ── Alert row ── */
+    .alert-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+    .alert-row:last-child { border-bottom: none; }
+
+    /* ── Inspection schedule row ── */
+    .schedule-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.03); gap: 10px; }
+    .schedule-row:last-child { border-bottom: none; }
+
+    /* ── Map placeholder ── */
+    .facility-map { background: rgba(26,61,36,.15); border: 1px solid rgba(46,125,69,.12); position: relative; overflow: hidden; }
+    .map-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(46,125,69,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(46,125,69,.06) 1px, transparent 1px); background-size: 20px 20px; }
+
+    /* ── Leak pin ── */
+    .leak-pin { position: absolute; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid; transform: translate(-50%,-50%); cursor: pointer; transition: transform .15s; }
+    .leak-pin:hover { transform: translate(-50%,-50%) scale(1.4); }
+    .leak-pin.large  { background: rgba(231,76,60,.5); border-color: #E74C3C; }
+    .leak-pin.small  { background: rgba(212,174,80,.5); border-color: #D4AE50; }
+    .leak-pin.repaired { background: rgba(46,125,69,.5); border-color: #4CAF6F; }
+    @keyframes ripple { 0%{ transform:translate(-50%,-50%) scale(1); opacity:.8; } 100%{ transform:translate(-50%,-50%) scale(2.5); opacity:0; } }
+    .leak-pin.active-leak::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 1px solid; animation: ripple 1.8s ease infinite; }
+    .leak-pin.large.active-leak::after  { border-color: #E74C3C; }
+    .leak-pin.small.active-leak::after  { border-color: #D4AE50; }
+
+    /* ── OGI image slot ── */
+    .ogi-slot { background: rgba(9,20,16,.8); border: 1px dashed rgba(46,125,69,.25); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: border-color .2s, background .2s; }
+    .ogi-slot:hover { border-color: rgba(46,125,69,.5); background: rgba(26,61,36,.3); }
+
+    /* ── Modal ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(9,20,16,.85); backdrop-filter: blur(4px); z-index: 300; display: none; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: #0D1A12; border: 1px solid rgba(46,125,69,.3); width: 600px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+    .modal-head { padding: 16px 20px; border-bottom: 1px solid rgba(46,125,69,.15); display: flex; align-items: center; justify-content: space-between; background: rgba(26,61,36,.3); }
+    .modal-body { padding: 20px; }
+    @keyframes modal-in { from{ opacity:0; transform:translateY(12px); } to{ opacity:1; transform:translateY(0); } }
+    .modal-box { animation: modal-in .25s ease both; }
+
+    @media (max-width: 768px) {
+      #sidebar { width: 56px; }
+      #sidebar .nav-section-label, #sidebar .nav-item span, #sidebar .nav-badge { display: none; }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ═══════════════════ DEMO BANNER ═══ -->
+<div id="demo-banner">
+  <div class="flex items-center gap-3">
+    <div class="dot dot-y dot-pulse"></div>
+    <span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#D4AE50;">
+      Live Demo Mode — Seplat Energy Plc · OML 4, OML 38 · Pro Tier
+    </span>
+  </div>
+  <div class="flex items-center gap-4">
+    <a href="../demo.html" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#D4AE50;text-decoration:none;">Book Real Demo →</a>
+    <button onclick="document.getElementById('demo-banner').style.display='none'" style="color:#4A5568;background:none;border:none;cursor:pointer;font-size:16px;line-height:1;">×</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════ APP SHELL ═══ -->
+<div id="app-shell">
+
+  <!-- ════════ SIDEBAR ════════ -->
+  <nav id="sidebar">
+
+    <!-- Logo -->
+    <div class="nav-logo">
+      <a href="../index.html" class="flex items-center gap-2" style="text-decoration:none;">
+        <svg width="28" height="28" viewBox="0 0 56 56" fill="none">
+          <circle cx="28" cy="28" r="18" stroke="#4CAF6F" stroke-width="1.5" fill="none"/>
+          <circle cx="28" cy="28" r="3" fill="#4CAF6F"/>
+          <path d="M28 10 C34 14,44 20,44 28 C44 28,36 22,28 10Z" fill="#2E7D45" opacity=".8"/>
+          <line x1="38" y1="8" x2="42" y2="14" stroke="#B8962E" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:18px;">
+          <span style="color:#FDFCF9;">Verde</span><span style="color:#D4AE50;">Scope</span>
+        </span>
+      </a>
+    </div>
+
+    <!-- Operator selector -->
+    <div style="padding:10px 14px;border-bottom:1px solid rgba(46,125,69,.12);">
+      <div class="flex items-center gap-2" style="padding:4px 10px;background:rgba(46,125,69,.1);border:1px solid rgba(46,125,69,.25);cursor:pointer;">
+        <i data-lucide="building-2" style="width:12px;height:12px;color:#4CAF6F;flex-shrink:0;"></i>
+        <span style="font-family:'DM Mono',monospace;font-size:10px;color:#D4DCE8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">Seplat Energy Plc</span>
+      </div>
+    </div>
+
+    <!-- Nav links -->
+    <div style="flex:1;overflow-y:auto;padding-bottom:12px;">
+      <div class="nav-section-label">Core</div>
+      <a class="nav-item" href="dashboard.html">
+        <i data-lucide="layout-dashboard" class="nav-icon"></i><span>Dashboard</span>
+      </a>
+      <a class="nav-item" href="emissions.html">
+        <i data-lucide="calculator" class="nav-icon"></i><span>Emissions</span>
+      </a>
+      <a class="nav-item active" href="ldar.html">
+        <i data-lucide="search" class="nav-icon"></i><span>LDAR Manager</span>
+        <span class="nav-badge">3</span>
+      </a>
+      <a class="nav-item" href="equipment.html">
+        <i data-lucide="settings" class="nav-icon"></i><span>Equipment</span>
+        <span class="nav-badge">1</span>
+      </a>
+      <a class="nav-item" href="updt.html">
+        <i data-lucide="shield-check" class="nav-icon"></i><span>UPDT Compliance</span>
+      </a>
+      <div class="nav-section-label">Revenue</div>
+      <a class="nav-item" href="carbon-market.html">
+        <i data-lucide="trending-up" class="nav-icon"></i><span>Carbon Market</span>
+        <span class="nav-badge gold">$</span>
+      </a>
+      <div class="nav-section-label">Reports</div>
+      <a class="nav-item" href="reports.html">
+        <i data-lucide="file-text" class="nav-icon"></i><span>Reports</span>
+      </a>
+      <a class="nav-item" href="#">
+        <i data-lucide="brain" class="nav-icon"></i><span>Verde Intelligence</span>
+      </a>
+      <div class="nav-section-label">Account</div>
+      <a class="nav-item" href="../resources.html" target="_blank">
+        <i data-lucide="book-open" class="nav-icon"></i><span>Academy</span>
+      </a>
+      <a class="nav-item" href="settings.html">
+        <i data-lucide="settings-2" class="nav-icon"></i><span>Settings</span>
+      </a>
+    </div>
+
+    <!-- Collapse toggle -->
+    <div style="padding:10px 14px;border-top:1px solid rgba(46,125,69,.12);">
+      <button onclick="toggleSidebar()" style="background:none;border:none;cursor:pointer;color:#4A5568;display:flex;align-items:center;gap:6px;">
+        <i data-lucide="panel-left-close" style="width:16px;height:16px;" id="collapse-icon"></i>
+        <span id="collapse-label" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;">Collapse</span>
+      </button>
+    </div>
+  </nav>
+  <!-- /sidebar -->
+
+
+  <!-- ════════ MAIN AREA ════════ -->
+  <div id="main-area">
+
+    <!-- ─── TOPBAR ─── -->
+    <div id="topbar">
+      <div style="flex:1;display:flex;align-items:center;gap:12px;">
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8A9BB0;">LDAR Manager</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:11px;color:#4A5568;">NUPRC Guide 0024-2022 · Q2 2026 · OML 4 &amp; OML 38</div>
+        </div>
+      </div>
+      <!-- Overdue alert chip -->
+      <div style="display:flex;align-items:center;gap:6px;padding:5px 12px;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);">
+        <i data-lucide="alert-triangle" style="width:12px;height:12px;color:#E74C3C;"></i>
+        <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#E74C3C;">3 Leaks Overdue SLA</span>
+      </div>
+      <!-- Export -->
+      <button onclick="openModal('export-modal')" style="display:flex;align-items:center;gap:5px;background:rgba(46,125,69,.1);border:1px solid rgba(46,125,69,.2);color:#4CAF6F;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;cursor:pointer;">
+        <i data-lucide="download" style="width:12px;height:12px;"></i> Export
+      </button>
+      <!-- Log new inspection -->
+      <button onclick="openModal('new-inspection-modal')" style="display:flex;align-items:center;gap:5px;background:#2E7D45;border:none;color:#FDFCF9;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;cursor:pointer;">
+        <i data-lucide="plus" style="width:12px;height:12px;"></i> Log Inspection
+      </button>
+      <!-- Notifications -->
+      <div style="position:relative;">
+        <button style="background:none;border:none;cursor:pointer;color:#8A9BB0;position:relative;padding:4px;">
+          <i data-lucide="bell" style="width:18px;height:18px;"></i>
+          <span class="notif-badge">4</span>
+        </button>
+      </div>
+    </div>
+    <!-- /topbar -->
+
+
+    <!-- ─── CONTENT ─── -->
+    <div id="content">
+
+      <!-- ── MODULE HEADER + TABS ── -->
+      <div class="module-header">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:16px;gap:16px;">
+          <div>
+            <h1 style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:#FDFCF9;line-height:1.2;">
+              Leak Detection &amp; Repair Programme
+            </h1>
+            <p style="font-family:'Outfit',sans-serif;font-size:12px;color:#8A9BB0;margin-top:4px;">
+              NUPRC Guide 0024-2022 §3.2–3.4 · Mandatory quarterly LDAR programme · 4 surveys/year (Year 3+)
+            </p>
+          </div>
+          <div class="flex items-center gap-2" style="flex-shrink:0;">
+            <span class="tag tag-g">OML 4</span>
+            <span class="tag tag-g">OML 38</span>
+            <span class="tag tag-n">6 Facilities</span>
+          </div>
+        </div>
+        <!-- Tabs -->
+        <div class="flex" style="overflow-x:auto;gap:0;">
+          <div class="mod-tab active" onclick="switchTab('overview',this)">Overview</div>
+          <div class="mod-tab" onclick="switchTab('leak-register',this)">Leak Register</div>
+          <div class="mod-tab" onclick="switchTab('inspection-log',this)">Inspection Log</div>
+          <div class="mod-tab" onclick="switchTab('facility-map',this)">Facility Map</div>
+          <div class="mod-tab" onclick="switchTab('ogi-uploads',this)">OGI &amp; Evidence</div>
+          <div class="mod-tab" onclick="switchTab('annual-report',this)">Annual Report</div>
+        </div>
+      </div>
+      <!-- /module header -->
+
+
+      <!-- ════════════ TAB: OVERVIEW ════════════ -->
+      <div class="tab-panel active" id="tab-overview" style="padding:20px 24px;">
+
+        <!-- KPI row -->
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;">
+          <div class="kpi-card green">
+            <div class="kpi-value" style="color:#4CAF6F;">94<span style="font-size:16px;color:#4A5568;">%</span></div>
+            <div class="kpi-label">Compliance Score</div>
+            <div class="kpi-sub">NUPRC 0024-2022 overall</div>
+            <div class="kpi-delta up" style="margin-top:8px;">↑ +2.1% vs Q1</div>
+          </div>
+          <div class="kpi-card red">
+            <div class="kpi-value" style="color:#E74C3C;">3</div>
+            <div class="kpi-label">Overdue SLA</div>
+            <div class="kpi-sub">Large leaks &gt;5 days</div>
+            <div class="kpi-delta down" style="margin-top:8px;">↑ +1 vs last week</div>
+          </div>
+          <div class="kpi-card orange">
+            <div class="kpi-value" style="color:#E67E22;">14</div>
+            <div class="kpi-label">Open Leaks</div>
+            <div class="kpi-sub">Across 6 facilities</div>
+            <div class="kpi-delta warn" style="margin-top:8px;">9 small · 5 large</div>
+          </div>
+          <div class="kpi-card green">
+            <div class="kpi-value" style="color:#4CAF6F;">87<span style="font-size:16px;color:#4A5568;">%</span></div>
+            <div class="kpi-label">Repair Rate</div>
+            <div class="kpi-sub">YTD · Target 100%</div>
+            <div class="kpi-delta up" style="margin-top:8px;">↑ 41/47 detected</div>
+          </div>
+          <div class="kpi-card gold">
+            <div class="kpi-value" style="color:#D4AE50;">47.2</div>
+            <div class="kpi-label">tCO₂e Avoided</div>
+            <div class="kpi-sub">From repaired leaks YTD</div>
+            <div class="kpi-delta up" style="margin-top:8px;color:#D4AE50;">~$566 carbon value</div>
+          </div>
+        </div>
+
+        <!-- Two-column row: schedule + alerts -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+
+          <!-- Inspection Schedule -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">Inspection Schedule · 2026</span>
+              <span class="tag tag-n">4 surveys / facility</span>
+            </div>
+            <div class="panel-body" style="padding:0;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Facility</th>
+                    <th>Type</th>
+                    <th>Q1</th>
+                    <th>Q2</th>
+                    <th>Q3</th>
+                    <th>Q4</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="mono">OML4-WPF-01</td>
+                    <td><span class="tag tag-b" style="font-size:8px;">Onshore</span></td>
+                    <td><span class="tag tag-g" style="font-size:8px;">Done</span></td>
+                    <td><span class="tag tag-g" style="font-size:8px;">Done</span></td>
+                    <td><span class="tag tag-n" style="font-size:8px;">Sep</span></td>
+                    <td><span class="tag tag-n" style="font-size:8px;">Dec</span></td>
+                    <td><span class="tag tag-g" style="font-size:8px;">On Track</span></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">OML4-GCS-02</td>
+                    <td><span class="tag tag-b" style="font-size:8px;">Onshore</span></td>
+                    <td><span class="tag tag-g" style="font-size:8px;">Done</span></td>
+                    <td><span class="tag tag-y" style="font-size:8px;">Overdue</span></td>
+                    <td><span class="tag tag-n" style="font-size:8px;">Sep</span></td>
+                    <td><span class="tag tag-n" style="font-size:8px;">Dec</span></td>
+                    <td><span class="tag tag-r" style="font-size:8px;">⚠ Late</span></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">OML4-GCS-03</td>
+                    <td><span class="tag tag-b" style="font-size:8px;">Onshore</span></td>
+                    <td><span class="tag tag-g" style="font-size:8px;">Done</span></td>
+                    <td><span class="tag tag-g" style="font-size:8px;">Done</span></td>
+                    <td><span class="tag tag-n" style="font-size:8px;">Sep</span></td>
+                    <td><span class="tag tag-n" style="font-size:8px;">Dec</span></td>
+                    <td><span class="tag tag-g" style="font-size:8px;">On Track</span></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">OML38-WPF-01</td>
+                    <td><span class="tag tag-b" style="font-size:8px;">Onshore</span></td>
+                    <td><span class="tag tag-g" style="font-size:8px;">Done</span></td>
+                    <td><span class="tag tag-g" style="font-size:8px;">Done</span></td>
+                    <td><span class="tag tag-n" style="font-size:8px;">Sep</span></td>
+                    <td><span class="tag tag-n" style="font-size:8px;">Dec</span></td>
+                    <td><span class="tag tag-g" style="font-size:8px;">On Track</span></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">OML38-EXP-01</td>
+                    <td><span class="tag tag-o" style="font-size:8px;">Export</span></td>
+                    <td><span class="tag tag-g" style="font-size:8px;">Done</span></td>
+                    <td><span class="tag tag-g" style="font-size:8px;">Done</span></td>
+                    <td><span class="tag tag-n" style="font-size:8px;">Sep</span></td>
+                    <td><span class="tag tag-n" style="font-size:8px;">Dec</span></td>
+                    <td><span class="tag tag-g" style="font-size:8px;">On Track</span></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">OML38-GPS-01</td>
+                    <td><span class="tag tag-y" style="font-size:8px;">Gas Plant</span></td>
+                    <td><span class="tag tag-g" style="font-size:8px;">Done</span></td>
+                    <td><span class="tag tag-y" style="font-size:8px;">Scheduled</span></td>
+                    <td><span class="tag tag-n" style="font-size:8px;">Sep</span></td>
+                    <td><span class="tag tag-n" style="font-size:8px;">Dec</span></td>
+                    <td><span class="tag tag-y" style="font-size:8px;">Pending</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SLA Alerts -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">SLA Deadline Alerts</span>
+              <span style="font-family:'DM Mono',monospace;font-size:9px;color:#E74C3C;letter-spacing:.1em;text-transform:uppercase;">3 Overdue</span>
+            </div>
+            <div class="panel-body">
+              <!-- Overdue -->
+              <div class="alert-row">
+                <div style="width:28px;height:28px;border-radius:50%;background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i data-lucide="alert-circle" style="width:13px;height:13px;color:#E74C3C;"></i>
+                </div>
+                <div style="flex:1;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <span style="font-size:12px;font-weight:500;color:#FDFCF9;">LK-2026-047 · OML4-GCS-03</span>
+                    <span class="sla-pill sla-over"><i data-lucide="clock" style="width:9px;height:9px;"></i> 3d overdue</span>
+                  </div>
+                  <div style="font-size:11px;color:#8A9BB0;margin-top:2px;">Large leak ≥50k ppmv · Compressor seal · 5-day SLA expired</div>
+                  <div style="margin-top:6px;"><button class="btn-outline" style="padding:4px 10px;font-size:9px;" onclick="openLeakDetail('LK-2026-047')">View Record</button></div>
+                </div>
+              </div>
+              <div class="alert-row">
+                <div style="width:28px;height:28px;border-radius:50%;background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i data-lucide="alert-circle" style="width:13px;height:13px;color:#E74C3C;"></i>
+                </div>
+                <div style="flex:1;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <span style="font-size:12px;font-weight:500;color:#FDFCF9;">LK-2026-051 · OML38-WPF-01</span>
+                    <span class="sla-pill sla-over"><i data-lucide="clock" style="width:9px;height:9px;"></i> 1d overdue</span>
+                  </div>
+                  <div style="font-size:11px;color:#8A9BB0;margin-top:2px;">Large leak ≥50k ppmv · Valve packing · 5-day SLA expired</div>
+                  <div style="margin-top:6px;"><button class="btn-outline" style="padding:4px 10px;font-size:9px;" onclick="openLeakDetail('LK-2026-051')">View Record</button></div>
+                </div>
+              </div>
+              <div class="alert-row">
+                <div style="width:28px;height:28px;border-radius:50%;background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i data-lucide="alert-circle" style="width:13px;height:13px;color:#E74C3C;"></i>
+                </div>
+                <div style="flex:1;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <span style="font-size:12px;font-weight:500;color:#FDFCF9;">LK-2026-053 · OML4-GCS-02</span>
+                    <span class="sla-pill sla-over"><i data-lucide="clock" style="width:9px;height:9px;"></i> 6h overdue</span>
+                  </div>
+                  <div style="font-size:11px;color:#8A9BB0;margin-top:2px;">Large leak ≥50k ppmv · Reciprocating comp rod packing · 5-day SLA</div>
+                  <div style="margin-top:6px;"><button class="btn-outline" style="padding:4px 10px;font-size:9px;" onclick="openLeakDetail('LK-2026-053')">View Record</button></div>
+                </div>
+              </div>
+              <!-- Warning -->
+              <div class="alert-row">
+                <div style="width:28px;height:28px;border-radius:50%;background:rgba(212,174,80,.1);border:1px solid rgba(212,174,80,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i data-lucide="alert-triangle" style="width:13px;height:13px;color:#D4AE50;"></i>
+                </div>
+                <div style="flex:1;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <span style="font-size:12px;font-weight:500;color:#FDFCF9;">LK-2026-058 · OML38-GPS-01</span>
+                    <span class="sla-pill sla-warn"><i data-lucide="clock" style="width:9px;height:9px;"></i> 3d left</span>
+                  </div>
+                  <div style="font-size:11px;color:#8A9BB0;margin-top:2px;">Small leak 5k–50k ppmv · Connector flange · 14-day SLA</div>
+                  <div style="margin-top:6px;"><button class="btn-outline" style="padding:4px 10px;font-size:9px;">View Record</button></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts row -->
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;">
+          <!-- Monthly trend chart -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">Leaks Detected vs Repaired · 2026</span>
+              <div class="flex items-center gap-3">
+                <span style="font-family:'DM Mono',monospace;font-size:9px;color:#4CAF6F;">— Repaired</span>
+                <span style="font-family:'DM Mono',monospace;font-size:9px;color:#E74C3C;">— Detected</span>
+              </div>
+            </div>
+            <div class="panel-body">
+              <canvas id="leak-trend-chart" height="120"></canvas>
+            </div>
+          </div>
+          <!-- Component breakdown -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">Leaks by Component Type</span>
+            </div>
+            <div class="panel-body">
+              <canvas id="component-chart" height="160"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- /overview tab -->
+
+
+      <!-- ════════════ TAB: LEAK REGISTER ════════════ -->
+      <div class="tab-panel" id="tab-leak-register" style="padding:20px 24px;">
+
+        <!-- Filters row -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+          <input class="field-input" placeholder="Search leak ID, facility, component…" style="width:240px;padding:8px 12px;font-size:12px;" />
+          <select class="field-input field-select" style="width:150px;padding:8px 12px;font-size:11px;">
+            <option>All Facilities</option>
+            <option>OML4-WPF-01</option>
+            <option>OML4-GCS-02</option>
+            <option>OML4-GCS-03</option>
+            <option>OML38-WPF-01</option>
+            <option>OML38-EXP-01</option>
+            <option>OML38-GPS-01</option>
+          </select>
+          <select class="field-input field-select" style="width:130px;padding:8px 12px;font-size:11px;">
+            <option>All Status</option>
+            <option>Detected</option>
+            <option>Repair Assigned</option>
+            <option>Repair Attempted</option>
+            <option>Repaired</option>
+            <option>Re-Surveyed</option>
+          </select>
+          <select class="field-input field-select" style="width:120px;padding:8px 12px;font-size:11px;">
+            <option>All Severity</option>
+            <option>Large ≥50k ppmv</option>
+            <option>Small 5k–50k ppmv</option>
+            <option>Critical Component</option>
+          </select>
+          <button class="btn-primary" onclick="openModal('log-leak-modal')">
+            <i data-lucide="plus" style="width:12px;height:12px;"></i> Log New Leak
+          </button>
+        </div>
+
+        <!-- Register table -->
+        <div class="panel" style="overflow-x:auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Leak ID</th>
+                <th>Facility</th>
+                <th>Component Type</th>
+                <th>Concentration (ppmv)</th>
+                <th>Severity</th>
+                <th>Detected</th>
+                <th>SLA Deadline</th>
+                <th>State</th>
+                <th>CH₄ Est. (kg/day)</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="leak-register-tbody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;">
+          <span style="font-family:'DM Mono',monospace;font-size:10px;color:#4A5568;">Showing 1–14 of 47 records</span>
+          <div class="flex items-center gap-2">
+            <button class="btn-outline" style="padding:5px 12px;font-size:9px;">← Prev</button>
+            <span style="font-family:'DM Mono',monospace;font-size:10px;color:#8A9BB0;">Page 1 / 4</span>
+            <button class="btn-outline" style="padding:5px 12px;font-size:9px;">Next →</button>
+          </div>
+        </div>
+      </div>
+      <!-- /leak register -->
+
+
+      <!-- ════════════ TAB: INSPECTION LOG ════════════ -->
+      <div class="tab-panel" id="tab-inspection-log" style="padding:20px 24px;">
+
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;">
+          <!-- Inspection history table -->
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#8A9BB0;">Inspection History · 2026</span>
+              <button class="btn-primary" onclick="openModal('new-inspection-modal')">
+                <i data-lucide="plus" style="width:12px;height:12px;"></i> Log Inspection
+              </button>
+            </div>
+            <div class="panel" style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Survey ID</th>
+                    <th>Facility</th>
+                    <th>Date</th>
+                    <th>Surveyor</th>
+                    <th>Technology</th>
+                    <th>Components Surveyed</th>
+                    <th>Leaks Found</th>
+                    <th>Flare Status</th>
+                    <th>Report</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr onclick="openModal('inspection-detail-modal')">
+                    <td class="mono">INSP-2026-018</td>
+                    <td class="mono">OML38-GPS-01</td>
+                    <td class="mono">15 Jun 2026</td>
+                    <td>E. Okonkwo</td>
+                    <td><span class="tag tag-b" style="font-size:8px;">OGI Camera</span></td>
+                    <td class="mono">312</td>
+                    <td><span style="color:#D4AE50;font-family:'DM Mono',monospace;font-size:11px;">7</span></td>
+                    <td><span class="tag tag-g" style="font-size:8px;">Lit</span></td>
+                    <td><button class="btn-outline" style="padding:3px 8px;font-size:9px;">PDF</button></td>
+                  </tr>
+                  <tr onclick="openModal('inspection-detail-modal')">
+                    <td class="mono">INSP-2026-017</td>
+                    <td class="mono">OML38-WPF-01</td>
+                    <td class="mono">12 Jun 2026</td>
+                    <td>A. Bello</td>
+                    <td><span class="tag tag-b" style="font-size:8px;">OGI Camera</span></td>
+                    <td class="mono">248</td>
+                    <td><span style="color:#E74C3C;font-family:'DM Mono',monospace;font-size:11px;">3</span></td>
+                    <td><span class="tag tag-g" style="font-size:8px;">Lit</span></td>
+                    <td><button class="btn-outline" style="padding:3px 8px;font-size:9px;">PDF</button></td>
+                  </tr>
+                  <tr onclick="openModal('inspection-detail-modal')">
+                    <td class="mono">INSP-2026-016</td>
+                    <td class="mono">OML4-GCS-03</td>
+                    <td class="mono">05 Jun 2026</td>
+                    <td>C. Eze</td>
+                    <td><span class="tag tag-y" style="font-size:8px;">Acoustic</span></td>
+                    <td class="mono">187</td>
+                    <td><span style="color:#E74C3C;font-family:'DM Mono',monospace;font-size:11px;">5</span></td>
+                    <td><span class="tag tag-g" style="font-size:8px;">Lit</span></td>
+                    <td><button class="btn-outline" style="padding:3px 8px;font-size:9px;">PDF</button></td>
+                  </tr>
+                  <tr onclick="openModal('inspection-detail-modal')">
+                    <td class="mono">INSP-2026-015</td>
+                    <td class="mono">OML4-WPF-01</td>
+                    <td class="mono">28 May 2026</td>
+                    <td>E. Okonkwo</td>
+                    <td><span class="tag tag-b" style="font-size:8px;">OGI Camera</span></td>
+                    <td class="mono">401</td>
+                    <td><span style="color:#4CAF6F;font-family:'DM Mono',monospace;font-size:11px;">2</span></td>
+                    <td><span class="tag tag-g" style="font-size:8px;">Lit</span></td>
+                    <td><button class="btn-outline" style="padding:3px 8px;font-size:9px;">PDF</button></td>
+                  </tr>
+                  <tr onclick="openModal('inspection-detail-modal')">
+                    <td class="mono">INSP-2026-014</td>
+                    <td class="mono">OML38-EXP-01</td>
+                    <td class="mono">20 May 2026</td>
+                    <td>M. Adeyemi</td>
+                    <td><span class="tag tag-b" style="font-size:8px;">OGI Camera</span></td>
+                    <td class="mono">223</td>
+                    <td><span style="color:#4CAF6F;font-family:'DM Mono',monospace;font-size:11px;">0</span></td>
+                    <td><span class="tag tag-g" style="font-size:8px;">Lit</span></td>
+                    <td><button class="btn-outline" style="padding:3px 8px;font-size:9px;">PDF</button></td>
+                  </tr>
+                  <tr onclick="openModal('inspection-detail-modal')">
+                    <td class="mono">INSP-2026-012</td>
+                    <td class="mono">OML4-GCS-02</td>
+                    <td class="mono">04 Mar 2026</td>
+                    <td>A. Bello</td>
+                    <td><span class="tag tag-b" style="font-size:8px;">OGI Camera</span></td>
+                    <td class="mono">175</td>
+                    <td><span style="color:#D4AE50;font-family:'DM Mono',monospace;font-size:11px;">4</span></td>
+                    <td><span class="tag tag-r" style="font-size:8px;">Unlit – 48h</span></td>
+                    <td><button class="btn-outline" style="padding:3px 8px;font-size:9px;">PDF</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Inspection detail sidebar -->
+          <div>
+            <div class="panel" style="margin-bottom:12px;">
+              <div class="panel-head"><span class="panel-title">NUPRC Requirements</span></div>
+              <div class="panel-body">
+                <div style="space-y:8px;">
+                  <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+                    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#4A5568;margin-bottom:3px;">First Inspection</div>
+                    <div style="font-size:12px;color:#D4DCE8;">Within 90 days of facility startup</div>
+                  </div>
+                  <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+                    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#4A5568;margin-bottom:3px;">Year 1 frequency</div>
+                    <div style="font-size:12px;color:#D4DCE8;">1 survey per facility</div>
+                  </div>
+                  <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+                    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#4A5568;margin-bottom:3px;">Year 2 frequency</div>
+                    <div style="font-size:12px;color:#D4DCE8;">2 surveys per facility</div>
+                  </div>
+                  <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+                    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#4A5568;margin-bottom:3px;">Year 3+ frequency</div>
+                    <div style="font-size:12px;color:#4CAF6F;font-weight:600;">4 surveys per facility ✓ (current)</div>
+                  </div>
+                  <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+                    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#4A5568;margin-bottom:3px;">Approved Technologies</div>
+                    <div style="font-size:12px;color:#D4DCE8;">OGI / Laser / Acoustic</div>
+                  </div>
+                  <div style="padding:8px 0;">
+                    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#4A5568;margin-bottom:3px;">Unlit Flare Deadline</div>
+                    <div style="font-size:12px;color:#E74C3C;">48-hour reignition required</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SLA reminder card -->
+            <div style="background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.2);padding:14px 16px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#E74C3C;margin-bottom:8px;">SLA Requirements</div>
+              <div style="font-size:12px;color:#D4DCE8;line-height:1.6;">
+                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(231,76,60,.1);">
+                  <span>Large ≥50,000 ppmv</span>
+                  <span style="font-family:'DM Mono',monospace;color:#E74C3C;font-weight:600;">5 days</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(231,76,60,.1);">
+                  <span>Small ≥5,000 ppmv</span>
+                  <span style="font-family:'DM Mono',monospace;color:#D4AE50;font-weight:600;">14 days</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(231,76,60,.1);">
+                  <span>Critical component</span>
+                  <span style="font-family:'DM Mono',monospace;color:#8A9BB0;font-weight:600;">Next shutdown / 1yr</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:4px 0;">
+                  <span>Re-survey after repair</span>
+                  <span style="font-family:'DM Mono',monospace;color:#5DADE2;font-weight:600;">+15 days</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /inspection log -->
+
+
+      <!-- ════════════ TAB: FACILITY MAP ════════════ -->
+      <div class="tab-panel" id="tab-facility-map" style="padding:20px 24px;">
+
+        <div style="display:grid;grid-template-columns:1fr 300px;gap:16px;">
+          <!-- Map area -->
+          <div>
+            <div class="facility-map" style="height:420px;border-radius:2px;">
+              <div class="map-grid"></div>
+
+              <!-- Facility labels -->
+              <div style="position:absolute;top:12px;left:12px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;">OML 4 · Delta State · Nigeria</div>
+
+              <!-- Facility nodes -->
+              <div style="position:absolute;top:28%;left:22%;text-align:center;cursor:pointer;" onclick="selectFacility('OML4-WPF-01')">
+                <div style="width:14px;height:14px;border-radius:50%;background:rgba(46,125,69,.4);border:1.5px solid #4CAF6F;margin:0 auto;"></div>
+                <div style="font-family:'DM Mono',monospace;font-size:8px;color:#4CAF6F;margin-top:3px;white-space:nowrap;">WPF-01</div>
+              </div>
+              <div style="position:absolute;top:45%;left:35%;text-align:center;cursor:pointer;" onclick="selectFacility('OML4-GCS-02')">
+                <div style="width:14px;height:14px;border-radius:50%;background:rgba(231,76,60,.3);border:1.5px solid #E74C3C;margin:0 auto;animation:pulse-dot 2s ease infinite;"></div>
+                <div style="font-family:'DM Mono',monospace;font-size:8px;color:#E74C3C;margin-top:3px;white-space:nowrap;">GCS-02 ⚠</div>
+              </div>
+              <div style="position:absolute;top:58%;left:25%;text-align:center;cursor:pointer;" onclick="selectFacility('OML4-GCS-03')">
+                <div style="width:14px;height:14px;border-radius:50%;background:rgba(231,76,60,.3);border:1.5px solid #E74C3C;margin:0 auto;animation:pulse-dot 2s ease infinite;"></div>
+                <div style="font-family:'DM Mono',monospace;font-size:8px;color:#E74C3C;margin-top:3px;white-space:nowrap;">GCS-03 ⚠</div>
+              </div>
+
+              <!-- OML38 section -->
+              <div style="position:absolute;top:12px;right:12px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;">OML 38 · Edo State</div>
+              <div style="position:absolute;top:25%;right:28%;text-align:center;cursor:pointer;" onclick="selectFacility('OML38-WPF-01')">
+                <div style="width:14px;height:14px;border-radius:50%;background:rgba(231,76,60,.3);border:1.5px solid #E74C3C;margin:0 auto;animation:pulse-dot 2s ease infinite;"></div>
+                <div style="font-family:'DM Mono',monospace;font-size:8px;color:#E74C3C;margin-top:3px;white-space:nowrap;">WPF-01 ⚠</div>
+              </div>
+              <div style="position:absolute;top:45%;right:18%;text-align:center;cursor:pointer;" onclick="selectFacility('OML38-EXP-01')">
+                <div style="width:14px;height:14px;border-radius:50%;background:rgba(46,125,69,.4);border:1.5px solid #4CAF6F;margin:0 auto;"></div>
+                <div style="font-family:'DM Mono',monospace;font-size:8px;color:#4CAF6F;margin-top:3px;white-space:nowrap;">EXP-01</div>
+              </div>
+              <div style="position:absolute;top:62%;right:32%;text-align:center;cursor:pointer;" onclick="selectFacility('OML38-GPS-01')">
+                <div style="width:14px;height:14px;border-radius:50%;background:rgba(212,174,80,.3);border:1.5px solid #D4AE50;margin:0 auto;"></div>
+                <div style="font-family:'DM Mono',monospace;font-size:8px;color:#D4AE50;margin-top:3px;white-space:nowrap;">GPS-01</div>
+              </div>
+
+              <!-- Active leak pins with ripple -->
+              <div class="leak-pin large active-leak" style="top:48%;left:36%;"></div>
+              <div class="leak-pin large active-leak" style="top:61%;left:27%;"></div>
+              <div class="leak-pin large active-leak" style="top:28%;right:26%;transform:translate(50%,-50%);"></div>
+              <div class="leak-pin small" style="top:40%;left:32%;"></div>
+              <div class="leak-pin small" style="top:65%;right:35%;transform:translate(50%,-50%);"></div>
+              <div class="leak-pin repaired" style="top:30%;left:24%;"></div>
+              <div class="leak-pin repaired" style="top:48%;right:20%;transform:translate(50%,-50%);"></div>
+
+              <!-- Legend -->
+              <div style="position:absolute;bottom:12px;left:12px;display:flex;gap:12px;align-items:center;">
+                <div style="display:flex;align-items:center;gap:4px;"><div class="dot" style="width:8px;height:8px;background:#E74C3C;"></div><span style="font-family:'DM Mono',monospace;font-size:8px;color:#8A9BB0;">Large leak</span></div>
+                <div style="display:flex;align-items:center;gap:4px;"><div class="dot" style="width:8px;height:8px;background:#D4AE50;"></div><span style="font-family:'DM Mono',monospace;font-size:8px;color:#8A9BB0;">Small leak</span></div>
+                <div style="display:flex;align-items:center;gap:4px;"><div class="dot" style="width:8px;height:8px;background:#4CAF6F;"></div><span style="font-family:'DM Mono',monospace;font-size:8px;color:#8A9BB0;">Repaired</span></div>
+                <div style="display:flex;align-items:center;gap:4px;"><div class="dot" style="width:8px;height:8px;background:#4CAF6F;border:1px solid #4CAF6F;"></div><span style="font-family:'DM Mono',monospace;font-size:8px;color:#8A9BB0;">Facility — Clear</span></div>
+                <div style="display:flex;align-items:center;gap:4px;"><div class="dot" style="width:8px;height:8px;background:#E74C3C;border:1px solid #E74C3C;"></div><span style="font-family:'DM Mono',monospace;font-size:8px;color:#8A9BB0;">Facility — Active SLA</span></div>
+              </div>
+            </div>
+            <!-- Map note -->
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:6px;letter-spacing:.08em;">
+              Schematic layout · Not to geographic scale · Click any facility or leak pin to view details
+            </div>
+          </div>
+
+          <!-- Facility list panel -->
+          <div class="panel">
+            <div class="panel-head"><span class="panel-title" id="facility-panel-title">Facility Overview</span></div>
+            <div class="panel-body" id="facility-detail-panel">
+              <div style="font-size:12px;color:#8A9BB0;">Select a facility on the map to view details.</div>
+
+              <div style="margin-top:16px;">
+                <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;margin-bottom:8px;">All Facilities Summary</div>
+                <div id="facility-list">
+                  <!-- JS populated -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /facility map -->
+
+
+      <!-- ════════════ TAB: OGI & EVIDENCE ════════════ -->
+      <div class="tab-panel" id="tab-ogi-uploads" style="padding:20px 24px;">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+
+          <!-- Upload slot -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">Upload OGI / Acoustic Evidence</span>
+              <span class="tag tag-b">FLIR · Opgal · DJI</span>
+            </div>
+            <div class="panel-body">
+              <div class="ogi-slot" style="height:140px;border-radius:2px;" onclick="this.querySelector('input').click()">
+                <input type="file" accept="image/*,video/*" multiple style="display:none;" />
+                <i data-lucide="upload-cloud" style="width:28px;height:28px;color:#2E7D45;margin-bottom:8px;"></i>
+                <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#4CAF6F;">Drop OGI Files Here</div>
+                <div style="font-family:'Outfit',sans-serif;font-size:11px;color:#4A5568;margin-top:4px;">Images, video captures, thermal exports</div>
+              </div>
+
+              <div style="margin-top:14px;">
+                <label class="field-label">Link to Leak Record</label>
+                <select class="field-input field-select" style="font-size:12px;padding:8px 12px;">
+                  <option>Select leak ID…</option>
+                  <option>LK-2026-047 · OML4-GCS-03 · Compressor seal</option>
+                  <option>LK-2026-051 · OML38-WPF-01 · Valve packing</option>
+                  <option>LK-2026-053 · OML4-GCS-02 · Rod packing</option>
+                  <option>LK-2026-058 · OML38-GPS-01 · Flange connector</option>
+                </select>
+              </div>
+              <div style="margin-top:10px;">
+                <label class="field-label">GPS Coordinates (auto-extracted from EXIF)</label>
+                <input class="field-input" placeholder="4.8412°N, 6.0974°E" style="font-size:12px;padding:8px 12px;" readonly />
+              </div>
+              <div style="margin-top:12px;">
+                <button class="btn-primary">
+                  <i data-lucide="upload" style="width:12px;height:12px;"></i> Upload &amp; Attach
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chain of custody -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">Chain of Custody · ISO 14064-3</span>
+            </div>
+            <div class="panel-body" style="padding:0;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>File</th>
+                    <th>Leak</th>
+                    <th>Uploaded By</th>
+                    <th>Timestamp</th>
+                    <th>Hash</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div class="flex items-center gap-6px">
+                        <i data-lucide="image" style="width:12px;height:12px;color:#5DADE2;flex-shrink:0;"></i>
+                        <span class="mono" style="font-size:10px;">OGI_GCS03_0615_001.jpg</span>
+                      </div>
+                    </td>
+                    <td class="mono">LK-2026-047</td>
+                    <td style="font-size:11px;">C. Eze</td>
+                    <td class="mono" style="font-size:10px;">15 Jun 09:42</td>
+                    <td><span class="mono" style="font-size:9px;color:#4A5568;">a3f8…c12d</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="flex items-center gap-6px">
+                        <i data-lucide="video" style="width:12px;height:12px;color:#5DADE2;flex-shrink:0;"></i>
+                        <span class="mono" style="font-size:10px;">OGI_GCS03_0615_clip.mp4</span>
+                      </div>
+                    </td>
+                    <td class="mono">LK-2026-047</td>
+                    <td style="font-size:11px;">C. Eze</td>
+                    <td class="mono" style="font-size:10px;">15 Jun 09:44</td>
+                    <td><span class="mono" style="font-size:9px;color:#4A5568;">7b21…e9a0</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="flex items-center gap-6px">
+                        <i data-lucide="image" style="width:12px;height:12px;color:#5DADE2;flex-shrink:0;"></i>
+                        <span class="mono" style="font-size:10px;">OGI_WPF01_0612_003.jpg</span>
+                      </div>
+                    </td>
+                    <td class="mono">LK-2026-051</td>
+                    <td style="font-size:11px;">A. Bello</td>
+                    <td class="mono" style="font-size:10px;">12 Jun 11:18</td>
+                    <td><span class="mono" style="font-size:9px;color:#4A5568;">f56c…1a77</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="flex items-center gap-6px">
+                        <i data-lucide="file-text" style="width:12px;height:12px;color:#D4AE50;flex-shrink:0;"></i>
+                        <span class="mono" style="font-size:10px;">EPA_M21_GCS02_0605.pdf</span>
+                      </div>
+                    </td>
+                    <td class="mono">LK-2026-053</td>
+                    <td style="font-size:11px;">C. Eze</td>
+                    <td class="mono" style="font-size:10px;">05 Jun 14:55</td>
+                    <td><span class="mono" style="font-size:9px;color:#4A5568;">902e…c3b5</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- OGI gallery -->
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">OGI Evidence Gallery</span>
+            <span class="tag tag-n">12 files · 6 leaks</span>
+          </div>
+          <div class="panel-body">
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;">
+              <!-- Image thumbnails (placeholder boxes) -->
+              <div id="ogi-gallery">
+                <!-- JS populated -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- /ogi uploads -->
+
+
+      <!-- ════════════ TAB: ANNUAL REPORT ════════════ -->
+      <div class="tab-panel" id="tab-annual-report" style="padding:20px 24px;">
+
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;">
+
+          <!-- Report builder -->
+          <div>
+            <div class="panel" style="margin-bottom:16px;">
+              <div class="panel-head">
+                <span class="panel-title">NUPRC Annual LDAR Report · 2025 (Appendix A)</span>
+                <span class="tag tag-g">Auto-generated</span>
+              </div>
+              <div class="panel-body">
+                <p style="font-family:'Outfit',sans-serif;font-size:12px;color:#8A9BB0;margin-bottom:16px;line-height:1.6;">
+                  VerdeScope auto-compiles this report from your inspection logs, leak records, and equipment data.
+                  Data maps directly to NUPRC Guide 0024-2022 Appendix A fields. A senior responsible official
+                  must certify truth, accuracy, and veracity before submission.
+                </p>
+
+                <!-- Report sections checklist -->
+                <div style="margin-bottom:16px;">
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;margin-bottom:10px;">Report Completeness</div>
+                  <div id="report-checklist">
+                    <!-- JS populated -->
+                  </div>
+                </div>
+
+                <!-- Completeness bar -->
+                <div style="margin-bottom:16px;">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                    <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#8A9BB0;">Report Completeness</span>
+                    <span style="font-family:'DM Mono',monospace;font-size:10px;color:#4CAF6F;">86%</span>
+                  </div>
+                  <div class="prog-track">
+                    <div class="prog-fill" style="width:86%;background:linear-gradient(90deg,#235930,#4CAF6F);"></div>
+                  </div>
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:4px;letter-spacing:.06em;">2 items require data entry before export</div>
+                </div>
+
+                <!-- Certification block -->
+                <div style="background:rgba(46,125,69,.06);border:1px solid rgba(46,125,69,.15);padding:14px 16px;margin-bottom:14px;">
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4CAF6F;margin-bottom:8px;">Responsible Official Certification</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div>
+                      <label class="field-label">Full Name</label>
+                      <input class="field-input" placeholder="Dr. Chidi Okeke" style="font-size:12px;padding:8px 12px;" />
+                    </div>
+                    <div>
+                      <label class="field-label">Title / Designation</label>
+                      <input class="field-input" placeholder="VP HSE &amp; Sustainability" style="font-size:12px;padding:8px 12px;" />
+                    </div>
+                    <div>
+                      <label class="field-label">Date of Certification</label>
+                      <input class="field-input" type="date" style="font-size:12px;padding:8px 12px;" value="2026-03-31" />
+                    </div>
+                    <div>
+                      <label class="field-label">Digital Signature</label>
+                      <div class="ogi-slot" style="height:42px;padding:8px 12px;flex-direction:row;gap:8px;justify-content:flex-start;">
+                        <i data-lucide="pen-tool" style="width:12px;height:12px;color:#4CAF6F;"></i>
+                        <span style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">Click to sign</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                  <button class="btn-gold">
+                    <i data-lucide="file-down" style="width:13px;height:13px;"></i> Generate NUPRC PDF
+                  </button>
+                  <button class="btn-outline">
+                    <i data-lucide="send" style="width:12px;height:12px;"></i> Submit to NUPRC Portal
+                  </button>
+                  <button class="btn-outline">
+                    <i data-lucide="table" style="width:12px;height:12px;"></i> Export XML/JSON
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Summary table (Appendix A fields) -->
+            <div class="panel">
+              <div class="panel-head"><span class="panel-title">Appendix A Summary Table · 2025 Annual Data</span></div>
+              <div class="panel-body" style="padding:0;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>NUPRC Field</th>
+                      <th>Value</th>
+                      <th>Unit</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Facilities inspected</td><td class="mono">6</td><td>Facilities</td><td><span class="tag tag-g" style="font-size:8px;">Complete</span></td></tr>
+                    <tr><td>Total inspections conducted</td><td class="mono">18</td><td>Surveys</td><td><span class="tag tag-g" style="font-size:8px;">Complete</span></td></tr>
+                    <tr><td>Leaks identified — total</td><td class="mono">47</td><td>Leaks</td><td><span class="tag tag-g" style="font-size:8px;">Complete</span></td></tr>
+                    <tr><td>Leaks identified — by component</td><td class="mono">8 types</td><td>—</td><td><span class="tag tag-g" style="font-size:8px;">Complete</span></td></tr>
+                    <tr><td>Leaks identified — by facility type</td><td class="mono">3 types</td><td>—</td><td><span class="tag tag-g" style="font-size:8px;">Complete</span></td></tr>
+                    <tr><td>Leaks repaired — total</td><td class="mono">41</td><td>Leaks</td><td><span class="tag tag-g" style="font-size:8px;">Complete</span></td></tr>
+                    <tr><td>Delayed repair — list</td><td class="mono">6</td><td>Items</td><td><span class="tag tag-y" style="font-size:8px;">Pending notes</span></td></tr>
+                    <tr><td>Total CH₄ fugitive estimate</td><td class="mono">12.4</td><td>tCH₄/yr</td><td><span class="tag tag-g" style="font-size:8px;">Complete</span></td></tr>
+                    <tr><td>CO₂e (AR6 100-yr GWP 27.9)</td><td class="mono">346</td><td>tCO₂e/yr</td><td><span class="tag tag-g" style="font-size:8px;">Complete</span></td></tr>
+                    <tr><td>Surveyor credentials verification</td><td class="mono">—</td><td>—</td><td><span class="tag tag-r" style="font-size:8px;">Upload required</span></td></tr>
+                    <tr><td>Annual report certification date</td><td class="mono">—</td><td>—</td><td><span class="tag tag-r" style="font-size:8px;">Not signed</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sidebar: regulation reference -->
+          <div>
+            <div class="panel" style="margin-bottom:12px;">
+              <div class="panel-head"><span class="panel-title">Regulation Reference</span></div>
+              <div class="panel-body" style="padding:0;">
+                <div style="padding:12px 14px;border-bottom:1px solid rgba(46,125,69,.08);">
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#D4AE50;margin-bottom:4px;">NUPRC Guide 0024-2022</div>
+                  <div style="font-size:11px;color:#D4DCE8;line-height:1.5;">Annual report due: End of Q1 (31 Mar each year). Must certify truth, accuracy, and veracity.</div>
+                </div>
+                <div style="padding:12px 14px;border-bottom:1px solid rgba(46,125,69,.08);">
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#5DADE2;margin-bottom:4px;">PIA 2021 §96–97</div>
+                  <div style="font-size:11px;color:#D4DCE8;line-height:1.5;">Enforcement mechanism: NUPRC licence revocation for persistent non-compliance.</div>
+                </div>
+                <div style="padding:12px 14px;">
+                  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#8A9BB0;margin-bottom:4px;">ISO 14064-3:2019</div>
+                  <div style="font-size:11px;color:#D4DCE8;line-height:1.5;">VVB audit trail requirements for carbon credit verification. All evidence uploaded here is chain-of-custody compliant.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Previous reports -->
+            <div class="panel">
+              <div class="panel-head"><span class="panel-title">Previous Submissions</span></div>
+              <div class="panel-body" style="padding:0;">
+                <div style="padding:10px 14px;border-bottom:1px solid rgba(46,125,69,.08);display:flex;align-items:center;justify-content:space-between;">
+                  <div>
+                    <div style="font-size:12px;color:#D4DCE8;font-weight:500;">Annual Report 2024</div>
+                    <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:2px;">Submitted 28 Mar 2025 · Certified</div>
+                  </div>
+                  <button class="btn-outline" style="padding:4px 10px;font-size:9px;">PDF</button>
+                </div>
+                <div style="padding:10px 14px;border-bottom:1px solid rgba(46,125,69,.08);display:flex;align-items:center;justify-content:space-between;">
+                  <div>
+                    <div style="font-size:12px;color:#D4DCE8;font-weight:500;">Annual Report 2023</div>
+                    <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:2px;">Submitted 31 Mar 2024 · Certified</div>
+                  </div>
+                  <button class="btn-outline" style="padding:4px 10px;font-size:9px;">PDF</button>
+                </div>
+                <div style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+                  <div>
+                    <div style="font-size:12px;color:#D4DCE8;font-weight:500;">Annual Report 2022</div>
+                    <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:2px;">Submitted 31 Mar 2023 · Certified</div>
+                  </div>
+                  <button class="btn-outline" style="padding:4px 10px;font-size:9px;">PDF</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /annual report -->
+
+    </div>
+    <!-- /content -->
+  </div>
+  <!-- /main-area -->
+</div>
+<!-- /app-shell -->
+
+
+<!-- ═══════════════════ MODALS ═══ -->
+
+<!-- Log New Inspection -->
+<div class="modal-overlay" id="new-inspection-modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#4CAF6F;">Log LDAR Inspection</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:11px;color:#4A5568;margin-top:2px;">NUPRC Guide 0024-2022 §3.2 — Mobile data-entry form</div>
+      </div>
+      <button onclick="closeModal('new-inspection-modal')" style="background:none;border:none;cursor:pointer;color:#4A5568;font-size:20px;line-height:1;">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <label class="field-label">Facility</label>
+          <select class="field-input field-select" style="font-size:12px;padding:9px 12px;">
+            <option>OML4-WPF-01</option>
+            <option>OML4-GCS-02</option>
+            <option>OML4-GCS-03</option>
+            <option>OML38-WPF-01</option>
+            <option>OML38-EXP-01</option>
+            <option>OML38-GPS-01</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Inspection Date</label>
+          <input class="field-input" type="date" style="font-size:12px;padding:9px 12px;" />
+        </div>
+        <div>
+          <label class="field-label">Lead Surveyor</label>
+          <input class="field-input" placeholder="Full name" style="font-size:12px;padding:9px 12px;" />
+        </div>
+        <div>
+          <label class="field-label">Survey Technology</label>
+          <select class="field-input field-select" style="font-size:12px;padding:9px 12px;">
+            <option>OGI Camera (FLIR / Opgal)</option>
+            <option>Acoustic Leak Detector</option>
+            <option>Laser Absorption Spectroscopy</option>
+            <option>EPA Method 21</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Ambient Temperature (°C)</label>
+          <input class="field-input" type="number" placeholder="28" style="font-size:12px;padding:9px 12px;" />
+        </div>
+        <div>
+          <label class="field-label">Wind Speed (m/s)</label>
+          <input class="field-input" type="number" placeholder="2.4" style="font-size:12px;padding:9px 12px;" />
+        </div>
+        <div>
+          <label class="field-label">Sky Conditions</label>
+          <select class="field-input field-select" style="font-size:12px;padding:9px 12px;">
+            <option>Clear</option>
+            <option>Partly Cloudy</option>
+            <option>Overcast</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Flare Flame Status</label>
+          <select class="field-input field-select" style="font-size:12px;padding:9px 12px;">
+            <option>Lit — Normal operation</option>
+            <option>Lit — Reduced flame</option>
+            <option>Unlit — No gas</option>
+            <option>Unlit — Gas venting ⚠</option>
+          </select>
+        </div>
+        <div style="grid-column:1/-1;">
+          <label class="field-label">Components Surveyed</label>
+          <input class="field-input" type="number" placeholder="Total count of components inspected" style="font-size:12px;padding:9px 12px;" />
+        </div>
+        <div style="grid-column:1/-1;">
+          <label class="field-label">Deviation Notes</label>
+          <textarea class="field-input" rows="2" placeholder="Any deviations from standard survey protocol…" style="font-size:12px;padding:9px 12px;resize:vertical;"></textarea>
+        </div>
+      </div>
+      <div class="flex items-center gap-3" style="margin-top:18px;">
+        <button class="btn-primary">
+          <i data-lucide="save" style="width:12px;height:12px;"></i> Save Inspection
+        </button>
+        <button class="btn-outline" style="padding:9px 14px;">
+          <i data-lucide="plus-circle" style="width:12px;height:12px;"></i> Add Leak Finding
+        </button>
+        <button onclick="closeModal('new-inspection-modal')" class="btn-red" style="margin-left:auto;padding:9px 14px;">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Log New Leak -->
+<div class="modal-overlay" id="log-leak-modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#E74C3C;">Log New Leak Finding</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:11px;color:#4A5568;margin-top:2px;">SLA clock starts immediately on save</div>
+      </div>
+      <button onclick="closeModal('log-leak-modal')" style="background:none;border:none;cursor:pointer;color:#4A5568;font-size:20px;line-height:1;">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <label class="field-label">Facility</label>
+          <select class="field-input field-select" style="font-size:12px;padding:9px 12px;">
+            <option>OML4-WPF-01</option><option>OML4-GCS-02</option><option>OML4-GCS-03</option>
+            <option>OML38-WPF-01</option><option>OML38-EXP-01</option><option>OML38-GPS-01</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Detection Date</label>
+          <input class="field-input" type="date" style="font-size:12px;padding:9px 12px;" />
+        </div>
+        <div>
+          <label class="field-label">Component Type</label>
+          <select class="field-input field-select" style="font-size:12px;padding:9px 12px;" onchange="updateSLA(this)">
+            <option>Compressor seal (centrifugal)</option>
+            <option>Rod packing (reciprocating comp.)</option>
+            <option>Valve packing</option>
+            <option>Connector / flange</option>
+            <option>Pneumatic controller</option>
+            <option>Glycol dehydrator vent</option>
+            <option>Storage tank hatch</option>
+            <option>Pressure relief valve</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Measured Concentration (ppmv)</label>
+          <input class="field-input" type="number" placeholder="e.g. 87500" id="ppmv-input" oninput="updateSLA()" style="font-size:12px;padding:9px 12px;" />
+        </div>
+        <div style="grid-column:1/-1;">
+          <!-- SLA auto-calc display -->
+          <div id="sla-calc-display" style="background:rgba(212,174,80,.08);border:1px solid rgba(212,174,80,.2);padding:10px 14px;display:none;">
+            <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#D4AE50;">Auto-calculated SLA Deadline: </span>
+            <span id="sla-deadline-text" style="font-family:'DM Mono',monospace;font-size:11px;color:#FDFCF9;"></span>
+          </div>
+        </div>
+        <div>
+          <label class="field-label">Detection Method</label>
+          <select class="field-input field-select" style="font-size:12px;padding:9px 12px;">
+            <option>OGI Camera</option>
+            <option>EPA Method 21</option>
+            <option>Acoustic detector</option>
+            <option>Laser absorption</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">GPS Coordinates</label>
+          <input class="field-input" placeholder="4.8412°N, 6.0974°E" style="font-size:12px;padding:9px 12px;" />
+        </div>
+        <div style="grid-column:1/-1;">
+          <label class="field-label">Description / Notes</label>
+          <textarea class="field-input" rows="2" placeholder="Component location, visual observations…" style="font-size:12px;padding:9px 12px;resize:vertical;"></textarea>
+        </div>
+      </div>
+      <div class="flex items-center gap-3" style="margin-top:18px;">
+        <button class="btn-red">
+          <i data-lucide="alert-circle" style="width:12px;height:12px;"></i> Log Leak &amp; Start SLA
+        </button>
+        <button onclick="closeModal('log-leak-modal')" class="btn-outline" style="margin-left:auto;padding:9px 14px;">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Export modal -->
+<div class="modal-overlay" id="export-modal">
+  <div class="modal-box" style="width:420px;">
+    <div class="modal-head">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#4CAF6F;">Export LDAR Data</div>
+      <button onclick="closeModal('export-modal')" style="background:none;border:none;cursor:pointer;color:#4A5568;font-size:20px;line-height:1;">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button class="btn-gold" style="width:100%;justify-content:center;padding:12px;">
+          <i data-lucide="file-down" style="width:14px;height:14px;"></i> NUPRC Annual Report PDF (Appendix A)
+        </button>
+        <button class="btn-outline" style="width:100%;justify-content:center;">
+          <i data-lucide="table-2" style="width:13px;height:13px;"></i> Leak Register — Excel
+        </button>
+        <button class="btn-outline" style="width:100%;justify-content:center;">
+          <i data-lucide="code" style="width:13px;height:13px;"></i> Full Dataset — JSON / XML
+        </button>
+        <button class="btn-outline" style="width:100%;justify-content:center;">
+          <i data-lucide="shield-check" style="width:13px;height:13px;"></i> VVB Audit Export (ISO 14064-3)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  // ── Lucide init ──
+  lucide.createIcons();
+
+  // ── Sidebar collapse ──
+  function toggleSidebar() {
+    const sb = document.getElementById('sidebar');
+    const icon = document.getElementById('collapse-icon');
+    const label = document.getElementById('collapse-label');
+    sb.classList.toggle('collapsed');
+    if (sb.classList.contains('collapsed')) {
+      icon.setAttribute('data-lucide','panel-left-open');
+      label.style.display = 'none';
+    } else {
+      icon.setAttribute('data-lucide','panel-left-close');
+      label.style.display = '';
+    }
+    lucide.createIcons();
+  }
+
+  // ── Tab switching ──
+  function switchTab(name, el) {
+    document.querySelectorAll('.mod-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+    initCharts();
+  }
+
+  // ── Modal ──
+  function openModal(id) {
+    document.getElementById(id).classList.add('open');
+    lucide.createIcons();
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+  });
+
+  // ── Leak register data ──
+  const leaks = [
+    { id:'LK-2026-053', facility:'OML4-GCS-02',  comp:'Reciprocating comp rod packing', ppmv:92000, sev:'large',  date:'01 Jun', deadline:'06 Jun', state:'Repair Assigned', ch4:4.1, overdue:true },
+    { id:'LK-2026-047', facility:'OML4-GCS-03',  comp:'Centrifugal compressor seal',    ppmv:134000,sev:'large',  date:'03 Jun', deadline:'08 Jun', state:'Repair Attempted',ch4:6.3, overdue:true },
+    { id:'LK-2026-051', facility:'OML38-WPF-01', comp:'Valve packing',                  ppmv:71000, sev:'large',  date:'07 Jun', deadline:'12 Jun', state:'Detected',        ch4:3.8, overdue:true },
+    { id:'LK-2026-058', facility:'OML38-GPS-01', comp:'Connector / flange',              ppmv:18500, sev:'small',  date:'05 Jun', deadline:'19 Jun', state:'Repair Assigned', ch4:0.9, overdue:false },
+    { id:'LK-2026-062', facility:'OML4-WPF-01',  comp:'Pneumatic controller',            ppmv:8200,  sev:'small',  date:'09 Jun', deadline:'23 Jun', state:'Detected',        ch4:0.4, overdue:false },
+    { id:'LK-2026-067', facility:'OML38-EXP-01', comp:'Pressure relief valve',           ppmv:5800,  sev:'small',  date:'12 Jun', deadline:'26 Jun', state:'Detected',        ch4:0.3, overdue:false },
+    { id:'LK-2026-041', facility:'OML4-GCS-02',  comp:'Glycol dehydrator vent',          ppmv:29000, sev:'small',  date:'24 May', deadline:'07 Jun', state:'Repaired',        ch4:1.4, overdue:false },
+    { id:'LK-2026-039', facility:'OML4-WPF-01',  comp:'Valve packing',                  ppmv:55000, sev:'large',  date:'20 May', deadline:'25 May', state:'Re-Surveyed',     ch4:2.7, overdue:false },
+    { id:'LK-2026-035', facility:'OML38-WPF-01', comp:'Storage tank hatch',             ppmv:7100,  sev:'small',  date:'10 May', deadline:'24 May', state:'Repaired',        ch4:0.3, overdue:false },
+    { id:'LK-2026-031', facility:'OML38-GPS-01', comp:'Connector / flange',              ppmv:12400, sev:'small',  date:'02 May', deadline:'16 May', state:'Re-Surveyed',     ch4:0.6, overdue:false },
+    { id:'LK-2026-028', facility:'OML4-GCS-03',  comp:'Rod packing (reciprocating)',     ppmv:63000, sev:'large',  date:'28 Apr', deadline:'03 May', state:'Repaired',        ch4:3.1, overdue:false },
+    { id:'LK-2026-022', facility:'OML38-EXP-01', comp:'Pneumatic pump seal',            ppmv:9800,  sev:'small',  date:'18 Apr', deadline:'02 May', state:'Re-Surveyed',     ch4:0.5, overdue:false },
+    { id:'LK-2026-015', facility:'OML4-WPF-01',  comp:'Centrifugal comp seal',          ppmv:48000, sev:'small',  date:'05 Apr', deadline:'19 Apr', state:'Repaired',        ch4:2.2, overdue:false },
+    { id:'LK-2026-008', facility:'OML38-GPS-01', comp:'Connector / flange',              ppmv:6200,  sev:'small',  date:'14 Mar', deadline:'28 Mar', state:'Re-Surveyed',     ch4:0.3, overdue:false },
+  ];
+
+  function slaClass(leak) {
+    if (leak.overdue) return 'sla-over';
+    const st = leak.state;
+    if (st === 'Repaired' || st === 'Re-Surveyed') return 'sla-ok';
+    return 'sla-warn';
+  }
+  function stateTag(st) {
+    const map = {
+      'Detected':        'tag-r',
+      'Repair Assigned': 'tag-y',
+      'Repair Attempted':'tag-y',
+      'Repaired':        'tag-g',
+      'Re-Surveyed':     'tag-b',
+    };
+    return map[st] || 'tag-n';
+  }
+  function sevTag(sev) {
+    return sev === 'large' ? 'tag-r' : 'tag-y';
+  }
+
+  function renderLeakRegister() {
+    const tbody = document.getElementById('leak-register-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = leaks.map(l => `
+      <tr onclick="openModal('log-leak-modal')">
+        <td class="mono">${l.id}</td>
+        <td class="mono" style="font-size:11px;">${l.facility}</td>
+        <td style="font-size:11px;">${l.comp}</td>
+        <td class="mono">${l.ppmv.toLocaleString()}</td>
+        <td><span class="tag ${sevTag(l.sev)}" style="font-size:8px;">${l.sev === 'large' ? '≥50k · Large' : '5k–50k · Small'}</span></td>
+        <td class="mono" style="font-size:11px;">${l.date} 2026</td>
+        <td><span class="sla-pill ${slaClass(l)}" style="font-size:9px;">${l.deadline} 2026</span></td>
+        <td><span class="tag ${stateTag(l.state)}" style="font-size:8px;">${l.state}</span></td>
+        <td class="mono">${l.ch4}</td>
+        <td>
+          <button class="btn-outline" style="padding:3px 8px;font-size:9px;" onclick="event.stopPropagation();">Edit</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+  renderLeakRegister();
+
+  // ── Facility list ──
+  const facilities = [
+    { id:'OML4-WPF-01',  label:'OML 4 · Well Production Facility 01', openLeaks:2, status:'ok' },
+    { id:'OML4-GCS-02',  label:'OML 4 · Gas Compression Station 02',  openLeaks:3, status:'crit' },
+    { id:'OML4-GCS-03',  label:'OML 4 · Gas Compression Station 03',  openLeaks:5, status:'crit' },
+    { id:'OML38-WPF-01', label:'OML 38 · Well Production Facility 01', openLeaks:3, status:'crit' },
+    { id:'OML38-EXP-01', label:'OML 38 · Export Terminal 01',          openLeaks:1, status:'warn' },
+    { id:'OML38-GPS-01', label:'OML 38 · Gas Processing Station 01',   openLeaks:2, status:'warn' },
+  ];
+  function renderFacilityList() {
+    const el = document.getElementById('facility-list');
+    if (!el) return;
+    el.innerHTML = facilities.map(f => {
+      const dotCls = f.status === 'crit' ? 'dot-r' : f.status === 'warn' ? 'dot-y' : 'dot-g';
+      return `<div class="schedule-row" style="cursor:pointer;" onclick="selectFacility('${f.id}')">
+        <div class="dot ${dotCls}" style="flex-shrink:0;"></div>
+        <div style="flex:1;">
+          <div style="font-family:'DM Mono',monospace;font-size:10px;color:#D4DCE8;">${f.id}</div>
+          <div style="font-size:10px;color:#4A5568;">${f.openLeaks} open leak${f.openLeaks !== 1 ? 's' : ''}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  renderFacilityList();
+
+  function selectFacility(id) {
+    const f = facilities.find(x => x.id === id);
+    if (!f) return;
+    document.getElementById('facility-panel-title').textContent = id;
+    const statusColor = f.status === 'crit' ? '#E74C3C' : f.status === 'warn' ? '#D4AE50' : '#4CAF6F';
+    document.getElementById('facility-detail-panel').innerHTML = `
+      <div style="margin-bottom:12px;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:16px;color:#FDFCF9;">${f.label}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:${statusColor};letter-spacing:.1em;text-transform:uppercase;margin-top:4px;">${f.openLeaks} open leak${f.openLeaks !== 1 ? 's' : ''}</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button class="btn-outline" style="padding:6px 12px;font-size:9px;" onclick="switchTab('inspection-log', document.querySelectorAll('.mod-tab')[2])">Inspection Log</button>
+        <button class="btn-outline" style="padding:6px 12px;font-size:9px;" onclick="switchTab('leak-register', document.querySelectorAll('.mod-tab')[1])">Leak Register</button>
+      </div>
+      <hr style="border-color:rgba(46,125,69,.12);margin:12px 0;" />
+      <div style="margin-top:12px;">${renderFacilityListInner()}</div>
+    `;
+  }
+  function renderFacilityListInner() {
+    return facilities.map(f => {
+      const dotCls = f.status === 'crit' ? 'dot-r' : f.status === 'warn' ? 'dot-y' : 'dot-g';
+      return `<div class="schedule-row" style="cursor:pointer;" onclick="selectFacility('${f.id}')">
+        <div class="dot ${dotCls}" style="flex-shrink:0;"></div>
+        <div style="flex:1;">
+          <div style="font-family:'DM Mono',monospace;font-size:10px;color:#D4DCE8;">${f.id}</div>
+          <div style="font-size:10px;color:#4A5568;">${f.openLeaks} open leak${f.openLeaks !== 1 ? 's' : ''}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── SLA auto-calc in modal ──
+  function updateSLA() {
+    const ppmvInput = document.getElementById('ppmv-input');
+    const display = document.getElementById('sla-calc-display');
+    const text = document.getElementById('sla-deadline-text');
+    if (!ppmvInput) return;
+    const v = parseInt(ppmvInput.value);
+    if (!v || v < 5000) { display.style.display = 'none'; return; }
+    display.style.display = 'block';
+    const days = v >= 50000 ? 5 : 14;
+    const deadline = new Date();
+    deadline.setDate(deadline.getDate() + days);
+    const label = deadline.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+    text.textContent = `${days}-day SLA · Deadline: ${label}`;
+    display.style.background = days === 5 ? 'rgba(231,76,60,.08)' : 'rgba(212,174,80,.08)';
+    display.style.borderColor = days === 5 ? 'rgba(231,76,60,.2)' : 'rgba(212,174,80,.2)';
+    text.style.color = days === 5 ? '#E74C3C' : '#D4AE50';
+  }
+
+  // ── OGI gallery ──
+  function renderOgiGallery() {
+    const container = document.getElementById('ogi-gallery');
+    if (!container) return;
+    const files = [
+      { name:'OGI_GCS03_001.jpg', leak:'LK-2026-047', type:'img' },
+      { name:'OGI_GCS03_clip.mp4',leak:'LK-2026-047', type:'vid' },
+      { name:'OGI_WPF01_003.jpg', leak:'LK-2026-051', type:'img' },
+      { name:'EPA_M21_GCS02.pdf', leak:'LK-2026-053', type:'pdf' },
+      { name:'OGI_WPF01_004.jpg', leak:'LK-2026-051', type:'img' },
+      { name:'OGI_GPS01_002.jpg', leak:'LK-2026-058', type:'img' },
+    ];
+    container.style.display = 'contents';
+    files.forEach(f => {
+      const iconCol = f.type === 'img' ? '#5DADE2' : f.type === 'vid' ? '#9B59B6' : '#D4AE50';
+      const iconName = f.type === 'img' ? 'image' : f.type === 'vid' ? 'video' : 'file-text';
+      const div = document.createElement('div');
+      div.style.cssText = 'background:rgba(26,61,36,.3);border:1px solid rgba(46,125,69,.15);padding:10px;cursor:pointer;transition:border-color .2s;';
+      div.innerHTML = `
+        <div style="height:56px;display:flex;align-items:center;justify-content:center;">
+          <i data-lucide="${iconName}" style="width:24px;height:24px;color:${iconCol};"></i>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:8px;color:#4A5568;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:6px;">${f.name}</div>
+        <div class="tag tag-n" style="font-size:7px;margin-top:4px;">${f.leak}</div>
+      `;
+      div.addEventListener('mouseenter', () => div.style.borderColor = 'rgba(46,125,69,.4)');
+      div.addEventListener('mouseleave', () => div.style.borderColor = 'rgba(46,125,69,.15)');
+      container.appendChild(div);
+    });
+  }
+  renderOgiGallery();
+
+  // ── Report checklist ──
+  const reportItems = [
+    { label: 'Facilities inspected list', done: true },
+    { label: 'Total inspections per facility', done: true },
+    { label: 'Leaks identified — all facilities', done: true },
+    { label: 'Leaks by component type', done: true },
+    { label: 'Leaks by facility type', done: true },
+    { label: 'Leaks repaired / confirmation records', done: true },
+    { label: 'Delayed repair list with justification', done: false },
+    { label: 'Surveyor training credentials', done: false },
+    { label: 'CH₄ fugitive emission estimate', done: true },
+    { label: 'Responsible official certification', done: false },
+  ];
+  function renderChecklist() {
+    const el = document.getElementById('report-checklist');
+    if (!el) return;
+    el.innerHTML = reportItems.map(item => `
+      <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(46,125,69,.06);">
+        <div style="width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;${item.done ? 'background:rgba(46,125,69,.2);border:1px solid rgba(46,125,69,.4);' : 'background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);'}">
+          <i data-lucide="${item.done ? 'check' : 'x'}" style="width:9px;height:9px;color:${item.done ? '#4CAF6F' : '#E74C3C'};"></i>
+        </div>
+        <span style="font-size:12px;color:${item.done ? '#D4DCE8' : '#8A9BB0'};">${item.label}</span>
+        ${!item.done ? '<span class="tag tag-r" style="font-size:8px;margin-left:auto;">Required</span>' : ''}
+      </div>
+    `).join('');
+  }
+  renderChecklist();
+
+  // ── Charts ──
+  let chartsInited = false;
+  function initCharts() {
+    if (chartsInited) return;
+    chartsInited = true;
+
+    // Trend chart
+    const trendCtx = document.getElementById('leak-trend-chart');
+    if (trendCtx) {
+      new Chart(trendCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+          datasets: [
+            {
+              label: 'Detected',
+              data: [8, 6, 9, 7, 10, 7],
+              backgroundColor: 'rgba(231,76,60,.35)',
+              borderColor: '#E74C3C',
+              borderWidth: 1,
+            },
+            {
+              label: 'Repaired',
+              data: [8, 6, 8, 7, 9, 3],
+              backgroundColor: 'rgba(46,125,69,.4)',
+              borderColor: '#4CAF6F',
+              borderWidth: 1,
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#4A5568', font: { family: 'DM Mono', size: 9 } }, grid: { color: 'rgba(46,125,69,.06)' } },
+            y: { ticks: { color: '#4A5568', font: { family: 'DM Mono', size: 9 } }, grid: { color: 'rgba(46,125,69,.06)' } }
+          }
+        }
+      });
+    }
+
+    // Component donut
+    const compCtx = document.getElementById('component-chart');
+    if (compCtx) {
+      new Chart(compCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Comp seals', 'Rod packing', 'Valves', 'Connectors', 'Pneumatic', 'Tanks', 'Other'],
+          datasets: [{
+            data: [12, 9, 8, 7, 5, 3, 3],
+            backgroundColor: ['#E74C3C','#E67E22','#D4AE50','#4CAF6F','#5DADE2','#9B59B6','#4A5568'],
+            borderColor: '#0D1A12',
+            borderWidth: 2,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: '#8A9BB0', font: { family: 'DM Mono', size: 8 }, padding: 8, boxWidth: 10 }
+            }
+          },
+          cutout: '62%',
+        }
+      });
+    }
+    lucide.createIcons();
+  }
+
+  // Init on load
+  window.addEventListener('DOMContentLoaded', () => {
+    initCharts();
+    lucide.createIcons();
+  });
+  initCharts();
+  lucide.createIcons();
+</script>
+
+</body>
+</html>

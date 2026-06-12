@@ -1,0 +1,57 @@
+{
+  "meta": {
+    "licence": "OML 18",
+    "operator": "NNPC Ltd / Eroton E&P Ltd",
+    "standard": "NUPRC Guide 0024-2022 §3.4",
+    "generated": "2026-04-11T00:00:00Z"
+  },
+  "pneumatic_controllers": {
+    "summary": {
+      "total": 186,
+      "high_bleed": 42,
+      "low_bleed": 87,
+      "zero_bleed": 57,
+      "target_y3_zero_bleed_pct": 75,
+      "actual_zero_bleed_pct": 30.6,
+      "compliant": false,
+      "phase_in_year": 3
+    },
+    "units": [
+      { "id": "PC-001", "facility": "FAC-001", "type": "high_bleed", "bleed_rate_scm_hr": 18.2, "install_date": "2018-03-10", "last_test": "2025-01-15", "replacement_target": "2025-12-31", "replaced": false },
+      { "id": "PC-002", "facility": "FAC-001", "type": "high_bleed", "bleed_rate_scm_hr": 16.8, "install_date": "2017-07-22", "last_test": "2025-01-15", "replacement_target": "2025-12-31", "replaced": false },
+      { "id": "PC-003", "facility": "FAC-002", "type": "zero_bleed", "bleed_rate_scm_hr": 0.0,  "install_date": "2023-05-14", "last_test": "2025-03-20", "replacement_target": null,           "replaced": true  },
+      { "id": "PC-004", "facility": "FAC-002", "type": "low_bleed",  "bleed_rate_scm_hr": 1.3,  "install_date": "2019-11-08", "last_test": "2025-03-20", "replacement_target": "2026-12-31", "replaced": false }
+    ]
+  },
+  "rod_packing": {
+    "units": [
+      { "id": "RP-001", "facility": "FAC-001", "compressor": "CS-03", "install_date": "2023-01-10", "last_replace_date": "2023-01-10", "hours_at_replace": 0,     "current_hours": 19420, "status": "ok",      "hours_remaining": 6580, "nuprc_limit": 26000 },
+      { "id": "RP-002", "facility": "FAC-001", "compressor": "CS-04", "install_date": "2022-06-15", "last_replace_date": "2022-06-15", "hours_at_replace": 0,     "current_hours": 21400, "status": "warning", "hours_remaining": 4600, "nuprc_limit": 26000 },
+      { "id": "RP-003", "facility": "FAC-002", "compressor": "CS-07", "install_date": "2022-11-22", "last_replace_date": "2022-11-22", "hours_at_replace": 0,     "current_hours": 23800, "status": "warning", "hours_remaining": 2200, "nuprc_limit": 26000 },
+      { "id": "RP-004", "facility": "FAC-002", "compressor": "CS-08", "install_date": "2024-04-01", "last_replace_date": "2024-04-01", "hours_at_replace": 0,     "current_hours": 11200, "status": "ok",      "hours_remaining": 14800, "nuprc_limit": 26000 },
+      { "id": "RP-005", "facility": "FAC-003", "compressor": "CS-11", "install_date": "2023-08-19", "last_replace_date": "2023-08-19", "hours_at_replace": 0,     "current_hours": 16900, "status": "ok",      "hours_remaining": 9100,  "nuprc_limit": 26000 }
+    ]
+  },
+  "turbines": {
+    "units": [
+      { "id": "TRB-001", "facility": "FAC-001", "model": "GE LM2500",      "type": "single_cycle",   "power_mw": 22,  "install_date": "2014-03-01", "upgrade_target": "2028-12-31", "upgrade_status": "planned",   "annual_co2e_reduction_if_upgraded_t": 4200 },
+      { "id": "TRB-002", "facility": "FAC-002", "model": "Solar Centaur 50","type": "single_cycle",   "power_mw": 5,   "install_date": "2016-07-12", "upgrade_target": "2028-12-31", "upgrade_status": "planned",   "annual_co2e_reduction_if_upgraded_t": 980  },
+      { "id": "TRB-003", "facility": "FAC-002", "model": "GE Frame 6B",     "type": "combined_cycle", "power_mw": 40,  "install_date": "2021-02-28", "upgrade_target": null,         "upgrade_status": "compliant",  "annual_co2e_reduction_if_upgraded_t": 0    }
+    ]
+  },
+  "storage_tanks": {
+    "units": [
+      { "id": "TK-001", "facility": "FAC-001", "type": "fixed_roof", "capacity_m3": 2000, "voc_tpy": 18.4, "tier": "tier1_above_12", "control_status": "compliant",     "control_installed": "VRS", "control_date": "2023-06-15" },
+      { "id": "TK-002", "facility": "FAC-001", "type": "fixed_roof", "capacity_m3": 1500, "voc_tpy": 9.2,  "tier": "tier2_6_12",    "control_status": "compliant",     "control_installed": "VRS", "control_date": "2024-08-20" },
+      { "id": "TK-003", "facility": "FAC-001", "type": "fixed_roof", "capacity_m3": 800,  "voc_tpy": 3.8,  "tier": "tier3_2_6",     "control_status": "due_2025_dec",  "control_installed": null,  "control_date": null },
+      { "id": "TK-004", "facility": "FAC-002", "type": "fixed_roof", "capacity_m3": 3000, "voc_tpy": 22.1, "tier": "tier1_above_12", "control_status": "compliant",     "control_installed": "VRS", "control_date": "2023-04-10" },
+      { "id": "TK-005", "facility": "FAC-003", "type": "floating_roof", "capacity_m3": 5000, "voc_tpy": 1.4, "tier": "below_threshold", "control_status": "no_control_required", "control_installed": null, "control_date": null }
+    ]
+  },
+  "glycol_dehydrators": {
+    "units": [
+      { "id": "DEH-001", "facility": "FAC-002", "glycol_circ_rate_lhr": 45, "control": "combustion_device", "dre_pct": 98.4, "annual_hc_reduction_pct": 98.4, "compliant": true,  "last_test": "2025-02-10" },
+      { "id": "DEH-002", "facility": "FAC-001", "glycol_circ_rate_lhr": 28, "control": "condenser",         "dre_pct": 96.1, "annual_hc_reduction_pct": 96.1, "compliant": true,  "last_test": "2025-03-08" }
+    ]
+  }
+}

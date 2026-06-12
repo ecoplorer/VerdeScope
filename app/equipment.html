@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Equipment Compliance — VerdeScope</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#0D1A12', forest: '#1A3D24', pine: '#235930',
+            verde:    '#2E7D45', sage:   '#4CAF6F', mist: '#A8D5B5',
+            ivory:    '#FDFCF9', gold:   '#B8962E', goldlight: '#D4AE50',
+            slate:    '#2A3040', steel:  '#4A5568', ash: '#8A9BB0', cloud: '#D4DCE8',
+          },
+          fontFamily: {
+            display: ['Cormorant Garamond','serif'],
+            sans:    ['Outfit','sans-serif'],
+            mono:    ['DM Mono','monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: 'Outfit', sans-serif; background: #0D1A12; color: #FDFCF9; display: flex; flex-direction: column; }
+
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: #0D1A12; }
+    ::-webkit-scrollbar-thumb { background: #235930; border-radius: 2px; }
+
+    /* ── Layout ── */
+    #app-shell  { display: flex; flex: 1; overflow: hidden; }
+    #sidebar    { width: 220px; flex-shrink: 0; background: #091410; border-right: 1px solid rgba(46,125,69,.18); display: flex; flex-direction: column; transition: width .25s; overflow: hidden; }
+    #sidebar.collapsed { width: 56px; }
+    #main-area  { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    #topbar     { height: 52px; flex-shrink: 0; background: rgba(13,26,18,.95); border-bottom: 1px solid rgba(46,125,69,.18); display: flex; align-items: center; padding: 0 20px; gap: 16px; backdrop-filter: blur(8px); }
+    #content    { flex: 1; overflow-y: auto; background: #0D1A12;
+      background-image: linear-gradient(rgba(46,125,69,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(46,125,69,.025) 1px, transparent 1px);
+      background-size: 40px 40px; }
+
+    /* ── Sidebar ── */
+    .nav-logo { padding: 14px 14px 10px; border-bottom: 1px solid rgba(46,125,69,.15); flex-shrink: 0; }
+    .nav-section-label { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: #4A5568; padding: 14px 14px 6px; white-space: nowrap; overflow: hidden; }
+    #sidebar.collapsed .nav-section-label { opacity: 0; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; cursor: pointer; font-family: 'Outfit',sans-serif; font-size: 13px; font-weight: 500; color: #8A9BB0; transition: all .18s; white-space: nowrap; overflow: hidden; border-left: 2px solid transparent; text-decoration: none; }
+    .nav-item:hover  { color: #FDFCF9; background: rgba(46,125,69,.08); }
+    .nav-item.active { color: #4CAF6F; background: rgba(46,125,69,.12); border-left-color: #4CAF6F; }
+    .nav-item .nav-icon  { flex-shrink: 0; width: 16px; height: 16px; }
+    .nav-item .nav-badge { margin-left: auto; background: #E74C3C; color: #fff; font-family: 'DM Mono',monospace; font-size: 9px; padding: 1px 5px; border-radius: 8px; flex-shrink: 0; }
+    .nav-item .nav-badge.gold { background: rgba(184,150,46,.3); color: #D4AE50; }
+    #sidebar.collapsed .nav-item span, #sidebar.collapsed .nav-badge { display: none; }
+
+    /* ── Demo banner ── */
+    #demo-banner { background: rgba(184,150,46,.12); border-bottom: 1px solid rgba(212,174,80,.25); padding: 6px 20px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.5);} }
+    .dot-pulse { animation: pulse-dot 2s ease infinite; }
+
+    /* ── Module header + tabs ── */
+    .module-header { padding: 20px 24px 0; border-bottom: 1px solid rgba(46,125,69,.12); background: rgba(9,20,16,.6); }
+    .mod-tab { font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; padding: 10px 16px; cursor: pointer; color: #4A5568; border-bottom: 2px solid transparent; transition: all .18s; white-space: nowrap; }
+    .mod-tab:hover { color: #8A9BB0; }
+    .mod-tab.active { color: #4CAF6F; border-bottom-color: #4CAF6F; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── KPI cards ── */
+    .kpi-card { background: rgba(255,255,255,.025); border: 1px solid rgba(46,125,69,.15); padding: 16px 18px; transition: border-color .2s, transform .2s; position: relative; overflow: hidden; }
+    .kpi-card:hover { border-color: rgba(46,125,69,.4); transform: translateY(-2px); }
+    .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+    .kpi-card.green::before  { background: #4CAF6F; }
+    .kpi-card.gold::before   { background: #D4AE50; }
+    .kpi-card.red::before    { background: #E74C3C; }
+    .kpi-card.orange::before { background: #E67E22; }
+    .kpi-card.blue::before   { background: #5DADE2; }
+    .kpi-value { font-family: 'DM Mono',monospace; font-size: 28px; font-weight: 300; line-height: 1; }
+    .kpi-label { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: #4A5568; margin-top: 4px; }
+    .kpi-sub   { font-family: 'Outfit',sans-serif; font-size: 11px; color: #8A9BB0; margin-top: 6px; }
+    .kpi-delta { font-family: 'DM Mono',monospace; font-size: 10px; font-weight: 500; margin-top: 8px; }
+    .kpi-delta.up   { color: #4CAF6F; }
+    .kpi-delta.down { color: #E74C3C; }
+    .kpi-delta.warn { color: #D4AE50; }
+
+    /* ── Panel ── */
+    .panel { background: rgba(255,255,255,.02); border: 1px solid rgba(46,125,69,.12); overflow: hidden; }
+    .panel-head { padding: 12px 16px; border-bottom: 1px solid rgba(46,125,69,.12); display: flex; align-items: center; justify-content: space-between; background: rgba(26,61,36,.25); }
+    .panel-title { font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8A9BB0; }
+    .panel-body  { padding: 14px 16px; }
+
+    /* ── Tags ── */
+    .tag { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; padding: 2px 8px; display: inline-block; }
+    .tag-g { background: rgba(46,125,69,.15);  color: #4CAF6F; border: 1px solid rgba(46,125,69,.3); }
+    .tag-r { background: rgba(231,76,60,.12);  color: #E74C3C; border: 1px solid rgba(231,76,60,.25); }
+    .tag-y { background: rgba(212,174,80,.12); color: #D4AE50; border: 1px solid rgba(212,174,80,.25); }
+    .tag-n { background: rgba(255,255,255,.04); color: #8A9BB0; border: 1px solid rgba(255,255,255,.1); }
+    .tag-b { background: rgba(93,173,226,.1);  color: #5DADE2; border: 1px solid rgba(93,173,226,.2); }
+    .tag-o { background: rgba(230,126,34,.1);  color: #E67E22; border: 1px solid rgba(230,126,34,.25); }
+    .tag-p { background: rgba(155,89,182,.1);  color: #9B59B6; border: 1px solid rgba(155,89,182,.25); }
+
+    /* ── Status dot ── */
+    .dot   { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+    .dot-g { background: #4CAF6F; }
+    .dot-r { background: #E74C3C; }
+    .dot-y { background: #D4AE50; }
+    .dot-o { background: #E67E22; }
+
+    /* ── Progress ── */
+    .prog-track { height: 5px; background: rgba(46,125,69,.12); border-radius: 1px; overflow: hidden; }
+    .prog-fill  { height: 100%; border-radius: 1px; transition: width 1.4s cubic-bezier(.22,1,.36,1); }
+    .prog-track.thick { height: 8px; }
+
+    /* ── Data table ── */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .data-table th { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: #4A5568; padding: 8px 10px; text-align: left; border-bottom: 1px solid rgba(46,125,69,.12); background: rgba(26,61,36,.2); }
+    .data-table td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.03); color: #D4DCE8; vertical-align: middle; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(46,125,69,.04); cursor: pointer; }
+    .mono { font-family: 'DM Mono',monospace; font-size: 11px; }
+
+    /* ── Buttons ── */
+    .btn-primary { background: #2E7D45; color: #FDFCF9; font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; padding: 9px 16px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background .2s; }
+    .btn-primary:hover { background: #235930; }
+    .btn-outline  { background: transparent; color: #4CAF6F; border: 1px solid rgba(46,125,69,.35); font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; padding: 8px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all .2s; }
+    .btn-outline:hover { background: rgba(46,125,69,.1); border-color: #4CAF6F; }
+    .btn-red { background: rgba(231,76,60,.12); color: #E74C3C; border: 1px solid rgba(231,76,60,.28); font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; padding: 8px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all .2s; }
+    .btn-red:hover { background: rgba(231,76,60,.22); }
+    .btn-gold { background: #B8962E; color: #0D1A12; font-family: 'DM Mono',monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; padding: 9px 16px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background .2s; font-weight: 700; }
+    .btn-gold:hover { background: #D4AE50; }
+
+    /* ── Form elements ── */
+    .field-label  { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: #8A9BB0; display: block; margin-bottom: 6px; }
+    .field-input  { width: 100%; background: rgba(26,61,36,.45); border: 1px solid rgba(46,125,69,.25); color: #FDFCF9; font-family: 'DM Mono',monospace; font-size: 13px; padding: 10px 12px; transition: border-color .2s; }
+    .field-input:focus { outline: none; border-color: #4CAF6F; background: rgba(26,61,36,.65); }
+    .field-input::placeholder { color: #4A5568; }
+    .field-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234A5568' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+    .field-select option { background: #1A3D24; }
+
+    /* ── Alert row ── */
+    .alert-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+    .alert-row:last-child { border-bottom: none; }
+
+    /* ── Notif badge ── */
+    .notif-badge { position: absolute; top: -3px; right: -3px; width: 14px; height: 14px; background: #E74C3C; border-radius: 50%; font-family: 'DM Mono',monospace; font-size: 8px; color: #fff; display: flex; align-items: center; justify-content: center; }
+
+    /* ── Dropdown ── */
+    .dropdown-menu { position: absolute; top: 100%; right: 0; background: #1A3D24; border: 1px solid rgba(46,125,69,.3); min-width: 180px; z-index: 100; display: none; }
+    .dropdown-menu.open { display: block; }
+    .dropdown-item { display: block; padding: 8px 14px; font-size: 12px; color: #D4DCE8; cursor: pointer; transition: background .15s; }
+    .dropdown-item:hover { background: rgba(46,125,69,.12); color: #FDFCF9; }
+
+    /* ── Tooltip ── */
+    [data-tip] { position: relative; }
+    [data-tip]:hover::after { content: attr(data-tip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #1A3D24; border: 1px solid rgba(46,125,69,.3); font-family: 'DM Mono',monospace; font-size: 9px; color: #A8D5B5; padding: 4px 8px; white-space: nowrap; pointer-events: none; z-index: 200; margin-bottom: 4px; }
+
+    /* ── Phase-in dial track ── */
+    .phase-track { display: flex; gap: 3px; align-items: center; margin-top: 6px; }
+    .phase-seg { flex: 1; height: 6px; border-radius: 1px; }
+    .phase-done  { background: #4CAF6F; }
+    .phase-curr  { background: #D4AE50; }
+    .phase-todo  { background: rgba(46,125,69,.12); }
+
+    /* ── Hours gauge ── */
+    .hours-gauge { position: relative; height: 6px; background: rgba(46,125,69,.12); border-radius: 1px; overflow: visible; margin-top: 4px; }
+    .hours-fill { height: 100%; border-radius: 1px; transition: width 1.4s cubic-bezier(.22,1,.36,1); }
+    .hours-marker { position: absolute; top: -3px; width: 2px; height: 12px; background: #D4AE50; opacity: .7; }
+    .hours-marker.crit { background: #E74C3C; }
+
+    /* ── Replacement action card ── */
+    .action-card { background: rgba(255,255,255,.015); border: 1px solid rgba(46,125,69,.1); padding: 12px 14px; transition: border-color .2s, background .2s; cursor: pointer; }
+    .action-card:hover { border-color: rgba(46,125,69,.3); background: rgba(46,125,69,.04); }
+    .action-card.urgent { border-color: rgba(231,76,60,.25); background: rgba(231,76,60,.04); }
+    .action-card.urgent:hover { border-color: rgba(231,76,60,.5); }
+    .action-card.warn { border-color: rgba(212,174,80,.2); background: rgba(212,174,80,.03); }
+
+    /* ── Modal ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(9,20,16,.85); backdrop-filter: blur(4px); z-index: 300; display: none; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: #0D1A12; border: 1px solid rgba(46,125,69,.3); width: 620px; max-width: 95vw; max-height: 92vh; overflow-y: auto; }
+    @keyframes modal-in { from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);} }
+    .modal-box { animation: modal-in .25s ease both; }
+    .modal-head { padding: 16px 20px; border-bottom: 1px solid rgba(46,125,69,.15); display: flex; align-items: center; justify-content: space-between; background: rgba(26,61,36,.3); }
+    .modal-body { padding: 20px; }
+
+    /* ── Phased schedule legend ── */
+    .yr-pill { font-family: 'DM Mono',monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; }
+
+    @media (max-width: 768px) {
+      #sidebar { width: 56px; }
+      #sidebar .nav-section-label, #sidebar .nav-item span, #sidebar .nav-badge { display: none; }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ═══ DEMO BANNER ═══ -->
+<div id="demo-banner">
+  <div class="flex items-center gap-3">
+    <div class="dot dot-y dot-pulse"></div>
+    <span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#D4AE50;">
+      Live Demo Mode — Seplat Energy Plc · OML 4, OML 38 · Pro Tier
+    </span>
+  </div>
+  <div class="flex items-center gap-4">
+    <a href="../demo.html" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#D4AE50;text-decoration:none;">Book Real Demo →</a>
+    <button onclick="document.getElementById('demo-banner').style.display='none'" style="color:#4A5568;background:none;border:none;cursor:pointer;font-size:16px;line-height:1;">×</button>
+  </div>
+</div>
+
+<!-- ═══ APP SHELL ═══ -->
+<div id="app-shell">
+
+  <!-- ════ SIDEBAR ════ -->
+  <nav id="sidebar">
+    <div class="nav-logo">
+      <a href="../index.html" class="flex items-center gap-2" style="text-decoration:none;">
+        <svg width="28" height="28" viewBox="0 0 56 56" fill="none">
+          <circle cx="28" cy="28" r="18" stroke="#4CAF6F" stroke-width="1.5" fill="none"/>
+          <circle cx="28" cy="28" r="3" fill="#4CAF6F"/>
+          <path d="M28 10 C34 14,44 20,44 28 C44 28,36 22,28 10Z" fill="#2E7D45" opacity=".8"/>
+          <line x1="38" y1="8" x2="42" y2="14" stroke="#B8962E" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:18px;">
+          <span style="color:#FDFCF9;">Verde</span><span style="color:#D4AE50;">Scope</span>
+        </span>
+      </a>
+    </div>
+    <div style="padding:10px 14px;border-bottom:1px solid rgba(46,125,69,.12);">
+      <div class="flex items-center gap-2" style="padding:4px 10px;background:rgba(46,125,69,.1);border:1px solid rgba(46,125,69,.25);">
+        <i data-lucide="building-2" style="width:12px;height:12px;color:#4CAF6F;flex-shrink:0;"></i>
+        <span style="font-family:'DM Mono',monospace;font-size:10px;color:#D4DCE8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">Seplat Energy Plc</span>
+      </div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding-bottom:12px;">
+      <div class="nav-section-label">Core</div>
+      <a class="nav-item" href="dashboard.html"><i data-lucide="layout-dashboard" class="nav-icon"></i><span>Dashboard</span></a>
+      <a class="nav-item" href="emissions.html"><i data-lucide="calculator" class="nav-icon"></i><span>Emissions</span></a>
+      <a class="nav-item" href="ldar.html"><i data-lucide="search" class="nav-icon"></i><span>LDAR Manager</span><span class="nav-badge">3</span></a>
+      <a class="nav-item active" href="equipment.html"><i data-lucide="settings" class="nav-icon"></i><span>Equipment</span><span class="nav-badge">1</span></a>
+      <a class="nav-item" href="updt.html"><i data-lucide="shield-check" class="nav-icon"></i><span>UPDT Compliance</span></a>
+      <div class="nav-section-label">Revenue</div>
+      <a class="nav-item" href="carbon-market.html"><i data-lucide="trending-up" class="nav-icon"></i><span>Carbon Market</span><span class="nav-badge gold">$</span></a>
+      <div class="nav-section-label">Reports</div>
+      <a class="nav-item" href="reports.html"><i data-lucide="file-text" class="nav-icon"></i><span>Reports</span></a>
+      <a class="nav-item" href="#"><i data-lucide="brain" class="nav-icon"></i><span>Verde Intelligence</span></a>
+      <div class="nav-section-label">Account</div>
+      <a class="nav-item" href="../resources.html" target="_blank"><i data-lucide="book-open" class="nav-icon"></i><span>Academy</span></a>
+      <a class="nav-item" href="settings.html"><i data-lucide="settings-2" class="nav-icon"></i><span>Settings</span></a>
+    </div>
+    <div style="padding:10px 14px;border-top:1px solid rgba(46,125,69,.12);">
+      <button onclick="toggleSidebar()" style="background:none;border:none;cursor:pointer;color:#4A5568;display:flex;align-items:center;gap:6px;">
+        <i data-lucide="panel-left-close" style="width:16px;height:16px;" id="collapse-icon"></i>
+        <span id="collapse-label" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;">Collapse</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ════ MAIN ════ -->
+  <div id="main-area">
+
+    <!-- TOPBAR -->
+    <div id="topbar">
+      <div style="flex:1;">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8A9BB0;">Equipment Compliance Tracker</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:11px;color:#4A5568;">NUPRC Guide 0024-2022 §3.4.1–3.4.6 · Mandatory replacement schedules</div>
+      </div>
+      <!-- 1 overdue alert -->
+      <div style="display:flex;align-items:center;gap:6px;padding:5px 12px;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);">
+        <i data-lucide="alert-triangle" style="width:12px;height:12px;color:#E74C3C;"></i>
+        <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#E74C3C;">1 Rod Packing Overdue</span>
+      </div>
+      <button onclick="openModal('add-equipment-modal')" style="display:flex;align-items:center;gap:5px;background:#2E7D45;border:none;color:#FDFCF9;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;cursor:pointer;">
+        <i data-lucide="plus" style="width:12px;height:12px;"></i> Add Equipment
+      </button>
+      <div style="position:relative;">
+        <button style="background:none;border:none;cursor:pointer;color:#8A9BB0;padding:4px;position:relative;">
+          <i data-lucide="bell" style="width:18px;height:18px;"></i>
+          <span class="notif-badge">4</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div id="content">
+
+      <!-- MODULE HEADER -->
+      <div class="module-header">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:16px;gap:16px;">
+          <div>
+            <h1 style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:#FDFCF9;line-height:1.2;">Equipment Compliance Tracker</h1>
+            <p style="font-family:'Outfit',sans-serif;font-size:12px;color:#8A9BB0;margin-top:4px;">Mandatory equipment replacement &amp; upgrade schedules per NUPRC Guide 0024-2022 §3.4 · 5-year phase-in programme</p>
+          </div>
+          <div class="flex items-center gap-2" style="flex-shrink:0;">
+            <span class="tag tag-g">OML 4</span>
+            <span class="tag tag-g">OML 38</span>
+            <span class="tag tag-n">124 Devices</span>
+          </div>
+        </div>
+        <div class="flex" style="overflow-x:auto;">
+          <div class="mod-tab active" onclick="switchTab('overview',this)">Overview</div>
+          <div class="mod-tab" onclick="switchTab('pneumatic',this)">Pneumatic Controllers</div>
+          <div class="mod-tab" onclick="switchTab('rod-packing',this)">Rod Packing</div>
+          <div class="mod-tab" onclick="switchTab('turbines',this)">Turbines</div>
+          <div class="mod-tab" onclick="switchTab('tanks',this)">Storage Tanks</div>
+          <div class="mod-tab" onclick="switchTab('action-list',this)">Action List</div>
+        </div>
+      </div>
+
+
+      <!-- ════ TAB: OVERVIEW ════ -->
+      <div class="tab-panel active" id="tab-overview" style="padding:20px 24px;">
+
+        <!-- KPI row -->
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;">
+          <div class="kpi-card green">
+            <div class="kpi-value" style="color:#4CAF6F;">91<span style="font-size:16px;color:#4A5568;">%</span></div>
+            <div class="kpi-label">Overall Compliance</div>
+            <div class="kpi-sub">All equipment categories</div>
+            <div class="kpi-delta up">↑ +3% vs Q1 2026</div>
+          </div>
+          <div class="kpi-card orange">
+            <div class="kpi-value" style="color:#4CAF6F;">65<span style="font-size:16px;color:#4A5568;">%</span></div>
+            <div class="kpi-label">Zero-Bleed Pneumatics</div>
+            <div class="kpi-sub">Year 2 target · On Track</div>
+            <div class="kpi-delta up">↑ 47/72 devices</div>
+          </div>
+          <div class="kpi-card red">
+            <div class="kpi-value" style="color:#E74C3C;">1</div>
+            <div class="kpi-label">Rod Packing Overdue</div>
+            <div class="kpi-sub">26,000 hr limit exceeded</div>
+            <div class="kpi-delta down">↓ RC-OML4-004 · 2,140 hrs over</div>
+          </div>
+          <div class="kpi-card gold">
+            <div class="kpi-value" style="color:#D4AE50;">4</div>
+            <div class="kpi-label">Turbine Upgrades</div>
+            <div class="kpi-sub">Single→combined cycle</div>
+            <div class="kpi-delta warn">2030 deadline · 4 yrs remaining</div>
+          </div>
+          <div class="kpi-card blue">
+            <div class="kpi-value" style="color:#5DADE2;">18.4</div>
+            <div class="kpi-label">tCH₄/yr Reducible</div>
+            <div class="kpi-sub">Full compliance potential</div>
+            <div class="kpi-delta up" style="color:#5DADE2;">≈ $6,140 carbon value</div>
+          </div>
+        </div>
+
+        <!-- Two-column: phase-in progress + recent actions -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+
+          <!-- Phase-in compliance summary -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">5-Year Phase-In Compliance · Year 2 (2026)</span>
+              <span class="tag tag-y">Year 2 of 5</span>
+            </div>
+            <div class="panel-body">
+              <!-- Pneumatic controllers -->
+              <div style="margin-bottom:16px;">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+                  <span style="font-size:12px;font-weight:500;color:#D4DCE8;">Pneumatic Controllers (Zero-Bleed)</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:11px;color:#4CAF6F;">65% <span style="color:#4A5568;font-size:9px;">/ 65% target</span></span>
+                </div>
+                <div class="prog-track thick">
+                  <div class="prog-fill" style="width:65%;background:linear-gradient(90deg,#235930,#4CAF6F);"></div>
+                </div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:3px;letter-spacing:.06em;">47 / 72 zero-bleed · Year 3 target: 75%</div>
+                <div class="phase-track">
+                  <div class="phase-seg phase-done" data-tip="Year 1 — 25%"></div>
+                  <div class="phase-seg phase-curr" data-tip="Year 2 — 65% ✓"></div>
+                  <div class="phase-seg phase-todo" data-tip="Year 3 — 75%"></div>
+                  <div class="phase-seg phase-todo" data-tip="Year 4 — 85%"></div>
+                  <div class="phase-seg phase-todo" data-tip="Year 5 — 100%"></div>
+                </div>
+              </div>
+              <!-- Pneumatic pumps -->
+              <div style="margin-bottom:16px;">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+                  <span style="font-size:12px;font-weight:500;color:#D4DCE8;">Pneumatic Pumps (Non-Emitting)</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:11px;color:#4CAF6F;">60% <span style="color:#4A5568;font-size:9px;">/ 60% target</span></span>
+                </div>
+                <div class="prog-track thick">
+                  <div class="prog-fill" style="width:60%;background:linear-gradient(90deg,#235930,#4CAF6F);"></div>
+                </div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:3px;letter-spacing:.06em;">9 / 15 non-emitting · Year 3 target: 80%</div>
+                <div class="phase-track">
+                  <div class="phase-seg phase-done"></div>
+                  <div class="phase-seg phase-curr"></div>
+                  <div class="phase-seg phase-todo"></div>
+                  <div class="phase-seg phase-todo"></div>
+                  <div class="phase-seg phase-todo"></div>
+                </div>
+              </div>
+              <!-- Turbines -->
+              <div style="margin-bottom:16px;">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+                  <span style="font-size:12px;font-weight:500;color:#D4DCE8;">Single→Combined Cycle Turbines</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:11px;color:#D4AE50;">0% <span style="color:#4A5568;font-size:9px;">/ 2030 deadline</span></span>
+                </div>
+                <div class="prog-track thick">
+                  <div class="prog-fill" style="width:0%;background:#D4AE50;"></div>
+                </div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:3px;letter-spacing:.06em;">0 / 4 turbines converted · 4 years to 2030 deadline</div>
+              </div>
+              <!-- Glycol dehydrators -->
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+                  <span style="font-size:12px;font-weight:500;color:#D4DCE8;">Glycol Dehydrators (95% VOC Control)</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:11px;color:#4CAF6F;">83% <span style="color:#4A5568;font-size:9px;">/ 80% target</span></span>
+                </div>
+                <div class="prog-track thick">
+                  <div class="prog-fill" style="width:83%;background:linear-gradient(90deg,#235930,#4CAF6F);"></div>
+                </div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;margin-top:3px;letter-spacing:.06em;">5 / 6 units compliant · Ahead of schedule</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Upcoming deadlines -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">Upcoming Deadlines &amp; Actions</span>
+              <span style="font-family:'DM Mono',monospace;font-size:9px;color:#E74C3C;letter-spacing:.1em;text-transform:uppercase;">1 Overdue</span>
+            </div>
+            <div class="panel-body">
+              <!-- Overdue -->
+              <div class="alert-row">
+                <div style="width:28px;height:28px;border-radius:50%;background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i data-lucide="alert-circle" style="width:13px;height:13px;color:#E74C3C;"></i>
+                </div>
+                <div style="flex:1;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <span style="font-size:12px;font-weight:500;color:#FDFCF9;">RC-OML4-004 · Rod Packing</span>
+                    <span style="font-family:'DM Mono',monospace;font-size:9px;color:#E74C3C;padding:2px 6px;background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);">Overdue</span>
+                  </div>
+                  <div style="font-size:11px;color:#8A9BB0;margin-top:2px;">28,140 hrs accumulated · Limit: 26,000 hrs · OML4-GCS-03</div>
+                  <div style="margin-top:6px;"><button class="btn-red" style="padding:4px 10px;font-size:9px;" onclick="openModal('rod-packing-modal')">Schedule Replacement</button></div>
+                </div>
+              </div>
+              <!-- 24,000hr warning -->
+              <div class="alert-row">
+                <div style="width:28px;height:28px;border-radius:50%;background:rgba(212,174,80,.1);border:1px solid rgba(212,174,80,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i data-lucide="alert-triangle" style="width:13px;height:13px;color:#D4AE50;"></i>
+                </div>
+                <div style="flex:1;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <span style="font-size:12px;font-weight:500;color:#FDFCF9;">RC-OML38-002 · Rod Packing</span>
+                    <span style="font-family:'DM Mono',monospace;font-size:9px;color:#D4AE50;padding:2px 6px;background:rgba(212,174,80,.1);border:1px solid rgba(212,174,80,.25);">24k Warning</span>
+                  </div>
+                  <div style="font-size:11px;color:#8A9BB0;margin-top:2px;">24,850 hrs accumulated · 1,150 hrs to deadline · OML38-GPS-01</div>
+                </div>
+              </div>
+              <!-- Year 3 pneumatic target -->
+              <div class="alert-row">
+                <div style="width:28px;height:28px;border-radius:50%;background:rgba(93,173,226,.1);border:1px solid rgba(93,173,226,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i data-lucide="calendar" style="width:13px;height:13px;color:#5DADE2;"></i>
+                </div>
+                <div style="flex:1;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <span style="font-size:12px;font-weight:500;color:#FDFCF9;">Pneumatic Controllers · Year 3 Target</span>
+                    <span style="font-family:'DM Mono',monospace;font-size:9px;color:#5DADE2;padding:2px 6px;background:rgba(93,173,226,.08);border:1px solid rgba(93,173,226,.2);">Jan 2027</span>
+                  </div>
+                  <div style="font-size:11px;color:#8A9BB0;margin-top:2px;">Target: 75% zero-bleed · Currently 65% · 7 devices to replace</div>
+                </div>
+              </div>
+              <!-- Storage tank Phase 2 -->
+              <div class="alert-row">
+                <div style="width:28px;height:28px;border-radius:50%;background:rgba(93,173,226,.1);border:1px solid rgba(93,173,226,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i data-lucide="database" style="width:13px;height:13px;color:#5DADE2;"></i>
+                </div>
+                <div style="flex:1;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <span style="font-size:12px;font-weight:500;color:#FDFCF9;">Tank TK-OML38-003 · VOC Control</span>
+                    <span style="font-family:'DM Mono',monospace;font-size:9px;color:#5DADE2;padding:2px 6px;background:rgba(93,173,226,.08);border:1px solid rgba(93,173,226,.2);">Year 2 Phase</span>
+                  </div>
+                  <div style="font-size:11px;color:#8A9BB0;margin-top:2px;">8.4 tpy VOC · Requires vapour control by end of 2026 · 6–12 tpy tier</div>
+                </div>
+              </div>
+              <!-- Annual rod packing flash -->
+              <div class="alert-row" style="border-bottom:none;">
+                <div style="width:28px;height:28px;border-radius:50%;background:rgba(155,89,182,.1);border:1px solid rgba(155,89,182,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i data-lucide="zap" style="width:13px;height:13px;color:#9B59B6;"></i>
+                </div>
+                <div style="flex:1;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <span style="font-size:12px;font-weight:500;color:#FDFCF9;">Flash Analysis Required · 3 Tanks</span>
+                    <span style="font-family:'DM Mono',monospace;font-size:9px;color:#9B59B6;padding:2px 6px;background:rgba(155,89,182,.08);border:1px solid rgba(155,89,182,.2);">Annual</span>
+                  </div>
+                  <div style="font-size:11px;color:#8A9BB0;margin-top:2px;">Tanks &gt;2 tpy without vapour recovery · Last analysis &gt;12 months ago</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom charts row -->
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;">
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">Pneumatic Zero-Bleed Phase-In Progress · 2022–2026</span>
+            </div>
+            <div class="panel-body">
+              <canvas id="pneumatic-trend-chart" height="110"></canvas>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title">CH₄ Reduction Opportunity</span>
+              <span class="tag tag-g">tCH₄/yr</span>
+            </div>
+            <div class="panel-body">
+              <canvas id="ch4-donut-chart" height="160"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /overview -->
+
+
+      <!-- ════ TAB: PNEUMATIC CONTROLLERS ════ -->
+      <div class="tab-panel" id="tab-pneumatic" style="padding:20px 24px;">
+
+        <!-- Phase-in requirement banner -->
+        <div style="background:rgba(46,125,69,.06);border:1px solid rgba(46,125,69,.15);padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+          <i data-lucide="info" style="width:14px;height:14px;color:#4CAF6F;flex-shrink:0;"></i>
+          <span style="font-family:'Outfit',sans-serif;font-size:12px;color:#D4DCE8;">
+            NUPRC Guide 0024-2022 §3.4.1: 5-year phase-in to 100% zero-bleed pneumatic controllers. Annual monitoring at 0.17 scm/hr threshold.
+          </span>
+          <div class="flex items-center gap-3" style="margin-left:auto;flex-shrink:0;">
+            <span class="yr-pill" style="background:rgba(46,125,69,.2);color:#4CAF6F;border:1px solid rgba(46,125,69,.4);">Yr 1: 25%</span>
+            <span class="yr-pill" style="background:rgba(46,125,69,.2);color:#4CAF6F;border:1px solid rgba(46,125,69,.4);">Yr 2: 65% ✓</span>
+            <span class="yr-pill" style="background:rgba(212,174,80,.1);color:#D4AE50;border:1px solid rgba(212,174,80,.3);">Yr 3: 75%</span>
+            <span class="yr-pill" style="background:rgba(255,255,255,.04);color:#4A5568;border:1px solid rgba(255,255,255,.08);">Yr 4: 85%</span>
+            <span class="yr-pill" style="background:rgba(255,255,255,.04);color:#4A5568;border:1px solid rgba(255,255,255,.08);">Yr 5: 100%</span>
+          </div>
+        </div>
+
+        <!-- Stats row -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+          <div style="background:rgba(46,125,69,.08);border:1px solid rgba(46,125,69,.2);padding:14px;">
+            <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:300;color:#4CAF6F;">47<span style="font-size:12px;color:#4A5568;">/72</span></div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;margin-top:4px;">Zero-Bleed</div>
+          </div>
+          <div style="background:rgba(212,174,80,.06);border:1px solid rgba(212,174,80,.2);padding:14px;">
+            <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:300;color:#D4AE50;">18</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;margin-top:4px;">Low-Bleed</div>
+          </div>
+          <div style="background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.15);padding:14px;">
+            <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:300;color:#E74C3C;">7</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;margin-top:4px;">High-Bleed</div>
+          </div>
+          <div style="background:rgba(93,173,226,.06);border:1px solid rgba(93,173,226,.15);padding:14px;">
+            <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:300;color:#5DADE2;">7.2</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;margin-top:4px;">tCH₄/yr (high-bleed)</div>
+          </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+          <input class="field-input" placeholder="Search device ID or facility…" style="width:220px;padding:8px 12px;font-size:12px;" />
+          <select class="field-input field-select" style="width:140px;padding:8px 12px;font-size:11px;">
+            <option>All Types</option><option>Zero-Bleed</option><option>Low-Bleed</option><option>High-Bleed</option>
+          </select>
+          <select class="field-input field-select" style="width:150px;padding:8px 12px;font-size:11px;">
+            <option>All Facilities</option><option>OML4-GCS-02</option><option>OML4-GCS-03</option><option>OML38-GPS-01</option>
+          </select>
+          <button class="btn-primary" onclick="openModal('add-equipment-modal')">
+            <i data-lucide="plus" style="width:12px;height:12px;"></i> Add Device
+          </button>
+          <button class="btn-gold" style="margin-left:auto;" onclick="openModal('replacement-plan-modal')">
+            <i data-lucide="list-checks" style="width:12px;height:12px;"></i> Generate Replacement Plan
+          </button>
+        </div>
+
+        <div class="panel" style="overflow-x:auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Device ID</th>
+                <th>Facility</th>
+                <th>Bleed Type</th>
+                <th>Bleed Rate (scm/hr)</th>
+                <th>Installation Date</th>
+                <th>Last Test Date</th>
+                <th>CH₄ Emissions (tCH₄/yr)</th>
+                <th>Yr 3 Action</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="pneumatic-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- /pneumatic -->
+
+
+      <!-- ════ TAB: ROD PACKING ════ -->
+      <div class="tab-panel" id="tab-rod-packing" style="padding:20px 24px;">
+
+        <div style="background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.18);padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+          <i data-lucide="alert-triangle" style="width:14px;height:14px;color:#E74C3C;flex-shrink:0;"></i>
+          <span style="font-family:'Outfit',sans-serif;font-size:12px;color:#D4DCE8;">
+            NUPRC Guide 0024-2022 §3.4.3: Reciprocating compressor rod packing replacement required at <strong>26,000 operating hours</strong> or <strong>36 months</strong>, whichever is earlier. Early warning at 24,000 hours.
+          </span>
+        </div>
+
+        <!-- Stats -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+          <div style="background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.2);padding:14px;">
+            <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:300;color:#E74C3C;">1</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;margin-top:4px;">Overdue (>26k hrs)</div>
+          </div>
+          <div style="background:rgba(212,174,80,.06);border:1px solid rgba(212,174,80,.2);padding:14px;">
+            <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:300;color:#D4AE50;">2</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;margin-top:4px;">Warning (>24k hrs)</div>
+          </div>
+          <div style="background:rgba(46,125,69,.06);border:1px solid rgba(46,125,69,.2);padding:14px;">
+            <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:300;color:#4CAF6F;">9</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;margin-top:4px;">Compliant</div>
+          </div>
+          <div style="background:rgba(93,173,226,.06);border:1px solid rgba(93,173,226,.15);padding:14px;">
+            <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:300;color:#5DADE2;">3.1</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;margin-top:4px;">tCH₄/yr (non-compliant)</div>
+          </div>
+        </div>
+
+        <div class="panel" style="overflow-x:auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Compressor ID</th>
+                <th>Facility</th>
+                <th>Last Replacement</th>
+                <th>Hours Accumulated</th>
+                <th>Hours Gauge</th>
+                <th>36-Month Deadline</th>
+                <th>CH₄ Rate (kg/hr)</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="rod-packing-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- /rod packing -->
+
+
+      <!-- ════ TAB: TURBINES ════ -->
+      <div class="tab-panel" id="tab-turbines" style="padding:20px 24px;">
+
+        <div style="background:rgba(212,174,80,.06);border:1px solid rgba(212,174,80,.2);padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+          <i data-lucide="zap" style="width:14px;height:14px;color:#D4AE50;flex-shrink:0;"></i>
+          <span style="font-family:'Outfit',sans-serif;font-size:12px;color:#D4DCE8;">
+            NUPRC Guide 0024-2022 §3.4.4: 100% single-cycle → combined-cycle turbine conversion by <strong>2030</strong> for existing facilities. Immediate for new projects. Annual CH₄ reduction &amp; CO₂e calculated for carbon credit origination.
+          </span>
+        </div>
+
+        <!-- Stats -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+          <div style="background:rgba(212,174,80,.06);border:1px solid rgba(212,174,80,.2);padding:14px;">
+            <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:300;color:#D4AE50;">4</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;margin-top:4px;">Single-Cycle (to upgrade)</div>
+          </div>
+          <div style="background:rgba(46,125,69,.06);border:1px solid rgba(46,125,69,.2);padding:14px;">
+            <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:300;color:#4CAF6F;">0</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;margin-top:4px;">Combined-Cycle (compliant)</div>
+          </div>
+          <div style="background:rgba(93,173,226,.06);border:1px solid rgba(93,173,226,.15);padding:14px;">
+            <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:300;color:#5DADE2;">8.1</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;margin-top:4px;">tCH₄/yr Reduction Potential</div>
+          </div>
+          <div style="background:rgba(184,150,46,.08);border:1px solid rgba(212,174,80,.25);padding:14px;">
+            <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:300;color:#D4AE50;">4 yrs</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;margin-top:4px;">To 2030 Deadline</div>
+          </div>
+        </div>
+
+        <!-- Turbine cards -->
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:16px;" id="turbine-cards"></div>
+
+        <!-- Carbon credit link -->
+        <div style="background:rgba(184,150,46,.06);border:1px solid rgba(212,174,80,.2);padding:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#D4AE50;margin-bottom:4px;">Carbon Credit Origination Opportunity</div>
+            <div style="font-size:12px;color:#D4DCE8;">Full turbine conversion programme = estimated <span style="font-family:'DM Mono',monospace;color:#D4AE50;">226 tCO₂e/yr</span> abatement at <span style="font-family:'DM Mono',monospace;color:#D4AE50;">AR6 GWP 27.9</span> · VCS VM0039 eligible</div>
+          </div>
+          <button class="btn-gold" onclick="window.location.href='carbon-market.html'">
+            <i data-lucide="trending-up" style="width:12px;height:12px;"></i> View Carbon Market Module
+          </button>
+        </div>
+      </div>
+      <!-- /turbines -->
+
+
+      <!-- ════ TAB: STORAGE TANKS ════ -->
+      <div class="tab-panel" id="tab-tanks" style="padding:20px 24px;">
+
+        <div style="background:rgba(155,89,182,.06);border:1px solid rgba(155,89,182,.18);padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+          <i data-lucide="database" style="width:14px;height:14px;color:#9B59B6;flex-shrink:0;"></i>
+          <span style="font-family:'Outfit',sans-serif;font-size:12px;color:#D4DCE8;">
+            NUPRC Guide 0024-2022 §3.4.5: Storage tank VOC emission controls phased by emission rate — <strong>&gt;12 tpy</strong> controlled by Year 1; <strong>6–12 tpy</strong> by Year 2; <strong>2–6 tpy</strong> by Year 3. Annual flash analysis required for tanks &gt;2 tpy without vapour recovery.
+          </span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+          <div style="background:rgba(46,125,69,.06);border:1px solid rgba(46,125,69,.2);padding:14px;">
+            <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:300;color:#4CAF6F;">6</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;margin-top:4px;">Total Tanks Registered</div>
+          </div>
+          <div style="background:rgba(46,125,69,.06);border:1px solid rgba(46,125,69,.2);padding:14px;">
+            <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:300;color:#4CAF6F;">4</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;margin-top:4px;">Compliant (VOC Control)</div>
+          </div>
+          <div style="background:rgba(212,174,80,.06);border:1px solid rgba(212,174,80,.2);padding:14px;">
+            <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:300;color:#D4AE50;">1</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;margin-top:4px;">Year 2 Phase Deadline</div>
+          </div>
+          <div style="background:rgba(155,89,182,.06);border:1px solid rgba(155,89,182,.15);padding:14px;">
+            <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:300;color:#9B59B6;">3</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#4A5568;margin-top:4px;">Flash Analysis Required</div>
+          </div>
+        </div>
+
+        <div class="panel" style="overflow-x:auto;margin-bottom:16px;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Tank ID</th>
+                <th>Facility</th>
+                <th>Type</th>
+                <th>Capacity (bbl)</th>
+                <th>VOC Rate (tpy)</th>
+                <th>Control Tier</th>
+                <th>Phase Deadline</th>
+                <th>Last Flash Analysis</th>
+                <th>Vapour Recovery</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="tanks-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- /tanks -->
+
+
+      <!-- ════ TAB: ACTION LIST ════ -->
+      <div class="tab-panel" id="tab-action-list" style="padding:20px 24px;">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div>
+            <h2 style="font-family:'Cormorant Garamond',serif;font-size:18px;color:#FDFCF9;">Replacement Action List</h2>
+            <p style="font-size:12px;color:#8A9BB0;margin-top:2px;">Auto-generated from non-compliant equipment · Sorted by urgency · Export for procurement</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button class="btn-outline">
+              <i data-lucide="download" style="width:12px;height:12px;"></i> Export to Excel
+            </button>
+            <button class="btn-gold">
+              <i data-lucide="file-down" style="width:12px;height:12px;"></i> NUPRC Equipment Report
+            </button>
+          </div>
+        </div>
+
+        <!-- Action cards -->
+        <div style="display:flex;flex-direction:column;gap:10px;" id="action-cards-list"></div>
+      </div>
+      <!-- /action list -->
+
+    </div>
+    <!-- /content -->
+  </div>
+</div>
+<!-- /app-shell -->
+
+
+<!-- ════ MODALS ════ -->
+
+<!-- Add Equipment -->
+<div class="modal-overlay" id="add-equipment-modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#4CAF6F;">Register Equipment</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:11px;color:#4A5568;margin-top:2px;">NUPRC Guide 0024-2022 §3.4 — Auto-assigns compliance requirements by equipment type</div>
+      </div>
+      <button onclick="closeModal('add-equipment-modal')" style="background:none;border:none;cursor:pointer;color:#4A5568;font-size:20px;line-height:1;">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div style="grid-column:1/-1;">
+          <label class="field-label">Equipment Category</label>
+          <select class="field-input field-select" style="font-size:12px;padding:9px 12px;" onchange="updateEquipmentForm(this)">
+            <option value="">Select type…</option>
+            <option value="pneumatic">Pneumatic Controller</option>
+            <option value="pneumatic-pump">Pneumatic Pump</option>
+            <option value="compressor">Reciprocating Compressor (Rod Packing)</option>
+            <option value="compressor-centrifugal">Centrifugal Compressor (Wet Seal)</option>
+            <option value="turbine">Gas Turbine</option>
+            <option value="tank">Storage Tank</option>
+            <option value="glycol">Glycol Dehydrator</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Equipment ID</label>
+          <input class="field-input" placeholder="e.g. PC-OML4-073" style="font-size:12px;padding:9px 12px;" />
+        </div>
+        <div>
+          <label class="field-label">Facility</label>
+          <select class="field-input field-select" style="font-size:12px;padding:9px 12px;">
+            <option>OML4-WPF-01</option><option>OML4-GCS-02</option><option>OML4-GCS-03</option>
+            <option>OML38-WPF-01</option><option>OML38-EXP-01</option><option>OML38-GPS-01</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Make / Model</label>
+          <input class="field-input" placeholder="Manufacturer &amp; model" style="font-size:12px;padding:9px 12px;" />
+        </div>
+        <div>
+          <label class="field-label">Installation Date</label>
+          <input class="field-input" type="date" style="font-size:12px;padding:9px 12px;" />
+        </div>
+        <!-- Dynamic fields shown by JS -->
+        <div id="dynamic-equipment-fields" style="grid-column:1/-1;display:none;">
+          <div style="background:rgba(46,125,69,.06);border:1px solid rgba(46,125,69,.15);padding:12px 14px;" id="dynamic-fields-content"></div>
+        </div>
+        <div style="grid-column:1/-1;">
+          <label class="field-label">Notes</label>
+          <textarea class="field-input" rows="2" placeholder="Additional technical notes…" style="font-size:12px;padding:9px 12px;resize:vertical;"></textarea>
+        </div>
+      </div>
+      <div class="flex items-center gap-3" style="margin-top:18px;">
+        <button class="btn-primary">
+          <i data-lucide="save" style="width:12px;height:12px;"></i> Register Equipment
+        </button>
+        <button onclick="closeModal('add-equipment-modal')" class="btn-red" style="margin-left:auto;">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Rod Packing Replacement Schedule -->
+<div class="modal-overlay" id="rod-packing-modal">
+  <div class="modal-box" style="width:520px;">
+    <div class="modal-head">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#E74C3C;">Schedule Rod Packing Replacement</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:11px;color:#4A5568;margin-top:2px;">RC-OML4-004 · OML4-GCS-03 · 28,140 hrs accumulated</div>
+      </div>
+      <button onclick="closeModal('rod-packing-modal')" style="background:none;border:none;cursor:pointer;color:#4A5568;font-size:20px;line-height:1;">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.2);padding:10px 14px;margin-bottom:16px;font-size:12px;color:#E74C3C;">
+        ⚠ This compressor is 2,140 hours over the 26,000-hour replacement limit. Estimated CH₄ leakage: <strong>4.1 kg/hr</strong> (degraded packing). Immediate scheduling required for NUPRC compliance.
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <label class="field-label">Scheduled Replacement Date</label>
+          <input class="field-input" type="date" style="font-size:12px;padding:9px 12px;" />
+        </div>
+        <div>
+          <label class="field-label">Maintenance Team</label>
+          <input class="field-input" placeholder="Team or contractor name" style="font-size:12px;padding:9px 12px;" />
+        </div>
+        <div>
+          <label class="field-label">Planned Shutdown Window</label>
+          <input class="field-input" placeholder="e.g. 3-day turnaround" style="font-size:12px;padding:9px 12px;" />
+        </div>
+        <div>
+          <label class="field-label">New Packing Part Number</label>
+          <input class="field-input" placeholder="OEM part reference" style="font-size:12px;padding:9px 12px;" />
+        </div>
+        <div style="grid-column:1/-1;">
+          <label class="field-label">Justification for Delay (NUPRC required)</label>
+          <textarea class="field-input" rows="2" placeholder="Reason replacement could not be performed within 26,000 hrs…" style="font-size:12px;padding:9px 12px;resize:vertical;"></textarea>
+        </div>
+      </div>
+      <div class="flex items-center gap-3" style="margin-top:18px;">
+        <button class="btn-red">
+          <i data-lucide="calendar-check" style="width:12px;height:12px;"></i> Schedule Replacement
+        </button>
+        <button onclick="closeModal('rod-packing-modal')" class="btn-outline" style="margin-left:auto;">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Replacement Plan -->
+<div class="modal-overlay" id="replacement-plan-modal">
+  <div class="modal-box" style="width:480px;">
+    <div class="modal-head">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#4CAF6F;">Generate Replacement Plan</div>
+      <button onclick="closeModal('replacement-plan-modal')" style="background:none;border:none;cursor:pointer;color:#4A5568;font-size:20px;line-height:1;">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:#8A9BB0;margin-bottom:16px;line-height:1.6;">Auto-generate a procurement and scheduling plan to achieve the Year 3 (75%) zero-bleed target. VerdeScope will calculate the minimum number of replacements, cost estimate, and ideal scheduling sequence.</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button class="btn-gold" style="width:100%;justify-content:center;padding:12px;">
+          <i data-lucide="file-down" style="width:14px;height:14px;"></i> Export Year 3 Replacement Plan (PDF)
+        </button>
+        <button class="btn-outline" style="width:100%;justify-content:center;">
+          <i data-lucide="table-2" style="width:13px;height:13px;"></i> Export Equipment Register (Excel)
+        </button>
+        <button class="btn-outline" style="width:100%;justify-content:center;">
+          <i data-lucide="shield-check" style="width:13px;height:13px;"></i> Export Compliance Certification (NUPRC)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  lucide.createIcons();
+
+  // ── Sidebar collapse ──
+  function toggleSidebar() {
+    const sb = document.getElementById('sidebar');
+    sb.classList.toggle('collapsed');
+    const icon = document.getElementById('collapse-icon');
+    icon.setAttribute('data-lucide', sb.classList.contains('collapsed') ? 'panel-left-open' : 'panel-left-close');
+    document.getElementById('collapse-label').style.display = sb.classList.contains('collapsed') ? 'none' : '';
+    lucide.createIcons();
+  }
+
+  // ── Tab switching ──
+  function switchTab(name, el) {
+    document.querySelectorAll('.mod-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+    setTimeout(() => { initCharts(); lucide.createIcons(); }, 50);
+  }
+
+  // ── Modals ──
+  function openModal(id)  { document.getElementById(id).classList.add('open'); lucide.createIcons(); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+
+  // ── Dynamic equipment form fields ──
+  function updateEquipmentForm(sel) {
+    const container = document.getElementById('dynamic-equipment-fields');
+    const content   = document.getElementById('dynamic-fields-content');
+    const v = sel.value;
+    if (!v) { container.style.display = 'none'; return; }
+    container.style.display = 'block';
+    const fieldSets = {
+      pneumatic: `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div><label class="field-label">Bleed Type</label>
+            <select class="field-input field-select" style="font-size:12px;padding:8px 12px;"><option>High-Bleed</option><option>Low-Bleed</option><option>Zero-Bleed</option></select></div>
+          <div><label class="field-label">Measured Bleed Rate (scm/hr)</label>
+            <input class="field-input" type="number" placeholder="0.00" style="font-size:12px;padding:8px 12px;"/></div>
+          <div><label class="field-label">Last Test Date</label>
+            <input class="field-input" type="date" style="font-size:12px;padding:8px 12px;"/></div>
+          <div><label class="field-label">Gas Service</label>
+            <input class="field-input" placeholder="e.g. Lift gas, instrument gas" style="font-size:12px;padding:8px 12px;"/></div>
+        </div>`,
+      compressor: `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div><label class="field-label">Last Rod Packing Replacement Date</label>
+            <input class="field-input" type="date" style="font-size:12px;padding:8px 12px;"/></div>
+          <div><label class="field-label">Hours at Last Replacement</label>
+            <input class="field-input" type="number" placeholder="0" style="font-size:12px;padding:8px 12px;"/></div>
+          <div><label class="field-label">Cylinders Count</label>
+            <input class="field-input" type="number" placeholder="e.g. 4" style="font-size:12px;padding:8px 12px;"/></div>
+          <div><label class="field-label">Average Load Factor (%)</label>
+            <input class="field-input" type="number" placeholder="85" style="font-size:12px;padding:8px 12px;"/></div>
+        </div>`,
+      turbine: `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div><label class="field-label">Current Cycle Type</label>
+            <select class="field-input field-select" style="font-size:12px;padding:8px 12px;"><option>Single-Cycle</option><option>Combined-Cycle</option></select></div>
+          <div><label class="field-label">Rated Power Output (MW)</label>
+            <input class="field-input" type="number" placeholder="12.5" style="font-size:12px;padding:8px 12px;"/></div>
+          <div><label class="field-label">Fuel Type</label>
+            <select class="field-input field-select" style="font-size:12px;padding:8px 12px;"><option>Associated gas</option><option>Natural gas</option><option>Diesel</option></select></div>
+          <div><label class="field-label">Annual Operating Hours</label>
+            <input class="field-input" type="number" placeholder="7,800" style="font-size:12px;padding:8px 12px;"/></div>
+        </div>`,
+      tank: `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div><label class="field-label">Tank Type</label>
+            <select class="field-input field-select" style="font-size:12px;padding:8px 12px;"><option>Fixed-roof (crude oil)</option><option>Floating-roof</option><option>Produced water</option><option>Condensate</option></select></div>
+          <div><label class="field-label">Capacity (bbl)</label>
+            <input class="field-input" type="number" placeholder="5,000" style="font-size:12px;padding:8px 12px;"/></div>
+          <div><label class="field-label">Throughput (bbl/day)</label>
+            <input class="field-input" type="number" placeholder="250" style="font-size:12px;padding:8px 12px;"/></div>
+          <div><label class="field-label">VOC Emission Rate (tpy)</label>
+            <input class="field-input" type="number" placeholder="0.00" style="font-size:12px;padding:8px 12px;"/></div>
+          <div><label class="field-label">Vapour Recovery Installed?</label>
+            <select class="field-input field-select" style="font-size:12px;padding:8px 12px;"><option>No</option><option>Yes — VRU</option><option>Yes — Closed-vent to flare</option></select></div>
+          <div><label class="field-label">Last Flash Analysis Date</label>
+            <input class="field-input" type="date" style="font-size:12px;padding:8px 12px;"/></div>
+        </div>`,
+    };
+    content.innerHTML = fieldSets[v] || `<p style="font-size:12px;color:#8A9BB0;">No additional fields required for this equipment type.</p>`;
+  }
+
+  // ═══════════ DATA ═══════════
+
+  // Pneumatic devices
+  const pneumaticDevices = [
+    { id:'PC-OML4-001', fac:'OML4-GCS-02', type:'zero', rate:0.00, install:'Jan 2024', tested:'Mar 2026', ch4:0.00, yr3:'Compliant' },
+    { id:'PC-OML4-002', fac:'OML4-GCS-02', type:'zero', rate:0.00, install:'Jan 2024', tested:'Mar 2026', ch4:0.00, yr3:'Compliant' },
+    { id:'PC-OML4-003', fac:'OML4-GCS-03', type:'low',  rate:0.09, install:'Jun 2022', tested:'Mar 2026', ch4:0.01, yr3:'Replace by Jan 2027' },
+    { id:'PC-OML4-004', fac:'OML4-GCS-03', type:'high', rate:0.34, install:'Jun 2022', tested:'Mar 2026', ch4:0.42, yr3:'Replace ASAP' },
+    { id:'PC-OML4-005', fac:'OML4-GCS-03', type:'high', rate:0.28, install:'Jun 2022', tested:'Mar 2026', ch4:0.35, yr3:'Replace ASAP' },
+    { id:'PC-OML4-006', fac:'OML4-WPF-01', type:'zero', rate:0.00, install:'Mar 2024', tested:'Apr 2026', ch4:0.00, yr3:'Compliant' },
+    { id:'PC-OML38-001',fac:'OML38-GPS-01',type:'low',  rate:0.11, install:'Aug 2022', tested:'Jan 2026', ch4:0.02, yr3:'Replace by Jan 2027' },
+    { id:'PC-OML38-002',fac:'OML38-GPS-01',type:'high', rate:0.41, install:'Aug 2022', tested:'Jan 2026', ch4:0.51, yr3:'Replace ASAP' },
+    { id:'PC-OML38-003',fac:'OML38-GPS-01',type:'zero', rate:0.00, install:'Jan 2025', tested:'Jan 2026', ch4:0.00, yr3:'Compliant' },
+    { id:'PC-OML38-004',fac:'OML38-WPF-01',type:'zero', rate:0.00, install:'Feb 2025', tested:'Mar 2026', ch4:0.00, yr3:'Compliant' },
+    { id:'PC-OML38-005',fac:'OML38-EXP-01',type:'low',  rate:0.07, install:'Nov 2022', tested:'Feb 2026', ch4:0.01, yr3:'Replace by Jan 2027' },
+    { id:'PC-OML38-006',fac:'OML38-EXP-01',type:'zero', rate:0.00, install:'Mar 2025', tested:'Feb 2026', ch4:0.00, yr3:'Compliant' },
+  ];
+
+  function renderPneumatic() {
+    const tb = document.getElementById('pneumatic-tbody');
+    if (!tb) return;
+    tb.innerHTML = pneumaticDevices.map(d => {
+      const typeCls = d.type === 'zero' ? 'tag-g' : d.type === 'low' ? 'tag-y' : 'tag-r';
+      const typeLabel = d.type === 'zero' ? 'Zero-Bleed' : d.type === 'low' ? 'Low-Bleed' : 'High-Bleed';
+      const yr3Cls = d.yr3 === 'Compliant' ? 'tag-g' : d.yr3.includes('ASAP') ? 'tag-r' : 'tag-y';
+      return `<tr>
+        <td class="mono">${d.id}</td>
+        <td class="mono" style="font-size:11px;">${d.fac}</td>
+        <td><span class="tag ${typeCls}" style="font-size:8px;">${typeLabel}</span></td>
+        <td class="mono">${d.rate.toFixed(2)}</td>
+        <td class="mono" style="font-size:11px;">${d.install}</td>
+        <td class="mono" style="font-size:11px;">${d.tested}</td>
+        <td class="mono" style="color:${d.ch4>0.1?'#E74C3C':d.ch4>0?'#D4AE50':'#4CAF6F'}">${d.ch4.toFixed(2)}</td>
+        <td><span class="tag ${yr3Cls}" style="font-size:8px;">${d.yr3}</span></td>
+        <td><button class="btn-outline" style="padding:3px 8px;font-size:9px;" onclick="openModal('add-equipment-modal')">Edit</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Rod packing
+  const rodPackingData = [
+    { id:'RC-OML4-001', fac:'OML4-GCS-02', lastRepl:'Mar 2024', hours:10420, deadline:'Mar 2027', ch4:0.18, status:'ok' },
+    { id:'RC-OML4-002', fac:'OML4-GCS-02', lastRepl:'Jan 2023', hours:18600, deadline:'Jan 2026', ch4:0.22, status:'ok' },
+    { id:'RC-OML4-003', fac:'OML4-GCS-03', lastRepl:'Nov 2022', hours:22100, deadline:'Nov 2025', ch4:0.28, status:'ok' },
+    { id:'RC-OML4-004', fac:'OML4-GCS-03', lastRepl:'Oct 2021', hours:28140, deadline:'Oct 2024', ch4:4.10, status:'overdue' },
+    { id:'RC-OML4-005', fac:'OML4-WPF-01', lastRepl:'May 2023', hours:16800, deadline:'May 2026', ch4:0.20, status:'ok' },
+    { id:'RC-OML38-001',fac:'OML38-GPS-01',lastRepl:'Jun 2022', hours:20900, deadline:'Jun 2025', ch4:0.25, status:'ok' },
+    { id:'RC-OML38-002',fac:'OML38-GPS-01',lastRepl:'Aug 2021', hours:24850, deadline:'Aug 2024', ch4:0.90, status:'warn' },
+    { id:'RC-OML38-003',fac:'OML38-EXP-01',lastRepl:'Sep 2023', hours:14200, deadline:'Sep 2026', ch4:0.17, status:'ok' },
+    { id:'RC-OML38-004',fac:'OML38-WPF-01',lastRepl:'Dec 2023', hours:12500, deadline:'Dec 2026', ch4:0.16, status:'ok' },
+    { id:'RC-OML38-005',fac:'OML38-GPS-01',lastRepl:'Feb 2024', hours:10100, deadline:'Feb 2027', ch4:0.15, status:'ok' },
+    { id:'RC-OML38-006',fac:'OML38-GPS-01',lastRepl:'Jul 2024', hours:7800, deadline:'Jul 2027', ch4:0.12, status:'ok' },
+    { id:'RC-OML38-007',fac:'OML38-EXP-01',lastRepl:'Oct 2024', hours:5100, deadline:'Oct 2027', ch4:0.10, status:'ok' },
+  ];
+
+  function renderRodPacking() {
+    const tb = document.getElementById('rod-packing-tbody');
+    if (!tb) return;
+    tb.innerHTML = rodPackingData.map(d => {
+      const pct = Math.min((d.hours / 26000) * 100, 105);
+      const fillColor = d.status === 'overdue' ? '#E74C3C' : d.status === 'warn' ? '#D4AE50' : '#4CAF6F';
+      const stCls = d.status === 'overdue' ? 'tag-r' : d.status === 'warn' ? 'tag-y' : 'tag-g';
+      const stLabel = d.status === 'overdue' ? 'Overdue' : d.status === 'warn' ? 'Warning' : 'Compliant';
+      const marker24k = Math.min((24000/26000)*100, 100);
+      return `<tr onclick="${d.status==='overdue'?"openModal('rod-packing-modal')":"''"}">
+        <td class="mono">${d.id}</td>
+        <td class="mono" style="font-size:11px;">${d.fac}</td>
+        <td class="mono" style="font-size:11px;">${d.lastRepl}</td>
+        <td class="mono" style="color:${fillColor};">${d.hours.toLocaleString()} hrs</td>
+        <td style="width:120px;">
+          <div style="font-size:10px;color:#4A5568;margin-bottom:2px;font-family:'DM Mono',monospace;">${Math.round(pct)}% of 26k limit</div>
+          <div class="hours-gauge">
+            <div class="hours-fill" style="width:${Math.min(pct,100)}%;background:${fillColor};"></div>
+            <div class="hours-marker" style="left:${marker24k}%;" data-tip="24,000 hr warning"></div>
+            <div class="hours-marker crit" style="left:calc(100% - 2px);" data-tip="26,000 hr limit"></div>
+          </div>
+        </td>
+        <td class="mono" style="font-size:11px;">${d.deadline}</td>
+        <td class="mono" style="color:${d.ch4>1?'#E74C3C':d.ch4>0.5?'#D4AE50':'#4A5568'}">${d.ch4}</td>
+        <td><span class="tag ${stCls}" style="font-size:8px;">${stLabel}</span></td>
+        <td>${d.status==='overdue'?`<button class="btn-red" style="padding:3px 8px;font-size:9px;" onclick="event.stopPropagation();openModal('rod-packing-modal')">Schedule</button>`:`<button class="btn-outline" style="padding:3px 8px;font-size:9px;">Edit</button>`}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Turbines
+  const turbineData = [
+    { id:'TU-OML4-001', fac:'OML4-GCS-02', type:'single', mw:12.5, fuel:'Associated gas', opHours:7800, ch4red:2.1, co2e:58.6, deadline:'2030', status:'pending' },
+    { id:'TU-OML4-002', fac:'OML4-GCS-03', type:'single', mw:8.2,  fuel:'Associated gas', opHours:7200, ch4red:1.8, co2e:50.2, deadline:'2030', status:'planned' },
+    { id:'TU-OML38-001',fac:'OML38-GPS-01',type:'single', mw:15.0, fuel:'Natural gas',    opHours:8200, ch4red:2.6, co2e:72.5, deadline:'2030', status:'pending' },
+    { id:'TU-OML38-002',fac:'OML38-EXP-01',type:'single', mw:6.8,  fuel:'Natural gas',    opHours:6900, ch4red:1.6, co2e:44.6, deadline:'2030', status:'pending' },
+  ];
+
+  function renderTurbineCards() {
+    const container = document.getElementById('turbine-cards');
+    if (!container) return;
+    container.innerHTML = turbineData.map(t => {
+      const statusCls = t.status === 'planned' ? 'border-color:rgba(46,125,69,.3);background:rgba(46,125,69,.04)' : 'border-color:rgba(212,174,80,.2);background:rgba(212,174,80,.03)';
+      const statusTag = t.status === 'planned' ? '<span class="tag tag-y" style="font-size:8px;">Upgrade Planned</span>' : '<span class="tag tag-n" style="font-size:8px;">No Plan Yet</span>';
+      return `<div class="panel" style="${statusCls}">
+        <div class="panel-head">
+          <span class="panel-title">${t.id}</span>
+          ${statusTag}
+        </div>
+        <div class="panel-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+            <div>
+              <div class="kpi-label" style="font-size:8px;">Facility</div>
+              <div class="mono" style="font-size:11px;color:#D4DCE8;margin-top:2px;">${t.fac}</div>
+            </div>
+            <div>
+              <div class="kpi-label" style="font-size:8px;">Current Type</div>
+              <div style="margin-top:2px;"><span class="tag tag-r" style="font-size:8px;">Single-Cycle</span></div>
+            </div>
+            <div>
+              <div class="kpi-label" style="font-size:8px;">Rated Power</div>
+              <div class="mono" style="font-size:11px;color:#D4DCE8;margin-top:2px;">${t.mw} MW</div>
+            </div>
+            <div>
+              <div class="kpi-label" style="font-size:8px;">Annual Op Hours</div>
+              <div class="mono" style="font-size:11px;color:#D4DCE8;margin-top:2px;">${t.opHours.toLocaleString()} hrs</div>
+            </div>
+          </div>
+          <div style="background:rgba(212,174,80,.06);border:1px solid rgba(212,174,80,.15);padding:10px 12px;">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#D4AE50;margin-bottom:6px;">Conversion Potential</div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+              <span style="font-size:11px;color:#8A9BB0;">CH₄ reduction / year</span>
+              <span class="mono" style="color:#D4AE50;">${t.ch4red} tCH₄</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <span style="font-size:11px;color:#8A9BB0;">CO₂e reduction (AR6)</span>
+              <span class="mono" style="color:#D4AE50;">${t.co2e} tCO₂e</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
+            <span style="font-family:'DM Mono',monospace;font-size:9px;color:#4A5568;">NUPRC deadline: ${t.deadline}</span>
+            <button class="btn-outline" style="padding:4px 10px;font-size:9px;">Plan Upgrade</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Storage tanks
+  const tanksData = [
+    { id:'TK-OML4-001',  fac:'OML4-WPF-01',  type:'Fixed-roof (crude)', cap:5000,  voc:14.2, tier:'Phase 1',  deadline:'Year 1 ✓', lastFlash:'Jan 2025', vru:'Yes — VRU',   status:'compliant' },
+    { id:'TK-OML4-002',  fac:'OML4-GCS-02',  type:'Condensate',         cap:2500,  voc:3.8,  tier:'Phase 3',  deadline:'End 2027',  lastFlash:'Apr 2025', vru:'No',          status:'ok' },
+    { id:'TK-OML38-001', fac:'OML38-WPF-01', type:'Fixed-roof (crude)', cap:8000,  voc:18.6, tier:'Phase 1',  deadline:'Year 1 ✓', lastFlash:'Feb 2025', vru:'Yes — VRU',   status:'compliant' },
+    { id:'TK-OML38-002', fac:'OML38-WPF-01', type:'Produced water',     cap:3000,  voc:1.2,  tier:'Exempt',   deadline:'N/A',       lastFlash:'N/A',      vru:'N/A',         status:'exempt' },
+    { id:'TK-OML38-003', fac:'OML38-GPS-01', type:'Condensate',         cap:4500,  voc:8.4,  tier:'Phase 2',  deadline:'End 2026',  lastFlash:'Jan 2024', vru:'No',          status:'action' },
+    { id:'TK-OML38-004', fac:'OML38-EXP-01', type:'Fixed-roof (crude)', cap:10000, voc:22.1, tier:'Phase 1',  deadline:'Year 1 ✓', lastFlash:'Mar 2025', vru:'Yes — CVS',   status:'compliant' },
+  ];
+
+  function renderTanks() {
+    const tb = document.getElementById('tanks-tbody');
+    if (!tb) return;
+    tb.innerHTML = tanksData.map(t => {
+      const stCls = t.status === 'compliant' ? 'tag-g' : t.status === 'action' ? 'tag-y' : t.status === 'exempt' ? 'tag-n' : 'tag-g';
+      const stLabel = t.status === 'compliant' ? 'Compliant' : t.status === 'action' ? '⚠ Action Req.' : t.status === 'exempt' ? 'Exempt' : 'On Track';
+      const flashFlag = t.lastFlash === 'N/A' ? 'N/A' : t.lastFlash.includes('2024') ? `<span style="color:#D4AE50;">${t.lastFlash} ⚠</span>` : t.lastFlash;
+      return `<tr>
+        <td class="mono">${t.id}</td>
+        <td class="mono" style="font-size:11px;">${t.fac}</td>
+        <td style="font-size:11px;">${t.type}</td>
+        <td class="mono">${t.cap.toLocaleString()}</td>
+        <td class="mono" style="color:${t.voc>12?'#E74C3C':t.voc>6?'#D4AE50':t.voc>2?'#8A9BB0':'#4A5568'}">${t.voc}</td>
+        <td><span class="tag tag-b" style="font-size:8px;">${t.tier}</span></td>
+        <td style="font-size:11px;">${t.deadline}</td>
+        <td style="font-size:11px;">${flashFlag}</td>
+        <td style="font-size:11px;">${t.vru}</td>
+        <td><span class="tag ${stCls}" style="font-size:8px;">${stLabel}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Action list
+  const actions = [
+    { priority:'critical', type:'Rod Packing', id:'RC-OML4-004', fac:'OML4-GCS-03', issue:'28,140 hrs accumulated — 2,140 hrs over 26,000 hr limit', deadline:'Immediate', ch4:'4.1 kg/hr', est:'$2,400 replacement' },
+    { priority:'high',     type:'Pneumatic Controller', id:'PC-OML4-004', fac:'OML4-GCS-03', issue:'High-bleed (0.34 scm/hr) · Year 3 target 75% zero-bleed by Jan 2027', deadline:'Jan 2027', ch4:'0.42 tCH₄/yr', est:'$850/device' },
+    { priority:'high',     type:'Pneumatic Controller', id:'PC-OML4-005', fac:'OML4-GCS-03', issue:'High-bleed (0.28 scm/hr) · Year 3 target 75% zero-bleed by Jan 2027', deadline:'Jan 2027', ch4:'0.35 tCH₄/yr', est:'$850/device' },
+    { priority:'high',     type:'Pneumatic Controller', id:'PC-OML38-002',fac:'OML38-GPS-01',issue:'High-bleed (0.41 scm/hr) · Year 3 target 75% zero-bleed by Jan 2027', deadline:'Jan 2027', ch4:'0.51 tCH₄/yr', est:'$850/device' },
+    { priority:'medium',   type:'Storage Tank VOC Control', id:'TK-OML38-003',fac:'OML38-GPS-01',issue:'8.4 tpy VOC · 6–12 tpy tier requires vapour control by end 2026', deadline:'Dec 2026', ch4:'—', est:'$18,000–45,000 VRU' },
+    { priority:'medium',   type:'Rod Packing (Warning)', id:'RC-OML38-002',fac:'OML38-GPS-01',issue:'24,850 hrs · Approaching 26,000 hr limit — 1,150 hrs remaining', deadline:'~2 months', ch4:'0.9 kg/hr', est:'$2,400 replacement' },
+    { priority:'medium',   type:'Flash Analysis', id:'TK-OML38-003',fac:'OML38-GPS-01',issue:'Last flash analysis Jan 2024 — annual requirement exceeded for >2 tpy tank', deadline:'Overdue', ch4:'—', est:'$1,200 analysis' },
+    { priority:'low',      type:'Pneumatic Controller', id:'PC-OML38-001',fac:'OML38-GPS-01',issue:'Low-bleed (0.11 scm/hr) · Replace by Year 3 to meet 75% target', deadline:'Jan 2027', ch4:'0.02 tCH₄/yr', est:'$850/device' },
+    { priority:'low',      type:'Turbine Upgrade Planning', id:'TU-OML4-001',fac:'OML4-GCS-02',issue:'Single-cycle turbine · 2030 deadline · No upgrade plan logged yet', deadline:'2030', ch4:'2.1 tCH₄/yr reduction potential', est:'$2M–8M capex' },
+  ];
+
+  function renderActions() {
+    const container = document.getElementById('action-cards-list');
+    if (!container) return;
+    const priorityConfig = {
+      critical: { cls:'urgent', dot:'dot-r', label:'Critical', color:'#E74C3C' },
+      high:     { cls:'warn',   dot:'dot-o', label:'High',     color:'#E67E22' },
+      medium:   { cls:'warn',   dot:'dot-y', label:'Medium',   color:'#D4AE50' },
+      low:      { cls:'',       dot:'dot-g', label:'Low',      color:'#4CAF6F' },
+    };
+    container.innerHTML = actions.map(a => {
+      const cfg = priorityConfig[a.priority];
+      return `<div class="action-card ${cfg.cls}">
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:${cfg.color};margin-top:5px;flex-shrink:0;"></div>
+          <div style="flex:1;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:13px;font-weight:500;color:#FDFCF9;">${a.type} · <span class="mono" style="font-size:12px;">${a.id}</span></span>
+                <span class="tag tag-n" style="font-size:8px;">${a.fac}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                <span style="font-family:'DM Mono',monospace;font-size:9px;color:${cfg.color};padding:2px 8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);">Priority: ${cfg.label}</span>
+                <span style="font-family:'DM Mono',monospace;font-size:9px;color:#8A9BB0;">Deadline: ${a.deadline}</span>
+              </div>
+            </div>
+            <div style="font-size:12px;color:#8A9BB0;margin-top:4px;">${a.issue}</div>
+            <div style="display:flex;align-items:center;gap:16px;margin-top:8px;">
+              ${a.ch4 !== '—' ? `<span style="font-family:'DM Mono',monospace;font-size:10px;color:#4A5568;">CH₄ impact: <span style="color:#D4DCE8;">${a.ch4}</span></span>` : ''}
+              <span style="font-family:'DM Mono',monospace;font-size:10px;color:#4A5568;">Est. cost: <span style="color:#D4AE50;">${a.est}</span></span>
+              <button class="btn-outline" style="padding:4px 10px;font-size:9px;margin-left:auto;" onclick="openModal('add-equipment-modal')">Update Record</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ═══════════ CHARTS ═══════════
+  let chartsInited = false;
+  function initCharts() {
+    if (chartsInited) return;
+    chartsInited = true;
+
+    // Pneumatic phase-in trend
+    const pCtx = document.getElementById('pneumatic-trend-chart');
+    if (pCtx) {
+      new Chart(pCtx, {
+        type: 'line',
+        data: {
+          labels: ['2022 (Yr1)', '2023', '2024', '2025', '2026 (Yr2)', '2027 (Yr3)\nTarget'],
+          datasets: [
+            {
+              label: 'Actual % Zero-Bleed',
+              data: [25, 30, 42, 55, 65, null],
+              borderColor: '#4CAF6F', backgroundColor: 'rgba(46,125,69,.1)',
+              borderWidth: 2, tension: 0.35, fill: true,
+              pointBackgroundColor: '#4CAF6F', pointRadius: 4,
+            },
+            {
+              label: 'NUPRC Target',
+              data: [25, 25, 65, 65, 65, 75],
+              borderColor: '#D4AE50', borderDash: [5,4],
+              borderWidth: 1.5, tension: 0, fill: false,
+              pointBackgroundColor: '#D4AE50', pointRadius: 3,
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color:'#8A9BB0', font:{ family:'DM Mono', size:9 } } } },
+          scales: {
+            x: { ticks:{ color:'#4A5568', font:{ family:'DM Mono', size:9 } }, grid:{ color:'rgba(46,125,69,.06)' } },
+            y: { min:0, max:100, ticks:{ color:'#4A5568', font:{ family:'DM Mono', size:9 }, callback: v => v+'%' }, grid:{ color:'rgba(46,125,69,.06)' } }
+          }
+        }
+      });
+    }
+
+    // CH4 donut
+    const dCtx = document.getElementById('ch4-donut-chart');
+    if (dCtx) {
+      new Chart(dCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['High-Bleed Pneumatic','Rod Packing (overdue)','Turbine Conversion','Low-Bleed Pneumatic'],
+          datasets: [{
+            data: [7.2, 3.1, 8.1, 0.8],
+            backgroundColor: ['#E74C3C','#E67E22','#D4AE50','#5DADE2'],
+            borderColor: '#0D1A12', borderWidth: 2,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position:'bottom', labels:{ color:'#8A9BB0', font:{ family:'DM Mono', size:8 }, padding:8, boxWidth:10 } }
+          },
+          cutout: '60%',
+        }
+      });
+    }
+    lucide.createIcons();
+  }
+
+  // ═══════════ INIT ═══════════
+  renderPneumatic();
+  renderRodPacking();
+  renderTurbineCards();
+  renderTanks();
+  renderActions();
+  initCharts();
+  lucide.createIcons();
+</script>
+
+</body>
+</html>

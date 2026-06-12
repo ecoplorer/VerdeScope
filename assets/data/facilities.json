@@ -1,0 +1,309 @@
+{
+  "_meta": {
+    "title": "VerdeScope Facility Dataset",
+    "file": "assets/data/facilities.json",
+    "source": "NUPRC Guide 0024-2022 §3.1 | Illustrative demo data",
+    "generated": "2026-04-11T00:00:00Z",
+    "note": "Facility types: WPF=Well Production Facility, GPP=Gas Processing Plant, GS=Gathering Station, CS=Compression Station, ET=Export Terminal. Coordinates are illustrative Niger Delta positions."
+  },
+
+  "facility_types": {
+    "WPF":  { "full": "Well Production Facility",          "nuprc_scope": true,  "ldar_required": true  },
+    "GPP":  { "full": "Gas Processing Plant",              "nuprc_scope": true,  "ldar_required": true  },
+    "GS":   { "full": "Gas Gathering Station",             "nuprc_scope": true,  "ldar_required": true  },
+    "CS":   { "full": "Compression Station",               "nuprc_scope": true,  "ldar_required": true  },
+    "ET":   { "full": "Export Terminal",                   "nuprc_scope": true,  "ldar_required": true  },
+    "WW":   { "full": "Water Disposal Well / Injection",   "nuprc_scope": false, "ldar_required": false }
+  },
+
+  "facilities": [
+    {
+      "id": "FAC-001",
+      "name": "Olo Well Production Facility",
+      "licence": "OML 18",
+      "operator_id": "OP-001",
+      "type": "WPF",
+      "status": "operational",
+      "commissioned": "2010-06-01",
+      "lat": 5.4821,
+      "lng": 6.7134,
+      "terrain": "onshore",
+      "state": "Rivers",
+      "lga": "Ogba/Egbema/Ndoni",
+      "components": {
+        "valves": 142,
+        "connectors": 88,
+        "flanges": 62,
+        "pump_seals": 8,
+        "open_ended_lines": 12,
+        "total": 312
+      },
+      "equipment": {
+        "pneumatic_controllers": 68,
+        "reciprocating_compressors": 4,
+        "storage_tanks": 8,
+        "flares": 1
+      },
+      "production": {
+        "oil_bopd_avg": 12400,
+        "gas_mmscfd_avg": 18.2,
+        "water_bwpd_avg": 8600
+      },
+      "flare_details": {
+        "flare_count": 1,
+        "flare_id": "FL-01",
+        "flare_type": "elevated_open",
+        "auto_igniter": true,
+        "last_igniter_test": "2025-11-10",
+        "dre_pct": 98.2
+      },
+      "ldar_schedule_2026": [
+        { "quarter": "Q1 2026", "planned_date": "2026-03-14", "status": "completed" },
+        { "quarter": "Q2 2026", "planned_date": "2026-04-28", "status": "scheduled" },
+        { "quarter": "Q3 2026", "planned_date": "2026-07-21", "status": "planned"   },
+        { "quarter": "Q4 2026", "planned_date": "2026-10-19", "status": "planned"   }
+      ],
+      "scope1_tco2e_cy2025": 62400
+    },
+    {
+      "id": "FAC-002",
+      "name": "Asasa Gas Processing Plant",
+      "licence": "OML 18",
+      "operator_id": "OP-001",
+      "type": "GPP",
+      "status": "operational",
+      "commissioned": "2012-03-15",
+      "lat": 5.5102,
+      "lng": 6.7489,
+      "terrain": "onshore",
+      "state": "Rivers",
+      "lga": "Ahoada West",
+      "components": {
+        "valves": 218,
+        "connectors": 124,
+        "flanges": 98,
+        "compressor_seals": 8,
+        "pump_seals": 14,
+        "open_ended_lines": 19,
+        "total": 481
+      },
+      "equipment": {
+        "pneumatic_controllers": 94,
+        "centrifugal_compressors": 4,
+        "reciprocating_compressors": 8,
+        "glycol_dehydrators": 2,
+        "storage_tanks": 6,
+        "turbines": 2,
+        "flares": 2
+      },
+      "production": {
+        "gas_processed_mmscfd_avg": 82.4,
+        "ngl_bopd_avg": 3200,
+        "condensate_bopd_avg": 1800
+      },
+      "flare_details": {
+        "flare_count": 2,
+        "flare_ids": ["FL-02", "FL-03"],
+        "flare_types": ["elevated_open", "ground_flare"],
+        "auto_igniter": true,
+        "dre_pct_avg": 97.8,
+        "note": "FL-03 DRE flagged at 94.1% in April 2026 — under investigation"
+      },
+      "ldar_schedule_2026": [
+        { "quarter": "Q1 2026", "planned_date": "2026-03-18", "status": "completed" },
+        { "quarter": "Q2 2026", "planned_date": "2026-05-05", "status": "scheduled" },
+        { "quarter": "Q3 2026", "planned_date": "2026-07-28", "status": "planned"   },
+        { "quarter": "Q4 2026", "planned_date": "2026-10-26", "status": "planned"   }
+      ],
+      "scope1_tco2e_cy2025": 44820
+    },
+    {
+      "id": "FAC-003",
+      "name": "Imo River Export Terminal",
+      "licence": "OML 18",
+      "operator_id": "OP-001",
+      "type": "ET",
+      "status": "operational",
+      "commissioned": "2011-09-01",
+      "lat": 5.4490,
+      "lng": 6.6800,
+      "terrain": "onshore",
+      "state": "Rivers",
+      "lga": "Ahoada East",
+      "components": {
+        "valves": 88,
+        "connectors": 54,
+        "flanges": 34,
+        "open_ended_lines": 12,
+        "total": 188
+      },
+      "equipment": {
+        "pneumatic_controllers": 24,
+        "storage_tanks": 4,
+        "loading_arms": 3,
+        "flares": 0
+      },
+      "production": {
+        "crude_throughput_bopd_avg": 18400
+      },
+      "ldar_schedule_2026": [
+        { "quarter": "Q1 2026", "planned_date": "2026-03-24", "status": "completed" },
+        { "quarter": "Q2 2026", "planned_date": "2026-05-12", "status": "scheduled" },
+        { "quarter": "Q3 2026", "planned_date": "2026-08-04", "status": "planned"   },
+        { "quarter": "Q4 2026", "planned_date": "2026-11-02", "status": "planned"   }
+      ],
+      "scope1_tco2e_cy2025": 11230
+    },
+    {
+      "id": "FAC-004",
+      "name": "Asasa North Gathering Station",
+      "licence": "OML 18",
+      "operator_id": "OP-001",
+      "type": "GS",
+      "status": "operational",
+      "commissioned": "2018-04-10",
+      "lat": 5.5310,
+      "lng": 6.7320,
+      "terrain": "onshore",
+      "state": "Rivers",
+      "components": {
+        "valves": 62,
+        "connectors": 38,
+        "flanges": 22,
+        "total": 122
+      },
+      "equipment": {
+        "pneumatic_controllers": 18,
+        "reciprocating_compressors": 2,
+        "flares": 1
+      },
+      "ldar_schedule_2026": [
+        { "quarter": "Q2 2026", "planned_date": "2026-05-14", "status": "scheduled" },
+        { "quarter": "Q4 2026", "planned_date": "2026-11-10", "status": "planned"   }
+      ],
+      "scope1_tco2e_cy2025": 8120,
+      "note": "New facility commissioned 2018 — Year 3+ quarterly LDAR schedule applies. H1 2026 is fifth year."
+    },
+    {
+      "id": "FAC-005",
+      "name": "Makaraba WPF",
+      "licence": "OML 49 (PML 25)",
+      "operator_id": "OP-003",
+      "type": "WPF",
+      "status": "operational",
+      "commissioned": "2005-11-20",
+      "lat": 5.2480,
+      "lng": 5.9820,
+      "terrain": "continental_shelf",
+      "components": { "total": 428 },
+      "equipment": {
+        "pneumatic_controllers": 112,
+        "centrifugal_compressors": 6,
+        "storage_tanks": 12,
+        "flares": 2
+      },
+      "production": {
+        "oil_bopd_avg": 28400,
+        "gas_mmscfd_avg": 42.8
+      },
+      "scope1_tco2e_cy2025": 88600
+    },
+    {
+      "id": "FAC-006",
+      "name": "Bonga FPSO",
+      "licence": "OML 118",
+      "operator_id": "OP-005",
+      "type": "WPF",
+      "status": "operational",
+      "commissioned": "2005-11-01",
+      "lat": 4.1240,
+      "lng": 5.0560,
+      "terrain": "deep_offshore",
+      "components": { "total": 892 },
+      "equipment": {
+        "pneumatic_controllers": 204,
+        "centrifugal_compressors": 12,
+        "turbines": 4,
+        "storage_tanks": 24,
+        "flares": 2
+      },
+      "production": {
+        "oil_bopd_avg": 130000,
+        "gas_mmscfd_avg": 112.0
+      },
+      "scope1_tco2e_cy2025": 228400,
+      "ldar_note": "Offshore manned — same frequency as onshore. Drone OGI access for elevated components."
+    },
+    {
+      "id": "FAC-007",
+      "name": "Forcados Export Terminal",
+      "licence": "OML 58 (TotalEnergies JVC)",
+      "operator_id": "OP-006",
+      "type": "ET",
+      "status": "operational",
+      "commissioned": "1971-07-01",
+      "lat": 5.3600,
+      "lng": 5.4400,
+      "terrain": "onshore",
+      "state": "Delta",
+      "components": { "total": 614 },
+      "equipment": {
+        "storage_tanks": 18,
+        "loading_arms": 8,
+        "flares": 1
+      },
+      "production": {
+        "crude_throughput_bopd_avg": 280000
+      },
+      "scope1_tco2e_cy2025": 42100
+    },
+    {
+      "id": "FAC-008",
+      "name": "Obiafu/Obrikom Gas Processing Plant",
+      "licence": "OML 61 (NNPC/Oando)",
+      "operator_id": "OP-011",
+      "type": "GPP",
+      "status": "operational",
+      "commissioned": "2002-08-14",
+      "lat": 5.7280,
+      "lng": 6.5640,
+      "terrain": "onshore",
+      "state": "Rivers",
+      "components": { "total": 682 },
+      "equipment": {
+        "pneumatic_controllers": 148,
+        "centrifugal_compressors": 8,
+        "glycol_dehydrators": 4,
+        "storage_tanks": 10,
+        "turbines": 3,
+        "flares": 3
+      },
+      "production": {
+        "gas_processed_mmscfd_avg": 204.0,
+        "ngl_bopd_avg": 8400
+      },
+      "scope1_tco2e_cy2025": 142800
+    }
+  ],
+
+  "facility_summary": {
+    "total_facilities_in_platform": 8,
+    "note": "Full production database contains 265 processing stations across 258 licences. Demo data shows 8 representative facilities.",
+    "total_scope1_tco2e_cy2025_all_facilities": 628470,
+    "by_type": {
+      "WPF": 3,
+      "GPP": 2,
+      "GS":  1,
+      "ET":  2
+    },
+    "by_terrain": {
+      "onshore":           5,
+      "continental_shelf": 1,
+      "deep_offshore":     2
+    },
+    "total_components_in_ldar_scope": 4339,
+    "total_pneumatic_controllers": 668,
+    "total_storage_tanks": 82,
+    "total_flares": 12
+  }
+}
